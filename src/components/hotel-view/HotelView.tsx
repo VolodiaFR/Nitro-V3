@@ -1,5 +1,4 @@
-import { GetConfiguration } from '@nitrots/nitro-renderer';
-import { FC, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useEffect, useRef } from 'react';
 import { GetConfigurationValue } from '../../api';
 import { RoomWidgetView } from './RoomWidgetView';
 
@@ -59,76 +58,87 @@ export const HotelView: FC<{}> = props =>
 
     const timezone = GetConfigurationValue<string>('timezone.settings', '');
 
+/**
     const timeOfDay = useMemo(() =>
     {
         const hour = getHourInTimezone(timezone);
 
         return getTimeOfDay(hour);
     }, [ timezone ]);
-	
-	/**
-	const timeOfDay = 'sunset';
-	For debuging the diff views
 	*/
+
+	const timeOfDay = 'night';
+
 
     const skyColor = SKY_COLORS[timeOfDay] ?? configBgColor ?? '#000';
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const [ isDragging, setIsDragging ] = useState(false);
-    const [ startX, setStartX ] = useState(0);
-    const [ startY, setStartY ] = useState(0);
-    const [ scrollLeft, setScrollLeft ] = useState(0);
-    const [ scrollTop, setScrollTop ] = useState(0);
+    const isDragging   = useRef(false);
+    const lastMouseX   = useRef(0);
+    const lastMouseY   = useRef(0);
 
     useEffect(() =>
     {
-        if(!containerRef.current) return;
-
         const container = containerRef.current;
-        const contentWidth = 3000;
-        const contentHeight = 1185;
-        const viewportWidth = window.innerWidth;
+
+        if(!container) return;
+
+        const viewportWidth  = window.innerWidth;
         const viewportHeight = window.innerHeight - 55;
 
-        container.scrollLeft = Math.max(0, (contentWidth - viewportWidth) / 2);
-        container.scrollTop  = Math.max(0, (contentHeight - viewportHeight) / 2);
+        const lobbyEl = container.querySelector<HTMLElement>('.nitro-hotel-view-lobby');
 
-        setScrollLeft(container.scrollLeft);
-        setScrollTop(container.scrollTop);
+        if(lobbyEl)
+        {
+            const containerRect = container.getBoundingClientRect();
+            const lobbyRect     = lobbyEl.getBoundingClientRect();
+
+            const lobbyCenterX = (lobbyRect.left - containerRect.left) + container.scrollLeft + lobbyRect.width  / 2;
+            const lobbyCenterY = (lobbyRect.top  - containerRect.top)  + container.scrollTop  + lobbyRect.height / 2;
+
+            container.scrollLeft = Math.max(0, lobbyCenterX - viewportWidth  / 2);
+            container.scrollTop  = Math.max(0, lobbyCenterY - viewportHeight / 2);
+        }
+        else
+        {
+            container.scrollLeft = Math.max(0, (2600 - viewportWidth)  / 2);
+            container.scrollTop  = Math.max(0, (1425 - viewportHeight) / 2);
+        }
     }, []);
 
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) =>
     {
         if(e.button !== 0) return;
 
-        setIsDragging(true);
-        setStartX(e.pageX + scrollLeft);
-        setStartY(e.pageY + scrollTop);
+        isDragging.current = true;
+        lastMouseX.current = e.pageX;
+        lastMouseY.current = e.pageY;
 
         if(containerRef.current) containerRef.current.style.cursor = 'grabbing';
     };
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) =>
     {
-        if(!isDragging) return;
+        if(!isDragging.current) return;
 
         e.preventDefault();
 
-        const newScrollLeft = startX - e.pageX;
-        const newScrollTop  = startY - e.pageY;
+        const dx = e.pageX - lastMouseX.current;
+        const dy = e.pageY - lastMouseY.current;
+
+        lastMouseX.current = e.pageX;
+        lastMouseY.current = e.pageY;
 
         if(containerRef.current)
         {
-            containerRef.current.scrollLeft = newScrollLeft;
-            containerRef.current.scrollTop  = newScrollTop;
-            setScrollLeft(newScrollLeft);
-            setScrollTop(newScrollTop);
+            containerRef.current.scrollLeft -= dx;
+            containerRef.current.scrollTop  -= dy;
         }
     };
 
     const handleMouseUp = () =>
     {
-        setIsDragging(false);
+        isDragging.current = false;
         if(containerRef.current) containerRef.current.style.cursor = 'grab';
     };
 
