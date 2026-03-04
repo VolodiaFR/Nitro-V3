@@ -27,4 +27,5 @@ export class WiredActionLayoutCode
     public static BOT_CHANGE_FIGURE: number = 26;
     public static BOT_TALK_DIRECT_TO_AVTR: number = 27;
     public static FURNI_AREA_SELECTOR: number = 28;
+    public static FURNI_NEIGHBORHOOD_SELECTOR: number = 29;
 }
