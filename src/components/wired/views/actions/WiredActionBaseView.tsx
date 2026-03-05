@@ -11,11 +11,12 @@ export interface WiredActionBaseViewProps
     requiresFurni: number;
     save: () => void;
     cardStyle?: CSSProperties;
+    hideDelay?: boolean;
 }
 
 export const WiredActionBaseView: FC<PropsWithChildren<WiredActionBaseViewProps>> = props =>
 {
-    const { requiresFurni = WiredFurniType.STUFF_SELECTION_OPTION_NONE, save = null, hasSpecialInput = false, children = null, cardStyle = undefined } = props;
+    const { requiresFurni = WiredFurniType.STUFF_SELECTION_OPTION_NONE, save = null, hasSpecialInput = false, children = null, cardStyle = undefined, hideDelay = false } = props;
     const { trigger = null, actionDelay = 0, setActionDelay = null } = useWired();
 
     useEffect(() =>
@@ -26,15 +27,15 @@ export const WiredActionBaseView: FC<PropsWithChildren<WiredActionBaseViewProps>
     return (
         <WiredBaseView hasSpecialInput={ hasSpecialInput } requiresFurni={ requiresFurni } save={ save } wiredType="action" cardStyle={ cardStyle }>
             { children }
-            { !!children && <hr className="m-0 bg-dark" /> }
-            <div className="flex flex-col">
+            { !hideDelay && !!children && <hr className="m-0 bg-dark" /> }
+            { !hideDelay && <div className="flex flex-col">
                 <Text bold>{ LocalizeText('wiredfurni.params.delay', [ 'seconds' ], [ GetWiredTimeLocale(actionDelay) ]) }</Text>
                 <Slider
                     max={ 20 }
                     min={ 0 }
                     value={ actionDelay }
                     onChange={ event => setActionDelay(event) } />
-            </div>
+            </div> }
         </WiredBaseView>
     );
 };
