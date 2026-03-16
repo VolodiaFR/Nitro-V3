@@ -69,12 +69,12 @@ export const InventoryBadgeView: FC<{ filteredBadgeCodes?: string[] }> = props =
 {
     const { filteredBadgeCodes = null } = props;
     const [ isVisible, setIsVisible ] = useState(false);
-    const { badgeCodes = [], activeBadgeCodes = [], selectedBadgeCode = null, isWearingBadge = null, canWearBadges = null, toggleBadge = null, getBadgeId = null, setBadgeAtSlot = null, removeBadge = null, reorderBadges = null, setSelectedBadgeCode = null, activate = null, deactivate = null } = useInventoryBadges();
+    const { badgeCodes = [], activeBadgeCodes = [], selectedBadgeCode = null, isWearingBadge = null, canWearBadges = null, toggleBadge = null, getBadgeId = null, setBadgeAtSlot = null, removeBadge = null, reorderBadges = null, setSelectedBadgeCode = null, maxBadgeCount = 5, activate = null, deactivate = null } = useInventoryBadges();
     const { isUnseen = null, removeUnseen = null } = useInventoryUnseenTracker();
     const { showConfirm = null } = useNotification();
     const [ isDragOverInventory, setIsDragOverInventory ] = useState(false);
 
-    const maxSlots = 5;
+    const maxSlots = maxBadgeCount;
     const displayCodes = (filteredBadgeCodes !== null ? filteredBadgeCodes : badgeCodes);
 
     const attemptDeleteBadge = () =>
