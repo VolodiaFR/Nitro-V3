@@ -112,18 +112,27 @@ export const CameraWidgetEditorView: FC<CameraWidgetEditorViewProps> = props => 
                 return;
             }
             case 'clear_effects':
-                setSelectedEffectName(null);
-                setSelectedEffects([]);
+                onCancel();
                 return;
             case 'download': {
-                if(!currentPictureUrl || !currentPictureUrl.startsWith('data:image/')) return;
+                if(!currentPictureUrl) return;
 
-                const link = document.createElement('a');
-                link.href = currentPictureUrl;
-                link.download = 'camera_photo.png';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                const parts = currentPictureUrl.split(',');
+                const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/png';
+                const binary = atob(parts[1]);
+                const bytes = new Uint8Array(binary.length);
+                for(let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                const blob = new Blob([ bytes ], { type: mime });
+                const blobUrl = URL.createObjectURL(blob);
+
+                const w = window.open('', '_blank');
+                if(w)
+                {
+                    w.document.title = 'camera_photo.png';
+                    w.document.body.style.margin = '0';
+                    w.document.body.innerHTML = `<img src="${ blobUrl }" style="max-width:100%"/>`;
+                }
+
                 return;
             }
             case 'zoom':
