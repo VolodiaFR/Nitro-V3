@@ -231,7 +231,7 @@ const useInventoryBadgesState = () =>
         SendMessageComposer(new RequestBadgesComposer());
     };
 
-    return { badgeCodes, activeBadgeCodes, selectedBadgeCode, setSelectedBadgeCode, isWearingBadge, canWearBadges, toggleBadge, getBadgeId, setBadgeAtSlot, removeBadge, reorderBadges, swapBadges, requestBadges, maxBadgeCount, activate, deactivate };
+    return { badgeCodes, activeBadgeCodes, selectedBadgeCode, setSelectedBadgeCode, isWearingBadge, canWearBadges, toggleBadge, getBadgeId, setBadgeAtSlot, removeBadge, reorderBadges, swapBadges, requestBadges, activate, deactivate };
 };
 
 export const useInventoryBadges = () => useBetween(useInventoryBadgesState);
