@@ -37,4 +37,23 @@ export class WiredActionLayoutCode
     public static FURNI_TO_USER: number = 36;
     public static USER_TO_FURNI: number = 37;
     public static FURNI_TO_FURNI: number = 38;
+    public static SET_ALTITUDE: number = 39;
+    public static RELATIVE_MOVE: number = 40;
+    public static CONTROL_CLOCK: number = 41;
+    public static ADJUST_CLOCK: number = 42;
+    public static MOVE_ROTATE_USER: number = 43;
+    public static FURNI_ALTITUDE_SELECTOR: number = 44;
+    public static FURNI_ON_FURNI_SELECTOR: number = 45;
+    public static FURNI_PICKS_SELECTOR: number = 46;
+    public static FURNI_SIGNAL_SELECTOR: number = 47;
+    public static USERS_SIGNAL_SELECTOR: number = 48;
+    public static USERS_BY_TYPE_SELECTOR: number = 49;
+    public static USERS_TEAM_SELECTOR: number = 50;
+    public static USERS_BY_ACTION_SELECTOR: number = 51;
+    public static USERS_BY_NAME_SELECTOR: number = 52;
+    public static USERS_ON_FURNI_SELECTOR: number = 53;
+    public static USERS_GROUP_SELECTOR: number = 54;
+    public static USERS_HANDITEM_SELECTOR: number = 55;
+    public static FILTER_FURNI_EXTRA: number = 56;
+    public static FILTER_USER_EXTRA: number = 57;
 }
