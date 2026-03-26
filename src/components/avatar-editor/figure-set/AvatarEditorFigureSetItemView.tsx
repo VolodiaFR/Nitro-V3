@@ -36,11 +36,17 @@ export const AvatarEditorFigureSetItemView: FC<{
 
             if(setType === AvatarFigurePartType.HEAD)
             {
-                url = await AvatarEditorThumbnailsHelper.buildForFace(getFigureStringWithFace(partItem.id), partIsLocked);
+                url = await AvatarEditorThumbnailsHelper.buildForFace(getFigureStringWithFace(partItem.id), partIsLocked || isSellableNotOwned);
             }
             else
             {
-                url = await AvatarEditorThumbnailsHelper.build(setType, partItem, partItem.usesColor, selectedColorParts[setType] ?? null, partIsLocked || isSellableNotOwned);
+                url = await AvatarEditorThumbnailsHelper.build(
+                    setType,
+                    partItem,
+                    partItem.usesColor,
+                    selectedColorParts[setType] ?? null,
+                    partIsLocked || isSellableNotOwned
+                );
             }
 
             if(url && url.length) setAssetUrl(url);

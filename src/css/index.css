@@ -1180,6 +1180,15 @@ body {
         background-position: center;
         background-size: 22px 22px;
     }
+
+    .tab-nft {
+        width: 34px;
+        height: 22px;
+        background-image: url('@/assets/images/wardrobe/nft.png');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 22px 22px;
+    }
 }
 
 /* ── Avatar Editor misc ─────────────────────────────────────────────────── */
