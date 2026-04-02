@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { FC, useState } from 'react';
 import { GetConfigurationValue, MessengerIconState, OpenMessengerChat, VisitDesktop } from '../../api';
 import { Flex, LayoutAvatarImageView, LayoutItemCountView } from '../../common';
-import { useAchievements, useFriends, useInventoryUnseenTracker, useMessageEvent, useMessenger, useNitroEvent, useSessionInfo } from '../../hooks';
+import { useAchievements, useFriends, useInventoryUnseenTracker, useMessageEvent, useMessenger, useNitroEvent, useSessionInfo, useWiredTools } from '../../hooks';
 import { ToolbarItemView } from './ToolbarItemView';
 import { ToolbarMeView } from './ToolbarMeView';
 
@@ -17,6 +17,7 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
     const { getTotalUnseen = 0 } = useAchievements();
     const { requests = [] } = useFriends();
     const { iconState = MessengerIconState.HIDDEN } = useMessenger();
+    const { openMonitor, showToolbarButton } = useWiredTools();
     const isMod = GetSessionDataManager().isModerator;
 
     useMessageEvent<PerkAllowancesMessageEvent>(PerkAllowancesMessageEvent, event =>
@@ -92,6 +93,8 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
                         { (getFullCount > 0) &&
                             <LayoutItemCountView count={ getFullCount } /> }
                     </ToolbarItemView>
+                    { (isInRoom && showToolbarButton) &&
+                        <ToolbarItemView icon="wired-tools" onClick={ openMonitor } /> }
                     { isInRoom &&
                         <ToolbarItemView icon="camera" onClick={ event => CreateLinkEvent('camera/toggle') } /> }
                     { isMod &&
