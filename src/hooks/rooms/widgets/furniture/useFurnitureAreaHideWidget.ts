@@ -1,4 +1,4 @@
-import { FurnitureMultiStateComposer, GetRoomEngine, RoomAreaSelectionManager, RoomEngineAreaHideStateEvent, RoomEngineTriggerWidgetEvent, RoomObjectVariable, SetObjectDataMessageComposer } from '@nitrots/nitro-renderer';
+import { GetRoomEngine, RoomAreaSelectionManager, RoomEngineAreaHideStateEvent, RoomEngineTriggerWidgetEvent, RoomObjectVariable, SetObjectDataMessageComposer } from '@nitrots/nitro-renderer';
 import { useCallback, useEffect, useState } from 'react';
 import { CanManipulateFurniture, SendMessageComposer } from '../../../../api';
 import { useNitroEvent } from '../../../events';
@@ -38,9 +38,10 @@ const useFurnitureAreaHideWidgetState = () =>
     {
         if(objectId === -1) return;
 
+        const nextState = (isOn ? 0 : 1);
         const data = new Map<string, string>();
 
-        data.set('state', isOn ? '1' : '0');
+        data.set('state', nextState.toString());
         data.set('rootX', rootX.toString());
         data.set('rootY', rootY.toString());
         data.set('width', width.toString());
@@ -50,7 +51,6 @@ const useFurnitureAreaHideWidgetState = () =>
         data.set('invert', inverted ? '1' : '0');
 
         SendMessageComposer(new SetObjectDataMessageComposer(objectId, data));
-        SendMessageComposer(new FurnitureMultiStateComposer(objectId, isOn ? 0 : 1));
 
         onClose();
     }, [ objectId, isOn, rootX, rootY, width, length, invisibility, wallItems, inverted ]);
