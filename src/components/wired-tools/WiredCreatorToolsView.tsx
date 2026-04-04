@@ -3000,6 +3000,23 @@ export const WiredCreatorToolsView: FC<{}> = () =>
                 return;
             }
 
+            const selectedRoomObject = GetRoomEngine().getRoomObject(roomSession.roomId, selectedUser.roomIndex, RoomObjectCategory.UNIT);
+            const currentLocation = (selectedRoomObject?.getLocation() ?? new Vector3d(currentLiveState.positionX, currentLiveState.positionY, (currentLiveState.altitude / 100)));
+            const nextLocation = new Vector3d(nextX, nextY, currentLocation.z);
+            const nextDirectionVector = new Vector3d((nextDirection * 45));
+
+            GetRoomEngine().updateRoomObjectUserLocation(
+                roomSession.roomId,
+                selectedUser.roomIndex,
+                currentLocation,
+                nextLocation,
+                false,
+                0,
+                nextDirectionVector,
+                (nextDirection * 45),
+                false,
+                true);
+
             SendMessageComposer(new WiredUserInspectMoveComposer(selectedUser.roomIndex, nextX, nextY, nextDirection));
 
             setSelectedUserLiveState({
