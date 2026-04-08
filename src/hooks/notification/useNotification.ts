@@ -68,11 +68,11 @@ const useNotificationState = () =>
 
     const showNitroAlert = useCallback(() => simpleAlert(null, NotificationAlertType.NITRO), [ simpleAlert ]);
 
-    const showSingleBubble = useCallback((message: string, type: string, imageUrl: string = null, internalLink: string = null) =>
+    const showSingleBubble = useCallback((message: string, type: string, imageUrl: string = null, internalLink: string = null, senderName: string = '') =>
     {
         if(bubblesDisabled) return;
 
-        const notificationItem = new NotificationBubbleItem(message, type, imageUrl, internalLink);
+        const notificationItem = new NotificationBubbleItem(message, type, imageUrl, internalLink, senderName);
 
         setBubbleAlerts(prevValue => [ notificationItem, ...prevValue ]);
     }, [ bubblesDisabled ]);
@@ -226,7 +226,6 @@ const useNotificationState = () =>
     {
         const parser = event.getParser();
 
-        // Skip if AchievementNotificationMessageEvent already showed a notification for this badge
         if(recentBadgeNotifications.has(parser.badgeCode)) return;
 
         recentBadgeNotifications.add(parser.badgeCode);
@@ -234,8 +233,9 @@ const useNotificationState = () =>
 
         const badgeName = LocalizeBadgeName(parser.badgeCode);
         const badgeImage = GetSessionDataManager().getBadgeUrl(parser.badgeCode);
+        const senderName = parser.senderName || '';
 
-        showSingleBubble(badgeName, NotificationBubbleType.BADGE_RECEIVED, badgeImage, parser.badgeCode);
+        showSingleBubble(badgeName, NotificationBubbleType.BADGE_RECEIVED, badgeImage, parser.badgeCode, senderName);
     });
 
     useMessageEvent<ClubGiftNotificationEvent>(ClubGiftNotificationEvent, event =>

@@ -45,7 +45,11 @@ export const NotificationBadgeReceivedBubbleView: FC<NotificationBadgeReceivedBu
                         { item.iconUrl && <img alt="" className="no-select" src={ item.iconUrl } /> }
                     </Flex>
                     <Flex column gap={ 0 }>
-                        <Text bold variant="white">{ LocalizeText('notification.badge.received') }</Text>
+                        <Text bold variant="white">
+                            { item.senderName
+                                ? LocalizeText('notifications.text.received.badge', [ 'user_name' ], [ item.senderName ])
+                                : LocalizeText('prereg.reward.you.received') }
+                        </Text>
                         <Text variant="white" small>{ item.message }</Text>
                     </Flex>
                 </Flex>
