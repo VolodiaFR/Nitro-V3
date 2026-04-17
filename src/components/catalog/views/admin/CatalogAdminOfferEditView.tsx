@@ -16,7 +16,7 @@ export const CatalogAdminOfferEditView: FC<{}> = () =>
     const createOffer = catalogAdmin?.createOffer;
     const loading = catalogAdmin?.loading ?? false;
 
-    const [ itemIds, setItemIds ] = useState('0');
+    const [ itemIds, setItemIds ] = useState('');
     const [ catalogName, setCatalogName ] = useState('');
     const [ costCredits, setCostCredits ] = useState(0);
     const [ costPoints, setCostPoints ] = useState(0);
@@ -37,7 +37,7 @@ export const CatalogAdminOfferEditView: FC<{}> = () =>
         if(editingOffer.offerId === -1)
         {
             setIsNew(true);
-            setItemIds('0');
+            setItemIds('');
             setCatalogName('');
             setCostCredits(0);
             setCostPoints(0);
@@ -53,7 +53,7 @@ export const CatalogAdminOfferEditView: FC<{}> = () =>
         else
         {
             setIsNew(false);
-            setItemIds(String(editingOffer.product?.productClassId || 0));
+            setItemIds(editingOffer.itemIds || '');
             setCatalogName(editingOffer.localizationName || '');
             setCostCredits(editingOffer.priceInCredits);
             setCostPoints(editingOffer.priceInActivityPoints);
@@ -140,7 +140,7 @@ export const CatalogAdminOfferEditView: FC<{}> = () =>
                         <div className="grid grid-cols-3 gap-1.5">
                             <div className="flex flex-col gap-0.5">
                                 <label className="text-[9px] text-muted">Item IDs</label>
-                                <input className={ inputClass } placeholder="1234" type="text" value={ itemIds } onChange={ e => setItemIds(e.target.value) } />
+                                <input className={ inputClass } placeholder="1234 or 100;200" type="text" value={ itemIds } onChange={ e => setItemIds(e.target.value) } />
                             </div>
                             <div className="flex flex-col gap-0.5">
                                 <label className="text-[9px] text-muted">{ LocalizeText('catalog.admin.offer.quantity') }</label>

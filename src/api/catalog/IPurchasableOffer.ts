@@ -22,4 +22,5 @@ export interface IPurchasableOffer
     localizationDescription: string;
     isLazy: boolean;
     products: IProduct[];
+    itemIds: string;
 }
