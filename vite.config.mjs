@@ -27,6 +27,7 @@ export default defineConfig({
         tsconfigPaths: true,
         alias: {
             '@': resolve(__dirname, 'src'),
+            '@layout': resolve(__dirname, 'src/layout'),
             '~': resolve(__dirname, 'node_modules'),
             '@nitrots/api': resolve(rendererRoot, 'packages/api/src/index.ts'),
             '@nitrots/assets': resolve(rendererRoot, 'packages/assets/src/index.ts'),
