@@ -25,6 +25,7 @@ import { NavigatorView } from './navigator/NavigatorView';
 import { NitrobubbleHiddenView } from './nitrobubblehidden/NitrobubbleHiddenView';
 import { NitropediaView } from './nitropedia/NitropediaView';
 import { ExternalPluginLoader } from './plugins/ExternalPluginLoader';
+import { GoogleAdsView } from './ads/GoogleAdsView';
 import { RightSideView } from './right-side/RightSideView';
 import { RoomView } from './room/RoomView';
 import { ToolbarView } from './toolbar/ToolbarView';
@@ -112,6 +113,7 @@ export const MainView: FC<{}> = props =>
             </AnimatePresence>
             <ToolbarView isInRoom={ !landingViewVisible } />
             <TranslationBootstrap />
+            <GoogleAdsView />
             <ModToolsView />
             <WiredCreatorToolsView />
             <RoomView />

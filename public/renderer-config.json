@@ -1,5 +1,6 @@
 {
-	"socket.url": "ws://192.168.1.52:2096",
+	"socket.url": "wss://nitro.slogga.it:2096",
+	"api.url": "https://nitro.slogga.it:2096",
 	"asset.url": "https://client.slogga.it/nitro/bundled",
 	"image.library.url": "https://client.slogga.it/c_images/",
 	"hof.furni.url": "https://client.slogga.it/c_images/dcr/hof_furni",
@@ -41,6 +42,13 @@
 	"room.color.skip.transition": true,
 	"room.landscapes.enabled": true,
 	"room.zoom.enabled": true,
+	"login.screen.enabled": true,
+	"login.endpoint": "${api.url}/api/auth/login",
+	"login.register.endpoint": "${api.url}/api/auth/register",
+	"login.forgot.endpoint": "${api.url}/api/auth/forgot-password",
+	"login.logout.endpoint": "${api.url}/api/auth/logout",
+	"login.turnstile.enabled": false,
+	"login.turnstile.sitekey": "",
 	"avatar.mandatory.libraries": [
 		"bd:1",
 		"li:0"
