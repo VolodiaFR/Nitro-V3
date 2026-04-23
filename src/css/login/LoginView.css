@@ -85,10 +85,11 @@
 .nitro-login-view .login-right {
     bottom: 0;
     right: 0;
-    width: 400px;
-    height: 100%;
-    object-fit: none;
-    object-position: right bottom;
+    width: auto;
+    height: auto;
+    max-width: none;
+    object-fit: initial;
+    object-position: initial;
 }
 
 /* ─── Foreground Login Card Stack ─── */
@@ -104,6 +105,79 @@
     width: 260px;
     z-index: 50;
     pointer-events: auto;
+}
+
+.nitro-login-view .login-widgets {
+    position: absolute;
+    top: 18px;
+    left: 240px;
+    right: 360px;
+    z-index: 25;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 34px 58px;
+    pointer-events: auto;
+}
+
+.nitro-login-view .login-widget-slot {
+    min-height: 110px;
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    align-items: center;
+    gap: 22px;
+    color: #ffffff;
+    font-family: Ubuntu, 'Helvetica Neue', Arial, sans-serif;
+    text-shadow: 0 2px 2px rgba(0, 0, 0, 0.45);
+}
+
+.nitro-login-view .login-widget-image {
+    max-width: 150px;
+    max-height: 150px;
+    width: auto;
+    height: auto;
+    justify-self: center;
+    image-rendering: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.nitro-login-view .login-widget-content {
+    min-width: 0;
+}
+
+.nitro-login-view .login-widget-title {
+    font-size: 18px;
+    line-height: 20px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    margin-bottom: 5px;
+}
+
+.nitro-login-view .login-widget-description {
+    max-width: 285px;
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+.nitro-login-view .login-widget-button {
+    min-width: 178px;
+    height: 25px;
+    padding: 0 18px;
+    border: 1px solid #777777;
+    border-radius: 3px;
+    background: linear-gradient(#ffffff, #d4d4d4);
+    color: #111111;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.85), 0 1px 1px rgba(0, 0, 0, 0.35);
+    text-shadow: none;
+}
+
+.nitro-login-view .login-widget-button:hover {
+    background: linear-gradient(#ffffff, #e9e9e9);
 }
 
 .nitro-login-card {
@@ -176,6 +250,24 @@
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(63, 106, 133, 0.3);
 }
 
+.nitro-login-card .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #0a2e45;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+}
+
+.nitro-login-card .remember-row input {
+    width: 13px;
+    height: 13px;
+    margin: 0;
+    cursor: pointer;
+}
+
 .nitro-login-card .submit-row {
     display: flex;
     justify-content: center;
@@ -238,6 +330,75 @@
     text-decoration: underline;
     cursor: pointer;
     font-weight: 600;
+}
+
+.nitro-login-card.login-language-card {
+    padding-bottom: 10px;
+}
+
+.nitro-login-card .login-language-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 46px);
+    justify-content: center;
+    gap: 7px 3px;
+}
+
+.nitro-login-card .login-language-option {
+    position: relative;
+    width: 46px;
+    height: 52px;
+    padding: 0;
+    border: 0;
+    background: transparent center 2px no-repeat;
+    background-size: 38px 32px;
+    cursor: pointer;
+    image-rendering: auto;
+    overflow: hidden;
+}
+
+.nitro-login-card .login-language-option.selected {
+    background-size: 38px 32px;
+}
+
+.nitro-login-card .login-language-option img {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    width: auto;
+    height: auto;
+    max-width: 28px;
+    max-height: 22px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.nitro-login-card .login-language-option span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    color: #1b3444;
+    font-size: 9px;
+    line-height: 10px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nitro-login-card .language-error {
+    margin-top: 6px;
+    color: #9f1b15;
+    font-size: 10px;
+    text-align: center;
+}
+
+.nitro-login-card .login-language-confirm {
+    display: block;
+    min-width: 58px;
+    margin: 7px auto 0;
 }
 
 .nitro-login-card .turnstile-slot {
@@ -476,5 +637,25 @@
 .nitro-login-card .hot-looks-button {
     padding: 4px 14px;
     font-size: 11px;
+}
+
+@media (max-width: 1180px) {
+    .nitro-login-view .login-widgets {
+        left: 210px;
+        right: 315px;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .nitro-login-view .login-widget-slot {
+        grid-template-columns: 120px minmax(0, 1fr);
+        min-height: 86px;
+        gap: 14px;
+    }
+
+    .nitro-login-view .login-widget-image {
+        max-width: 110px;
+        max-height: 110px;
+    }
 }
 

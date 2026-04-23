@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import loadingGif from '@/assets/images/loading/loading.gif';
 import { Base, Column, Text } from '../../common';
 
 interface LoadingViewProps {
@@ -29,7 +30,16 @@ export const LoadingView: FC<LoadingViewProps> = props => {
                                 </a>
                             }
                         </Column>
-                        : null
+                        :
+                        <Column alignItems="center" justifyContent="center" gap={ 3 } className="z-[3]">
+                            <img src={ loadingGif } alt="" draggable={ false } className="block w-auto h-auto select-none pointer-events-none" />
+                            { message && message.length ?
+                                <Text fontSizeCustom={ 20 } variant="white" className="text-center [text-shadow:0px_4px_4px_rgba(0,0,0,0.25)]">
+                                    { message }
+                                </Text>
+                                : null
+                            }
+                        </Column>
                     }
                 </Column>
             </Base>

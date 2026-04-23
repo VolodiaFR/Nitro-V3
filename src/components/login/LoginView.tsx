@@ -1,18 +1,62 @@
 import { GetConfiguration } from '@nitrots/nitro-renderer';
 import { FC, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { GetConfigurationValue } from '../../api';
+import { ClearRememberLogin, GetConfigurationValue, GetRememberLogin, StoreRememberLoginFromPayload } from '../../api';
+import flagBr from '../../assets/images/flag_icon/flag_icon_br.png';
+import flagDe from '../../assets/images/flag_icon/flag_icon_de.png';
+import flagEn from '../../assets/images/flag_icon/flag_icon_en.png';
+import flagEs from '../../assets/images/flag_icon/flag_icon_es.png';
+import flagFi from '../../assets/images/flag_icon/flag_icon_fi.png';
+import flagFr from '../../assets/images/flag_icon/flag_icon_fr.png';
+import flagIt from '../../assets/images/flag_icon/flag_icon_it.png';
+import flagNl from '../../assets/images/flag_icon/flag_icon_nl.png';
+import flagSelected from '../../assets/images/flag_icon/flag_icon_selected.png';
+import flagTr from '../../assets/images/flag_icon/flag_icon_tr.png';
+import { applyTextTranslationLocale } from '../../hooks/translation/useTranslation';
 import { TurnstileWidget } from './TurnstileWidget';
 
 type DialogMode = 'login' | 'register' | 'forgot';
+type LoginLocale = { code: string; file: string; label: string; flag: string };
 
 const interpolate = (value: string | null | undefined): string =>
 {
     if(!value) return '';
-    try { return GetConfiguration().interpolate(value); }
-    catch { return value; }
+
+    let output = value;
+
+    try { output = GetConfiguration().interpolate(value) || value; }
+    catch {}
+
+    return output.replace(/\$\{([^}]+)\}/g, (_, key: string) =>
+    {
+        if(key === 'api.url' && typeof (window as any).NitroSecureApiUrl === 'string')
+        {
+            const secureApiUrl = (window as any).NitroSecureApiUrl.replace(/\/$/, '');
+
+            if(secureApiUrl) return secureApiUrl;
+        }
+
+        try
+        {
+            const configValue = GetConfiguration().getValue<string>(key, '');
+
+            if(configValue) return configValue;
+        }
+        catch {}
+
+        try
+        {
+            const configValue = GetConfigurationValue<string>(key, '');
+
+            if(configValue) return configValue;
+        }
+        catch {}
+
+        return '';
+    });
 };
 
 const LOCK_KEY = 'nitro.login.lock';
+const CHAT_TRANSLATION_SETTINGS_KEY = 'chatTranslationSettings';
 const MAX_ATTEMPTS = 5;
 const LOCK_WINDOW_MS = 60_000;
 const LOCK_DURATION_MS = 2 * 60_000;
@@ -23,6 +67,17 @@ const DEFAULT_LOGIN_IMAGES: Record<string, string> = {
     left: 'https://hotel.slogga.it/client/nitro/images/reception/mute_reception_backdrop_left.png',
     right: 'https://hotel.slogga.it/client/nitro/images/reception/background_right.png'
 };
+const LOGIN_LOCALES: LoginLocale[] = [
+    { code: 'it', file: 'it', label: 'Italiano', flag: flagIt },
+    { code: 'en', file: 'com', label: 'English', flag: flagEn },
+    { code: 'es', file: 'es', label: 'Español', flag: flagEs },
+    { code: 'fr', file: 'fr', label: 'Français', flag: flagFr },
+    { code: 'de', file: 'de', label: 'Deutsch', flag: flagDe },
+    { code: 'pt-BR', file: 'br', label: 'Português', flag: flagBr },
+    { code: 'nl', file: 'nl', label: 'Nederlands', flag: flagNl },
+    { code: 'fi', file: 'fi', label: 'Suomi', flag: flagFi },
+    { code: 'tr', file: 'tr', label: 'Türkçe', flag: flagTr }
+];
 
 type AttemptState = { attempts: number; firstAt: number; lockedUntil: number };
 
@@ -43,6 +98,70 @@ const writeLock = (state: AttemptState) =>
     catch { }
 };
 
+const normalizeLanguageCode = (value: string): string =>
+{
+    if(!value) return '';
+
+    const normalized = value.trim().replace('_', '-');
+    const parts = normalized.split('-');
+
+    if(parts.length === 1) return parts[0].toLowerCase();
+
+    return `${ parts[0].toLowerCase() }-${ parts[1].toUpperCase() }`;
+};
+
+const resolveLoginLocale = (value: string): LoginLocale =>
+{
+    const normalized = normalizeLanguageCode(value);
+    const exactMatch = LOGIN_LOCALES.find(locale => normalizeLanguageCode(locale.code) === normalized);
+
+    if(exactMatch) return exactMatch;
+
+    const base = normalized.split('-')[0];
+
+    if(base === 'pt') return LOGIN_LOCALES.find(locale => locale.file === 'br') || LOGIN_LOCALES[0];
+
+    return LOGIN_LOCALES.find(locale => normalizeLanguageCode(locale.code).split('-')[0] === base) || LOGIN_LOCALES[0];
+};
+
+const getBrowserLocale = (): LoginLocale =>
+{
+    if(typeof navigator === 'undefined') return LOGIN_LOCALES[0];
+
+    return resolveLoginLocale(navigator.language || navigator.languages?.[0] || 'it');
+};
+
+const readCachedLocale = (): LoginLocale =>
+{
+    try
+    {
+        const settings = JSON.parse(localStorage.getItem(CHAT_TRANSLATION_SETTINGS_KEY) || '{}');
+
+        if(typeof settings.uiTextLanguage === 'string' && settings.uiTextLanguage.length) return resolveLoginLocale(settings.uiTextLanguage);
+    }
+    catch {}
+
+    return getBrowserLocale();
+};
+
+const applyLocaleSelection = (locale: LoginLocale): void =>
+{
+    try
+    {
+        const previousSettings = JSON.parse(localStorage.getItem(CHAT_TRANSLATION_SETTINGS_KEY) || '{}');
+        const nextSettings = {
+            enabled: previousSettings.enabled ?? false,
+            incomingTargetLanguage: previousSettings.incomingTargetLanguage || locale.code,
+            outgoingTargetLanguage: previousSettings.outgoingTargetLanguage || locale.code,
+            ...previousSettings,
+            uiTextLanguage: locale.code
+        };
+
+        localStorage.setItem(CHAT_TRANSLATION_SETTINGS_KEY, JSON.stringify(nextSettings));
+    }
+    catch {}
+};
+
 export interface LoginViewProps
 {
     onAuthenticated: (ssoTicket: string) => void;
@@ -61,10 +180,31 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
     const [ loginTurnstileResetSignal, setLoginTurnstileResetSignal ] = useState(0);
     const [ loginServerReachable, setLoginServerReachable ] = useState<boolean | null>(null);
     const [ loginPingingServer, setLoginPingingServer ] = useState(false);
+    const [ rememberMe, setRememberMe ] = useState(() => !!GetRememberLogin());
+    const [ selectedLocale, setSelectedLocale ] = useState<LoginLocale>(() => readCachedLocale());
+    const [ localeApplying, setLocaleApplying ] = useState(false);
+    const [ localeError, setLocaleError ] = useState('');
+    const [ loginViewConfig, setLoginViewConfig ] = useState<Record<string, unknown>>(() => GetConfigurationValue<Record<string, unknown>>('loginview', {}));
     const submitTimeRef = useRef(0);
 
-    const configuredLoginImages: Record<string, string> = ((GetConfigurationValue<Record<string, unknown>>('loginview', {})?.['images']) as Record<string, string>) ?? {};
+    const configuredLoginImages: Record<string, string> = (loginViewConfig?.['images'] as Record<string, string>) ?? {};
     const loginImages: Record<string, string> = { ...DEFAULT_LOGIN_IMAGES, ...configuredLoginImages };
+    
+    const configuredLoginWidgets: Record<string, unknown> = (loginViewConfig?.['widgets'] as Record<string, unknown>) ?? {};
+    const loginWidgetSlots = useMemo(() =>
+    {
+        return Object.entries(configuredLoginWidgets)
+            .filter(([ key, value ]) => key.startsWith('slot.') && key.endsWith('.widget') && typeof value === 'string' && value.length > 0)
+            .map(([ key, value ]) =>
+            {
+                const slotNum = key.match(/\d+/)?.[0] ?? '';
+                const conf = configuredLoginWidgets[`slot.${ slotNum }.conf`] as Record<string, unknown> ?? {};
+
+                return { key, slotNum: Number(slotNum), type: value as string, conf };
+            })
+            .filter(slot => slot.slotNum > 0)
+            .sort((a, b) => a.slotNum - b.slotNum);
+    }, [ configuredLoginWidgets ]);
 
     const backgroundColor = (loginImages['background.colour'] || GetConfigurationValue<string>('login_background.colour', '#6eadc8'));
     const background = interpolate(loginImages['background'] || GetConfigurationValue<string>('login_background', ''));
@@ -73,7 +213,10 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
     const left = interpolate(loginImages['left'] || GetConfigurationValue<string>('login_left', ''));
     const rightRepeat = interpolate(loginImages['right.repeat'] || GetConfigurationValue<string>('login_right.repeat', ''));
     const right = interpolate(loginImages['right'] || GetConfigurationValue<string>('login_right', ''));
-    const loginImageUrls = useMemo(() => [ background, sun, drape, left, rightRepeat, right ].filter(Boolean), [ background, sun, drape, left, rightRepeat, right ]);
+    const widgetImageUrls = useMemo(() => loginWidgetSlots
+        .map(slot => typeof slot.conf.image === 'string' ? interpolate(slot.conf.image) : '')
+        .filter(Boolean), [ loginWidgetSlots ]);
+    const loginImageUrls = useMemo(() => [ background, sun, drape, left, rightRepeat, right, ...widgetImageUrls ].filter(Boolean), [ background, sun, drape, left, rightRepeat, right, widgetImageUrls ]);
     const [ loginImagesVersion, setLoginImagesVersion ] = useState(0);
     const loginUrl = GetConfigurationValue<string>('login.endpoint', '/api/auth/login');
     const registerUrl = GetConfigurationValue<string>('login.register.endpoint', '/api/auth/register');
@@ -96,6 +239,62 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
         setError(null);
         if(mode === 'login') resetLoginTurnstile();
     }, [ mode, resetLoginTurnstile ]);
+
+    useEffect(() =>
+    {
+        let cancelled = false;
+
+        const refreshLoginViewConfig = () =>
+        {
+            if(cancelled) return;
+
+            const nextConfig = GetConfigurationValue<Record<string, unknown>>('loginview', {});
+
+            setLoginViewConfig(previousConfig =>
+            {
+                try
+                {
+                    return JSON.stringify(previousConfig) === JSON.stringify(nextConfig) ? previousConfig : nextConfig;
+                }
+                catch
+                {
+                    return nextConfig;
+                }
+            });
+        };
+
+        refreshLoginViewConfig();
+
+        const timers = [ 50, 150, 300, 600, 1000, 2000 ].map(delay => window.setTimeout(refreshLoginViewConfig, delay));
+
+        return () =>
+        {
+            cancelled = true;
+            timers.forEach(timer => window.clearTimeout(timer));
+        };
+    }, []);
+
+    const confirmLocaleSelection = useCallback(async () =>
+    {
+        if(localeApplying) return;
+
+        setLocaleApplying(true);
+        setLocaleError('');
+
+        try
+        {
+            applyLocaleSelection(selectedLocale);
+            await applyTextTranslationLocale(selectedLocale.code);
+        }
+        catch
+        {
+            setLocaleError('Unable to load this language pack.');
+        }
+        finally
+        {
+            setLocaleApplying(false);
+        }
+    }, [ localeApplying, selectedLocale ]);
 
     useEffect(() =>
     {
@@ -216,17 +415,6 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
         }
     }, [ checkServerReachable ]);
 
-    useEffect(() =>
-    {
-        let cancelled = false;
-        (async () =>
-        {
-            const ok = await checkServerReachable();
-            if(!cancelled) setLoginServerReachable(ok);
-        })();
-        return () => { cancelled = true; };
-    }, [ checkServerReachable ]);
-
     const handleLoginSubmit = useCallback(async (event: FormEvent<HTMLFormElement>) =>
     {
         event.preventDefault();
@@ -262,15 +450,10 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
 
         try
         {
-            const serverOk = await pingLoginServer();
-            if(!serverOk)
-            {
-                setError('The gameserver is not running. Please try again later.');
-                return;
-            }
             const { ok, payload } = await postJson(loginUrl, {
                 username: username.trim(),
                 password,
+                remember: rememberMe,
                 turnstileToken: turnstileEnabled ? loginTurnstileToken : undefined
             });
 
@@ -279,6 +462,8 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
             if(ok && ssoTicket)
             {
                 clearLock();
+                if(rememberMe) StoreRememberLoginFromPayload(payload, typeof payload.username === 'string' ? payload.username : username.trim(), ssoTicket);
+                else ClearRememberLogin();
                 onAuthenticated(ssoTicket);
                 return;
             }
@@ -298,7 +483,7 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
         {
             setSubmitting(false);
         }
-    }, [ submitting, isEntering, username, password, turnstileEnabled, loginTurnstileToken, loginUrl, postJson, clearLock, recordFailure, onAuthenticated, resetLoginTurnstile, pingLoginServer ]);
+    }, [ submitting, isEntering, username, password, rememberMe, turnstileEnabled, loginTurnstileToken, loginUrl, postJson, clearLock, recordFailure, onAuthenticated, resetLoginTurnstile, pingLoginServer ]);
 
     const checkEmailUrl = GetConfigurationValue<string>('login.check-email.endpoint', '/api/auth/check-email');
     const checkUsernameUrl = GetConfigurationValue<string>('login.check-username.endpoint', '/api/auth/check-username');
@@ -454,7 +639,61 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
                 { loginImageUrls.map(url => <img key={ url } src={ url } decoding="async" loading="eager" alt="" />) }
             </div>
 
+            { loginWidgetSlots.length > 0 &&
+                <div className="login-widgets">
+                    { loginWidgetSlots.map(slot =>
+                    {
+                        const image = typeof slot.conf.image === 'string' ? interpolate(slot.conf.image) : '';
+                        const texts = typeof slot.conf.texts === 'string' ? slot.conf.texts : '';
+                        const btnText = typeof slot.conf.btnText === 'string' ? slot.conf.btnText : '';
+                        const btnLink = typeof slot.conf.btnLink === 'string' ? interpolate(slot.conf.btnLink) : '';
+                        const title = typeof slot.conf.title === 'string' ? slot.conf.title : (texts || slot.type);
+                        const description = typeof slot.conf.description === 'string' ? slot.conf.description : '';
+
+                        return (
+                            <div key={ slot.key } className="login-widget-slot" data-widget-type={ slot.type }>
+                                { image && <img className="login-widget-image" src={ image } alt="" draggable={ false } /> }
+                                <div className="login-widget-content">
+                                    <div className="login-widget-title">{ title }</div>
+                                    { description && <div className="login-widget-description">{ description }</div> }
+                                    { btnText &&
+                                        <button
+                                            type="button"
+                                            className="login-widget-button"
+                                            onClick={ () => { if(btnLink) window.location.href = btnLink; } }
+                                        >
+                                            { btnText }
+                                        </button> }
+                                </div>
+                            </div>
+                        );
+                    }) }
+                </div> }
+
             <div className="login-stack">
+                <div className="nitro-login-card login-language-card">
+                    <div className="card-title">Choose your language</div>
+                    <div className="login-language-grid" role="list" aria-label="Language selection">
+                        { LOGIN_LOCALES.map(locale =>
+                            <button
+                                key={ locale.code }
+                                type="button"
+                                className={ `login-language-option ${ selectedLocale.code === locale.code ? 'selected' : '' }` }
+                                onClick={ () => setSelectedLocale(locale) }
+                                title={ locale.label }
+                                aria-label={ locale.label }
+                                style={ selectedLocale.code === locale.code ? { backgroundImage: `url(${ flagSelected })` } : undefined }
+                            >
+                                <img src={ locale.flag } alt="" draggable={ false } />
+                                <span>{ locale.label }</span>
+                            </button>) }
+                    </div>
+                    { localeError.length > 0 && <div className="language-error">{ localeError }</div> }
+                    <button type="button" className="ok-button login-language-confirm" disabled={ localeApplying } onClick={ confirmLocaleSelection }>
+                        { localeApplying ? 'Loading...' : 'OK' }
+                    </button>
+                </div>
+
                 <div className="nitro-login-card">
                     <div className="card-title">First time here?</div>
                     <div className="card-body register-card-body">
@@ -490,6 +729,14 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
                                 onChange={ e => setPassword(e.target.value) }
                             />
                         </div>
+                        <label className="remember-row">
+                            <input
+                                type="checkbox"
+                                checked={ rememberMe }
+                                onChange={ e => setRememberMe(e.target.checked) }
+                            />
+                            <span>Ricordami</span>
+                        </label>
                         { turnstileEnabled && mode === 'login' &&
                             <TurnstileWidget
                                 siteKey={ turnstileSiteKey }
@@ -513,12 +760,13 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
                             <button
                                 type="submit"
                                 className="ok-button"
-                                disabled={ submitting || isEntering || isLocked || loginServerReachable === false || loginPingingServer }
+                                disabled={ submitting || isEntering || isLocked }
                             >{ isEntering ? 'Entrando…' : loginPingingServer ? 'Checking…' : 'OK' }</button>
                         </div>
                         <a className="forgot" onClick={ () => setMode('forgot') }>Forgotten your password?</a>
                     </form>
                 </div>
+
             </div>
 
             { mode === 'register' &&

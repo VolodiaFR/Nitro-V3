@@ -18,11 +18,11 @@ setBootDebug('boot: secure fetch installed');
 
 const search = new URLSearchParams(window.location.search);
 
-(window as any).NitroSecureApiUrl = 'https://nitro.slogga.it:2096';
+(window as any).NitroSecureApiUrl = 'http://192.168.1.52:2096/';
 (window as any).NitroConfig = {
     'config.urls': [
-        secureUrl('config', 'renderer-config.json'),
-        secureUrl('config', 'ui-config.json')
+        secureUrl('config', 'renderer-config.json', true),
+        secureUrl('config', 'ui-config.json', true)
     ],
     'sso.ticket': search.get('sso') || null,
     'forward.type': search.get('room') ? 2 : -1,

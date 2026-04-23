@@ -1,6 +1,6 @@
 import { GetAssetManager, GetAvatarRenderManager, GetCommunication, GetConfiguration, GetLocalizationManager, GetRoomEngine, GetRoomSessionManager, GetSessionDataManager, GetSoundManager, GetStage, GetTexturePool, GetTicker, HabboWebTools, LegacyExternalInterface, LoadGameUrlEvent, NitroEventType, NitroLogger, NitroVersion, PrepareRenderer } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
-import { GetUIVersion } from './api';
+import { ClearRememberLogin, GetRememberLogin, GetUIVersion, StoreRememberLoginFromPayload } from './api';
 import { Base } from './common';
 import { LoadingView } from './components/loading/LoadingView';
 import { LoginView } from './components/login/LoginView';
@@ -43,13 +43,15 @@ const asStringArray = (value: unknown): string[] =>
     return [];
 };
 
+const hasRememberLogin = (): boolean => !!GetRememberLogin();
+
 export const App: FC<{}> = props =>
 {
     const [ isReady, setIsReady ] = useState(false);
     const [ errorMessage, setErrorMessage ] = useState('');
     const [ homeUrl, setHomeUrl ] = useState('');
-    const [ showLogin, setShowLogin ] = useState(() => !window.NitroConfig?.['sso.ticket']);
-    const [ isEnteringHotel, setIsEnteringHotel ] = useState(false);
+    const [ showLogin, setShowLogin ] = useState(() => !window.NitroConfig?.['sso.ticket'] && !hasRememberLogin());
+    const [ isEnteringHotel, setIsEnteringHotel ] = useState(() => !!window.NitroConfig?.['sso.ticket'] || hasRememberLogin());
     const [ prepareTrigger, setPrepareTrigger ] = useState(0);
     const warmupPromiseRef = useRef<Promise<void>>(null);
     const rendererPromiseRef = useRef<Promise<any>>(null);
@@ -65,14 +67,72 @@ export const App: FC<{}> = props =>
         setIsEnteringHotel(false);
     }, []);
 
-    const handleAuthenticated = useCallback((ssoTicket: string) =>
+    const applySsoTicket = useCallback((ssoTicket: string) =>
     {
         if(!ssoTicket) return;
         window.NitroConfig['sso.ticket'] = ssoTicket;
         GetConfiguration().setValue('sso.ticket', ssoTicket);
+    }, []);
+
+    const handleAuthenticated = useCallback((ssoTicket: string) =>
+    {
+        if(!ssoTicket) return;
+        applySsoTicket(ssoTicket);
         setIsEnteringHotel(true);
         setErrorMessage('');
         setPrepareTrigger(prev => prev + 1);
+    }, [ applySsoTicket ]);
+
+    const tryRememberLogin = useCallback(async (): Promise<string> =>
+    {
+        const remembered = GetRememberLogin();
+
+        if(!remembered) return '';
+        if(!remembered.token?.length && remembered.ssoTicket?.length) return remembered.ssoTicket;
+
+        let allowSsoFallback = true;
+
+        try
+        {
+            const rawEndpoint = GetConfiguration().getValue<string>('login.remember.endpoint', '${api.url}/api/auth/remember');
+            const endpoint = GetConfiguration().interpolate(rawEndpoint);
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'NitroRememberLogin'
+                },
+                body: JSON.stringify({ rememberToken: remembered.token })
+            });
+
+            let payload: Record<string, unknown> = {};
+            try { payload = await response.json(); }
+            catch {}
+
+            const ssoTicket = typeof payload.ssoTicket === 'string' ? payload.ssoTicket : (typeof payload.sso === 'string' ? payload.sso : '');
+
+            if(response.ok && ssoTicket)
+            {
+                StoreRememberLoginFromPayload(payload, typeof payload.username === 'string' ? payload.username : remembered.username, ssoTicket);
+                return ssoTicket;
+            }
+
+            if(response.status === 400 || response.status === 401 || response.status === 403)
+            {
+                allowSsoFallback = false;
+                ClearRememberLogin();
+            }
+        }
+        catch(error)
+        {
+            NitroLogger.error('[LoginScreen] Remember login failed', error);
+        }
+
+        if(allowSsoFallback && remembered.ssoTicket?.length) return remembered.ssoTicket;
+
+        return '';
     }, []);
 
     // Listen for socket closed events (code 1000 "Bye" - server rejected SSO)
@@ -176,7 +236,7 @@ export const App: FC<{}> = props =>
             {
                 if(!window.NitroConfig) throw new Error('NitroConfig is not defined!');
 
-                const ssoTicket = window.NitroConfig['sso.ticket'];
+                let ssoTicket = window.NitroConfig['sso.ticket'];
                 if(ssoTicket) GetConfiguration().setValue('sso.ticket', ssoTicket);
 
                 if(!ssoTicket || ssoTicket === '')
@@ -197,24 +257,37 @@ export const App: FC<{}> = props =>
 
                     if(loginScreenEnabled)
                     {
-                        setIsReady(false);
-                        setShowLogin(true);
-                        startWarmup(width, height).catch(error => NitroLogger.error('[LoginScreen] Warmup failed', error));
+                        const rememberedSsoTicket = await tryRememberLogin();
+
+                        if(rememberedSsoTicket)
+                        {
+                            ssoTicket = rememberedSsoTicket;
+                            applySsoTicket(rememberedSsoTicket);
+                            setShowLogin(false);
+                        }
+                        else
+                        {
+                            setIsReady(false);
+                            setShowLogin(true);
+                            startWarmup(width, height).catch(error => NitroLogger.error('[LoginScreen] Warmup failed', error));
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        if(configInitError)
+                        {
+                            setHomeUrl(window.location.origin + '/');
+                            setErrorMessage(`Unable to load renderer-config.json.\n${ String((configInitError as Error)?.message ?? configInitError) }`);
+                            setIsReady(false);
+                            setShowLogin(false);
+                            setIsEnteringHotel(false);
+                            return;
+                        }
+
+                        showSessionExpired();
                         return;
                     }
-
-                if(configInitError)
-                {
-                    setHomeUrl(window.location.origin + '/');
-                    setErrorMessage(`Unable to load renderer-config.json.\n${ String((configInitError as Error)?.message ?? configInitError) }`);
-                    setIsReady(false);
-                    setShowLogin(false);
-                    setIsEnteringHotel(false);
-                    return;
-                }
-
-                    showSessionExpired();
-                    return;
                 }
 
                 const renderer = await startRenderer(width, height);
@@ -258,11 +331,11 @@ export const App: FC<{}> = props =>
         {
             if(heartbeatIntervalRef.current !== null) window.clearInterval(heartbeatIntervalRef.current);
         };
-    }, [ prepareTrigger, startWarmup, startRenderer ]);
+    }, [ prepareTrigger, startWarmup, startRenderer, tryRememberLogin, applySsoTicket ]);
 
     return (
         <Base fit overflow="hidden" className={ !(window.devicePixelRatio % 1) && 'image-rendering-pixelated' }>
-            { !isReady && !showLogin && errorMessage.length > 0 &&
+            { !isReady && !showLogin &&
                 <LoadingView isError={ errorMessage.length > 0 } message={ errorMessage } homeUrl={ homeUrl } /> }
             { !isReady && showLogin && <LoginView onAuthenticated={ handleAuthenticated } isEntering={ isEnteringHotel } /> }
             { isReady && <MainView /> }

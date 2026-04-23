@@ -65,6 +65,13 @@ const textDecoder = new TextDecoder();
 let secureSessionPromise: Promise<SecureSession> = null;
 let installed = false;
 const secureResponseCache = new Map<string, Promise<Response>>();
+let secureSessionCreatedAt = 0;
+const SECURE_SESSION_TTL_MS = 5 * 60 * 1000;
+const REKEY_ENDPOINTS = new Set([
+    '/api/auth/login',
+    '/api/auth/remember',
+    '/api/auth/logout'
+]);
 
 const bytesToBase64 = (bytes: ArrayBuffer): string =>
 {
@@ -74,6 +81,13 @@ const bytesToBase64 = (bytes: ArrayBuffer): string =>
     for(let index = 0; index < view.length; index++) binary += String.fromCharCode(view[index]);
 
     return btoa(binary);
+};
+
+const randomHex = (byteLength: number): string =>
+{
+    const bytes = crypto.getRandomValues(new Uint8Array(byteLength));
+
+    return Array.from(bytes).map(value => value.toString(16).padStart(2, '0')).join('');
 };
 
 const hexValue = (code: number): number =>
@@ -139,14 +153,15 @@ const getApiBase = (): string =>
 
     if(typeof configured === 'string' && configured.length) return configured.replace(/\/$/, '');
 
-    return 'https://nitro.slogga.it:2096';
+    return 'http://localhost:8443/';
 };
 
-export const secureUrl = (kind: 'config' | 'gamedata', file: string): string =>
+export const secureUrl = (kind: 'config' | 'gamedata', file: string, cacheBust = false): string =>
 {
     const base = getApiBase();
+    const version = cacheBust ? `&v=${ encodeURIComponent(Date.now().toString(36)) }` : '';
 
-    return `${ base }/nitro-sec/file?kind=${ encodeURIComponent(kind) }&file=${ encodeURIComponent(file) }`;
+    return `${ base }/nitro-sec/file?kind=${ encodeURIComponent(kind) }&file=${ encodeURIComponent(file) }${ version }`;
 };
 
 const createSecureSession = async (): Promise<SecureSession> =>
@@ -178,11 +193,26 @@ const createSecureSession = async (): Promise<SecureSession> =>
 
     const derived = await deriveAesKey(pair.privateKey, serverKey);
 
+    secureSessionCreatedAt = Date.now();
+
     return { publicKey: clientPublicKey, key: derived.key, fingerprint: derived.fingerprint };
+};
+
+const clearSecureSession = (clearCache = false): void =>
+{
+    secureSessionPromise = null;
+    secureSessionCreatedAt = 0;
+    if(clearCache) secureResponseCache.clear();
 };
 
 export const getSecureSession = (): Promise<SecureSession> =>
 {
+    if(secureSessionPromise && secureSessionCreatedAt && ((Date.now() - secureSessionCreatedAt) > SECURE_SESSION_TTL_MS))
+    {
+        setDebugState('secure: session expired, rotating');
+        clearSecureSession();
+    }
+
     if(!secureSessionPromise) secureSessionPromise = createSecureSession();
 
     return secureSessionPromise;
@@ -229,6 +259,8 @@ const normalizeSecureCacheKey = (requestUrl: string): string =>
         if(!url.pathname.includes('/nitro-sec/file')) return requestUrl;
 
         const kind = url.searchParams.get('kind') || '';
+        if(kind === 'config') return requestUrl;
+
         const file = (url.searchParams.get('file') || '')
             .replace(/^[\\/]+/, '')
             .split('?')[0]
@@ -289,6 +321,30 @@ const readRequestBody = async (input: RequestInfo | URL, init: RequestInit | und
     if(input instanceof Request) return input.clone().arrayBuffer();
 
     return null;
+};
+
+const buildSecureApiEnvelope = (requestUrl: string, method: string, clearBody: ArrayBuffer | null): ArrayBuffer | null =>
+{
+    if(!clearBody) return null;
+
+    const url = new URL(requestUrl, window.location.href);
+    const envelope = {
+        ts: Date.now(),
+        nonce: randomHex(16),
+        method,
+        path: `${ url.pathname }${ url.search }`,
+        body: bytesToBase64(clearBody)
+    };
+
+    return textEncoder.encode(JSON.stringify(envelope)).buffer;
+};
+
+const scheduleSecureRekey = (): void =>
+{
+    queueMicrotask(() =>
+    {
+        clearSecureSession();
+    });
 };
 
 export const installSecureFetch = (): void =>
@@ -355,20 +411,38 @@ export const installSecureFetch = (): void =>
             const session = await getSecureSession();
             const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
             const clearBody = await readRequestBody(input, init, method);
+            const secureBody = buildSecureApiEnvelope(requestUrl, method, clearBody);
             const encryptedInit: RequestInit = { ...init, method, headers };
 
             headers.set('X-Nitro-Key', session.publicKey);
             headers.set('X-Nitro-Api', '1');
 
-            if(clearBody)
+            if(secureBody)
             {
-                encryptedInit.body = await encryptBytes(session, clearBody);
+                encryptedInit.body = await encryptBytes(session, secureBody);
                 headers.set('Content-Type', 'text/plain; charset=utf-8');
             }
 
             const response = await nativeFetch(input, encryptedInit);
 
-            if(response.headers.get('X-Nitro-Sec') === '1') return decryptResponse(session, response);
+            if(response.headers.get('X-Nitro-Sec') === '1')
+            {
+                const decrypted = await decryptResponse(session, response);
+
+                try
+                {
+                    const pathname = new URL(requestUrl, window.location.href).pathname;
+
+                    if(response.ok && REKEY_ENDPOINTS.has(pathname))
+                    {
+                        setDebugState(`secure: rekey after ${ pathname }`);
+                        scheduleSecureRekey();
+                    }
+                }
+                catch {}
+
+                return decrypted;
+            }
 
             return response;
         }

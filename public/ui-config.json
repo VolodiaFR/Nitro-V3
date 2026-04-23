@@ -30,9 +30,7 @@
     "show.google.ads": false,
     "loginview": {
         "images": {
-            "background": "https://hotel.slogga.it/client/nitro/images/reception/background_gradient_apr25.png",
-            "background.colour": "#6eadc8",
-            "drape": "https://hotel.slogga.it/client/nitro/images/reception/drape.png",
+            "background": "https://hotel.slogga.it/client/nitro/images/reception/background_gradient_apr25.png",            "drape": "https://hotel.slogga.it/client/nitro/images/reception/drape.png",
             "left": "https://hotel.slogga.it/client/nitro/images/reception/mute_reception_backdrop_left.png",
             "right": "https://hotel.slogga.it/client/nitro/images/reception/background_right.png"
         }
@@ -1573,6 +1571,37 @@
             "left": "",
             "right": "",
             "right.repeat": ""
+        }
+    },
+    "loginview": {
+        "images": {
+            "background": "https://hotel.slogga.it/client/nitro/images/reception/background_gradient_apr25.png",
+            "background.colour": "#6eadc8",
+            "drape": "https://hotel.slogga.it/client/nitro/images/reception/drape.png",
+            "left": "https://hotel.slogga.it/client/nitro/images/reception/mute_reception_backdrop_left.png",
+            "right": "https://hotel.slogga.it/client/nitro/images/reception/background_right.png"
+        },
+        "widgets": {
+            "slot.1.widget": "promoarticle",
+            "slot.1.conf": {},
+            "slot.2.widget": "widgetcontainer",
+            "slot.2.conf": {
+                "image": "${image.library.url}web_promo_small/spromo_Canal_Bundle.png",
+                "texts": "2021NitroPromo",
+                "btnLink": ""
+            },
+            "slot.3.widget": "",
+            "slot.3.conf": {},
+            "slot.4.widget": "",
+            "slot.4.conf": {},
+            "slot.5.widget": "",
+            "slot.5.conf": {},
+            "slot.6.widget": "",
+            "slot.6.conf": {
+                "campaign": ""
+            },
+            "slot.7.widget": "",
+            "slot.7.conf": {}
         }
     },
     "achievements.unseen.ignored": [

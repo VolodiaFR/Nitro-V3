@@ -150,6 +150,44 @@ const dispatchLocalizationUpdated = () =>
     window.dispatchEvent(new CustomEvent('nitro-localization-updated'));
 };
 
+export const applyTextTranslationLocale = async (languageCode: string): Promise<void> =>
+{
+    const localizationManager = GetLocalizationManager();
+    const sessionDataManager = GetSessionDataManager();
+    const selectedLocale = resolveTextTranslationLocale(languageCode || '');
+
+    if(!selectedLocale)
+    {
+        localizationManager.clearOverrideValues();
+        sessionDataManager.clearFurnitureDataOverrides();
+        dispatchLocalizationUpdated();
+        return;
+    }
+
+    const textUrl = getTextTranslationUrl(selectedLocale.file);
+    const furnitureUrl = getFurnitureTranslationUrl(selectedLocale.file);
+    const response = await fetch(textUrl);
+
+    if(response.status !== 200) throw new Error(`Unable to load ${ textUrl }`);
+
+    const data = await response.json();
+    const overrideValues = new Map<string, string>();
+
+    Object.keys(data || {}).forEach(key => overrideValues.set(key, data[key]));
+    localizationManager.setOverrideValues(overrideValues);
+
+    try
+    {
+        await sessionDataManager.applyFurnitureDataOverrides(furnitureUrl);
+    }
+    catch
+    {
+        sessionDataManager.clearFurnitureDataOverrides();
+    }
+
+    dispatchLocalizationUpdated();
+};
+
 const getBrowserLanguageCode = () =>
 {
     if(typeof navigator === 'undefined') return 'en';
@@ -475,17 +513,13 @@ const useTranslationState = () =>
     {
         let disposed = false;
         const requestId = ++localizationRequestRef.current;
-        const localizationManager = GetLocalizationManager();
-        const sessionDataManager = GetSessionDataManager();
         const selectedLocale = resolveTextTranslationLocale(settings.uiTextLanguage || '');
 
         const applyLocalizationOverride = async () =>
         {
             if(!selectedLocale)
             {
-                localizationManager.clearOverrideValues();
-                sessionDataManager.clearFurnitureDataOverrides();
-                dispatchLocalizationUpdated();
+                await applyTextTranslationLocale('');
 
                 if((localizationRequestRef.current === requestId) && !disposed)
                 {
@@ -500,42 +534,19 @@ const useTranslationState = () =>
 
             try
             {
-                const textUrl = getTextTranslationUrl(selectedLocale.file);
-                const furnitureUrl = getFurnitureTranslationUrl(selectedLocale.file);
-                const response = await fetch(textUrl);
+                if(disposed || (localizationRequestRef.current !== requestId)) return;
 
-                if(response.status !== 200) throw new Error(`Unable to load ${ textUrl }`);
-
-                const data = await response.json();
-                const overrideValues = new Map<string, string>();
-
-                Object.keys(data || {}).forEach(key => overrideValues.set(key, data[key]));
+                await applyTextTranslationLocale(settings.uiTextLanguage || '');
 
                 if(disposed || (localizationRequestRef.current !== requestId)) return;
 
-                localizationManager.setOverrideValues(overrideValues);
-
-                try
-                {
-                    await sessionDataManager.applyFurnitureDataOverrides(furnitureUrl);
-                }
-                catch
-                {
-                    if(disposed || (localizationRequestRef.current !== requestId)) return;
-
-                    sessionDataManager.clearFurnitureDataOverrides();
-                }
-
-                dispatchLocalizationUpdated();
                 setLastError('');
             }
             catch(error)
             {
                 if(disposed || (localizationRequestRef.current !== requestId)) return;
 
-                localizationManager.clearOverrideValues();
-                sessionDataManager.clearFurnitureDataOverrides();
-                dispatchLocalizationUpdated();
+                await applyTextTranslationLocale('');
                 setLastError((error as Error)?.message || 'Unable to load translated UI texts.');
             }
             finally

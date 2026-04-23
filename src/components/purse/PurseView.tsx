@@ -1,7 +1,7 @@
 import { CreateLinkEvent, HabboClubLevelEnum } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { FaChevronDown, FaLanguage, FaQuestionCircle, FaSignOutAlt } from 'react-icons/fa';
-import { FriendlyTime, GetConfigurationValue, LocalizeText } from '../../api';
+import { ClearRememberLogin, FriendlyTime, GetConfigurationValue, GetRememberLogin, LocalizeText } from '../../api';
 import { Column, Flex, LayoutCurrencyIcon, Text } from '../../common';
 import { usePurse } from '../../hooks';
 import purseIcon from '../../assets/images/rightside/purse.gif';
@@ -64,6 +64,7 @@ export const PurseView: FC<{}> = props => {
 
         const logoutUrl = GetConfigurationValue<string>('login.logout.endpoint', '/api/auth/logout');
         const ssoTicket = (window.NitroConfig?.['sso.ticket'] as string) ?? '';
+        const rememberToken = GetRememberLogin()?.token || '';
 
         try
         {
@@ -76,11 +77,12 @@ export const PurseView: FC<{}> = props => {
                     'Accept': 'application/json',
                     'X-Requested-With': 'NitroPurseLogout'
                 },
-                body: JSON.stringify({ ssoTicket })
+                body: JSON.stringify({ ssoTicket, rememberToken })
             });
         }
         catch { /* best-effort — proceed with local logout regardless */ }
 
+        ClearRememberLogin();
         if(window.NitroConfig) window.NitroConfig['sso.ticket'] = '';
         window.location.reload();
     }, []);
