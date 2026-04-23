@@ -16,6 +16,13 @@ const LOCK_KEY = 'nitro.login.lock';
 const MAX_ATTEMPTS = 5;
 const LOCK_WINDOW_MS = 60_000;
 const LOCK_DURATION_MS = 2 * 60_000;
+const DEFAULT_LOGIN_IMAGES: Record<string, string> = {
+    background: 'https://hotel.slogga.it/client/nitro/images/reception/background_gradient_apr25.png',
+    'background.colour': '#6eadc8',
+    drape: 'https://hotel.slogga.it/client/nitro/images/reception/drape.png',
+    left: 'https://hotel.slogga.it/client/nitro/images/reception/mute_reception_backdrop_left.png',
+    right: 'https://hotel.slogga.it/client/nitro/images/reception/background_right.png'
+};
 
 type AttemptState = { attempts: number; firstAt: number; lockedUntil: number };
 
@@ -39,9 +46,10 @@ const writeLock = (state: AttemptState) =>
 export interface LoginViewProps
 {
     onAuthenticated: (ssoTicket: string) => void;
+    isEntering?: boolean;
 }
 
-export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
+export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = false }) =>
 {
     const [ mode, setMode ] = useState<DialogMode>('login');
     const [ username, setUsername ] = useState('');
@@ -55,7 +63,8 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
     const [ loginPingingServer, setLoginPingingServer ] = useState(false);
     const submitTimeRef = useRef(0);
 
-    const loginImages: Record<string, string> = ((GetConfigurationValue<Record<string, unknown>>('loginview', {})?.['images']) as Record<string, string>) ?? {};
+    const configuredLoginImages: Record<string, string> = ((GetConfigurationValue<Record<string, unknown>>('loginview', {})?.['images']) as Record<string, string>) ?? {};
+    const loginImages: Record<string, string> = { ...DEFAULT_LOGIN_IMAGES, ...configuredLoginImages };
 
     const backgroundColor = (loginImages['background.colour'] || GetConfigurationValue<string>('login_background.colour', '#6eadc8'));
     const background = interpolate(loginImages['background'] || GetConfigurationValue<string>('login_background', ''));
@@ -64,6 +73,8 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
     const left = interpolate(loginImages['left'] || GetConfigurationValue<string>('login_left', ''));
     const rightRepeat = interpolate(loginImages['right.repeat'] || GetConfigurationValue<string>('login_right.repeat', ''));
     const right = interpolate(loginImages['right'] || GetConfigurationValue<string>('login_right', ''));
+    const loginImageUrls = useMemo(() => [ background, sun, drape, left, rightRepeat, right ].filter(Boolean), [ background, sun, drape, left, rightRepeat, right ]);
+    const [ loginImagesVersion, setLoginImagesVersion ] = useState(0);
     const loginUrl = GetConfigurationValue<string>('login.endpoint', '/api/auth/login');
     const registerUrl = GetConfigurationValue<string>('login.register.endpoint', '/api/auth/register');
     const forgotUrl = GetConfigurationValue<string>('login.forgot.endpoint', '/api/auth/forgot-password');
@@ -85,6 +96,30 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
         setError(null);
         if(mode === 'login') resetLoginTurnstile();
     }, [ mode, resetLoginTurnstile ]);
+
+    useEffect(() =>
+    {
+        if(!loginImageUrls.length) return;
+
+        let cancelled = false;
+
+        loginImageUrls.forEach(url =>
+        {
+            const image = new Image();
+
+            image.onload = image.onerror = () =>
+            {
+                if(!cancelled) setLoginImagesVersion(version => version + 1);
+            };
+
+            image.src = url;
+        });
+
+        return () =>
+        {
+            cancelled = true;
+        };
+    }, [ loginImageUrls ]);
 
     useEffect(() =>
     {
@@ -138,7 +173,7 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
         return { ok: response.ok, status: response.status, payload };
     }, []);
 
-    const healthUrl = GetConfigurationValue<string>('login.health.endpoint', '/api/health');
+    const healthUrl = GetConfigurationValue<string>('login.health.endpoint', '');
     const healthMethodRaw = GetConfigurationValue<string>('login.health.method', 'GET');
     const healthMethod = (healthMethodRaw || 'GET').toUpperCase();
     const checkServerReachable = useCallback(async (): Promise<boolean> =>
@@ -196,7 +231,7 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
     {
         event.preventDefault();
 
-        if(submitting) return;
+        if(submitting || isEntering) return;
 
         const nowTs = Date.now();
         if(nowTs - submitTimeRef.current < 1000) return;
@@ -263,7 +298,7 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
         {
             setSubmitting(false);
         }
-    }, [ submitting, username, password, turnstileEnabled, loginTurnstileToken, loginUrl, postJson, clearLock, recordFailure, onAuthenticated, resetLoginTurnstile, pingLoginServer ]);
+    }, [ submitting, isEntering, username, password, turnstileEnabled, loginTurnstileToken, loginUrl, postJson, clearLock, recordFailure, onAuthenticated, resetLoginTurnstile, pingLoginServer ]);
 
     const checkEmailUrl = GetConfigurationValue<string>('login.check-email.endpoint', '/api/auth/check-email');
     const checkUsernameUrl = GetConfigurationValue<string>('login.check-username.endpoint', '/api/auth/check-username');
@@ -409,12 +444,15 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
             className="nitro-login-view"
             style={ backgroundColor ? { background: backgroundColor } : undefined }
         >
-            { background ? <div className="login-background login-layer" style={ { backgroundImage: `url(${ background })` } } /> : null }
-            { sun ? <div className="login-sun login-layer" style={ { backgroundImage: `url(${ sun })` } } /> : null }
-            { drape ? <div className="login-drape login-layer" style={ { backgroundImage: `url(${ drape })` } } /> : null }
-            { left ? <div className="login-left login-layer" style={ { backgroundImage: `url(${ left })` } } /> : null }
+            { background ? <img className="login-background login-layer login-layer-img" src={ background } alt="" draggable={ false } /> : null }
+            { sun ? <img className="login-sun login-layer login-layer-img" src={ sun } alt="" draggable={ false } /> : null }
+            { drape ? <img className="login-drape login-layer login-layer-img" src={ drape } alt="" draggable={ false } /> : null }
+            { left ? <img className="login-left login-layer login-layer-img" src={ left } alt="" draggable={ false } /> : null }
             { rightRepeat ? <div className="login-right-repeat login-layer" style={ { backgroundImage: `url(${ rightRepeat })` } } /> : null }
-            { right ? <div className="login-right login-layer" style={ { backgroundImage: `url(${ right })` } } /> : null }
+            { right ? <img className="login-right login-layer login-layer-img" src={ right } alt="" draggable={ false } /> : null }
+            <div className="login-image-preloader" aria-hidden="true" data-version={ loginImagesVersion }>
+                { loginImageUrls.map(url => <img key={ url } src={ url } decoding="async" loading="eager" alt="" />) }
+            </div>
 
             <div className="login-stack">
                 <div className="nitro-login-card">
@@ -475,8 +513,8 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
                             <button
                                 type="submit"
                                 className="ok-button"
-                                disabled={ submitting || isLocked || loginServerReachable === false || loginPingingServer }
-                            >{ loginPingingServer ? 'Checking…' : 'OK' }</button>
+                                disabled={ submitting || isEntering || isLocked || loginServerReachable === false || loginPingingServer }
+                            >{ isEntering ? 'Entrando…' : loginPingingServer ? 'Checking…' : 'OK' }</button>
                         </div>
                         <a className="forgot" onClick={ () => setMode('forgot') }>Forgotten your password?</a>
                     </form>

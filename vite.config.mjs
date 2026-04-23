@@ -48,20 +48,17 @@ export default defineConfig({
         }
     },
     build: {
-        assetsInlineLimit: 102400,
+        assetsInlineLimit: 4096,
         chunkSizeWarningLimit: 200000,
         rollupOptions: {
+            input: resolve(__dirname, 'index.html'),
             output: {
-                assetFileNames: 'src/assets/[name]-[hash].[ext]',
-                manualChunks: id =>
-                {
-                    if(id.includes('node_modules'))
-                    {
-                        if(id.includes('@nitrots/nitro-renderer') || id.includes('renderer3') || id.includes('Nitro_Render_V3')) return 'nitro-renderer';
-
-                        return 'vendor';
-                    }
-                }
+                inlineDynamicImports: true,
+                entryFileNames: 'assets/app.js',
+                chunkFileNames: 'assets/app.js',
+                assetFileNames: assetInfo => assetInfo.name && assetInfo.name.endsWith('.css')
+                    ? 'assets/app.css'
+                    : 'src/assets/[name]-[hash].[ext]'
             }
         }
     }

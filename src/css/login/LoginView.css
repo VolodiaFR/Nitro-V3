@@ -12,6 +12,28 @@
     position: absolute;
     background-repeat: no-repeat;
     pointer-events: none;
+    transform: translateZ(0);
+}
+
+.nitro-login-view .login-layer-img {
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+    object-fit: none;
+}
+
+.nitro-login-view .login-image-preloader {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.nitro-login-view .login-image-preloader img {
+    width: 1px;
+    height: 1px;
 }
 
 .nitro-login-view .login-background {
@@ -19,8 +41,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-repeat: repeat-x;
-    background-position: center top;
+    object-fit: cover;
+    object-position: center top;
 }
 
 .nitro-login-view .login-sun {
@@ -28,8 +50,8 @@
     transform: translateX(-50%);
     width: 600px;
     height: 600px;
-    background-size: contain;
-    background-position: center top;
+    object-fit: contain;
+    object-position: center top;
 }
 
 .nitro-login-view .login-drape {
@@ -38,6 +60,8 @@
     width: 190px;
     height: 220px;
     z-index: 3;
+    object-fit: contain;
+    object-position: left top;
 }
 
 .nitro-login-view .login-left {
@@ -45,9 +69,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-position: left bottom;
-    background-size: auto;
-    background-repeat: no-repeat;
+    object-fit: none;
+    object-position: left bottom;
 }
 
 .nitro-login-view .login-right-repeat {
@@ -64,7 +87,8 @@
     right: 0;
     width: 400px;
     height: 100%;
-    background-position: right bottom;
+    object-fit: none;
+    object-position: right bottom;
 }
 
 /* ─── Foreground Login Card Stack ─── */
