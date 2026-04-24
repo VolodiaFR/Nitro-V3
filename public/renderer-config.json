@@ -1,11 +1,11 @@
 {
-	"socket.url": "ws://192.168.1.52:2096",
-	"api.url": "http://192.168.1.52:2096",
-	"asset.url": "https://hotel.slogga.it/client/nitro/bundled",
-	"image.library.url": "https://hotel.slogga.it/client/c_images/",
-	"hof.furni.url": "https://hotel.slogga.it/client/c_images/dcr/hof_furni",
-	"images.url": "https://hotel.slogga.it/client/nitro/images",
-	"gamedata.url": "http://192.168.1.52:2096/nitro-sec/file?kind=gamedata&file=",
+	"socket.url": "wss://nitro.example.com:2096",
+	"api.url": "https://nitro.example.com:2096",
+	"asset.url": "https://hotel.example.com/client/nitro/bundled",
+	"image.library.url": "https://hotel.example.com/client/c_images/",
+	"hof.furni.url": "https://hotel.example.com/client/c_images/dcr/hof_furni",
+	"images.url": "https://hotel.example.com/client/nitro/images",
+	"gamedata.url": "https://nitro.example.com:2096/nitro-sec/file?kind=gamedata&file=",
 	"sounds.url": "${asset.url}/sounds/%sample%.mp3",
 	"external.texts.url": [
 		"${gamedata.url}/ExternalTexts.json",

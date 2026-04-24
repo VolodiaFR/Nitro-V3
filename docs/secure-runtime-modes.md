@@ -16,9 +16,9 @@ Questo file controlla tutto a runtime.
     "distObfuscationEnabled": true,
     "secureAssetsEnabled": true,
     "secureApiEnabled": true,
-    "apiBaseUrl": "https://nitro.slogga.it:2096",
-    "plainConfigBaseUrl": "https://hotel.slogga.it/",
-    "plainGamedataBaseUrl": "https://hotel.slogga.it/client/nitro/gamedata/"
+    "apiBaseUrl": "https://nitro.example.com:2096",
+    "plainConfigBaseUrl": "https://hotel.example.com/",
+    "plainGamedataBaseUrl": "https://hotel.example.com/client/nitro/gamedata/"
 }
 ```
 
@@ -38,16 +38,16 @@ Questo file controlla tutto a runtime.
 
 - `apiBaseUrl`
   - base URL dell’emulatore / API Nitro
-  - esempio: `https://nitro.slogga.it:2096`
+  - esempio: `https://nitro.example.com:2096`
   - meglio valorizzarlo sempre, così non dipendi dal fallback hardcoded
 
 - `plainConfigBaseUrl`
   - base URL dei file config plain
-  - normalmente: `https://hotel.slogga.it/`
+  - normalmente: `https://hotel.example.com/`
 
 - `plainGamedataBaseUrl`
   - base URL del gamedata plain
-  - normalmente: `https://hotel.slogga.it/client/nitro/gamedata/`
+  - normalmente: `https://hotel.example.com/client/nitro/gamedata/`
 
 ## 2. `Nitro-V3/src/bootstrap.ts`
 
@@ -71,7 +71,7 @@ Questo file controlla tutto a runtime.
 Il fallback attuale è:
 
 ```ts
-(window as any).NitroSecureApiUrl = clientMode.apiBaseUrl || 'http://192.168.1.52:2096/';
+(window as any).NitroSecureApiUrl = clientMode.apiBaseUrl || 'https://nitro.example.com:2096/';
 ```
 
 Quindi in produzione conviene sempre valorizzare `apiBaseUrl` dentro `client-mode.json`.
@@ -114,7 +114,7 @@ Questo file continua a definire i path usati dal renderer.
 Puoi usare:
 
 ```json
-"gamedata.url": "https://nitro.slogga.it:2096/nitro-sec/file?kind=gamedata&file="
+"gamedata.url": "https://nitro.example.com:2096/nitro-sec/file?kind=gamedata&file="
 ```
 
 e gli altri URL secure equivalenti.
@@ -124,7 +124,7 @@ e gli altri URL secure equivalenti.
 Conviene usare i path plain classici, per esempio:
 
 ```json
-"gamedata.url": "https://hotel.slogga.it/client/nitro/gamedata"
+"gamedata.url": "https://hotel.example.com/client/nitro/gamedata"
 ```
 
 oppure lasciare il renderer configurato com’è e demandare il fallback a `secure-assets.ts`.
@@ -214,9 +214,9 @@ nitro.secure.master_key=change-me-to-a-long-random-secret
     "distObfuscationEnabled": true,
     "secureAssetsEnabled": true,
     "secureApiEnabled": true,
-    "apiBaseUrl": "https://nitro.slogga.it:2096",
-    "plainConfigBaseUrl": "https://hotel.slogga.it/",
-    "plainGamedataBaseUrl": "https://hotel.slogga.it/client/nitro/gamedata/"
+    "apiBaseUrl": "https://nitro.example.com:2096",
+    "plainConfigBaseUrl": "https://hotel.example.com/",
+    "plainGamedataBaseUrl": "https://hotel.example.com/client/nitro/gamedata/"
 }
 ```
 
@@ -239,9 +239,9 @@ nitro.secure.master_key=una-chiave-lunga-random
     "distObfuscationEnabled": true,
     "secureAssetsEnabled": false,
     "secureApiEnabled": false,
-    "apiBaseUrl": "https://nitro.slogga.it:2096",
-    "plainConfigBaseUrl": "https://hotel.slogga.it/",
-    "plainGamedataBaseUrl": "https://hotel.slogga.it/client/nitro/gamedata/"
+    "apiBaseUrl": "https://nitro.example.com:2096",
+    "plainConfigBaseUrl": "https://hotel.example.com/",
+    "plainGamedataBaseUrl": "https://hotel.example.com/client/nitro/gamedata/"
 }
 ```
 
@@ -261,9 +261,9 @@ nitro.secure.api.enabled=false
     "distObfuscationEnabled": false,
     "secureAssetsEnabled": false,
     "secureApiEnabled": false,
-    "apiBaseUrl": "https://nitro.slogga.it:2096",
-    "plainConfigBaseUrl": "https://hotel.slogga.it/",
-    "plainGamedataBaseUrl": "https://hotel.slogga.it/client/nitro/gamedata/"
+    "apiBaseUrl": "https://nitro.example.com:2096",
+    "plainConfigBaseUrl": "https://hotel.example.com/",
+    "plainGamedataBaseUrl": "https://hotel.example.com/client/nitro/gamedata/"
 }
 ```
 

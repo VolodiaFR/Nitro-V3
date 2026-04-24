@@ -18,12 +18,12 @@ export default defineConfig({
         },
         proxy: {
                     '/api': {
-                        target: process.env.AUTH_PROXY_TARGET || 'http://192.168.1.52:2096/',
+                        target: process.env.AUTH_PROXY_TARGET || 'https://nitro.example.com:2096/',
                         changeOrigin: true,
                         ws: true,
                     },
                     '/nitro-sec': {
-                        target: process.env.NITRO_PROXY_TARGET || 'http://192.168.1.52:2096/',
+                        target: process.env.NITRO_PROXY_TARGET || 'https://nitro.example.com:2096/',
                         changeOrigin: true,
                         ws: true,
                     }

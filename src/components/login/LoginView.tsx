@@ -61,11 +61,11 @@ const MAX_ATTEMPTS = 5;
 const LOCK_WINDOW_MS = 60_000;
 const LOCK_DURATION_MS = 2 * 60_000;
 const DEFAULT_LOGIN_IMAGES: Record<string, string> = {
-    background: 'https://hotel.slogga.it/client/nitro/images/reception/background_gradient_apr25.png',
+    background: 'https://hotel.example.com/client/nitro/images/reception/background_gradient_apr25.png',
     'background.colour': '#6eadc8',
-    drape: 'https://hotel.slogga.it/client/nitro/images/reception/drape.png',
-    left: 'https://hotel.slogga.it/client/nitro/images/reception/mute_reception_backdrop_left.png',
-    right: 'https://hotel.slogga.it/client/nitro/images/reception/background_right.png'
+    drape: 'https://hotel.example.com/client/nitro/images/reception/drape.png',
+    left: 'https://hotel.example.com/client/nitro/images/reception/mute_reception_backdrop_left.png',
+    right: 'https://hotel.example.com/client/nitro/images/reception/background_right.png'
 };
 const LOGIN_LOCALES: LoginLocale[] = [
     { code: 'it', file: 'it', label: 'Italiano', flag: flagIt },

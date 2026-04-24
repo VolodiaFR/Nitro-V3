@@ -16,9 +16,9 @@ This file controls everything at runtime.
     "distObfuscationEnabled": true,
     "secureAssetsEnabled": true,
     "secureApiEnabled": true,
-    "apiBaseUrl": "https://nitro.slogga.it:2096",
-    "plainConfigBaseUrl": "https://hotel.slogga.it/",
-    "plainGamedataBaseUrl": "https://hotel.slogga.it/client/nitro/gamedata/"
+    "apiBaseUrl": "https://nitro.example.com:2096",
+    "plainConfigBaseUrl": "https://hotel.example.com/",
+    "plainGamedataBaseUrl": "https://hotel.example.com/client/nitro/gamedata/"
 }
 ```
 
@@ -38,16 +38,16 @@ This file controls everything at runtime.
 
 - `apiBaseUrl`
   - Nitro emulator / API base URL
-  - example: `https://nitro.slogga.it:2096`
+  - example: `https://nitro.example.com:2096`
   - it is best to always set this explicitly, so you do not depend on the hardcoded fallback
 
 - `plainConfigBaseUrl`
   - base URL for plain config files
-  - usually: `https://hotel.slogga.it/`
+  - usually: `https://hotel.example.com/`
 
 - `plainGamedataBaseUrl`
   - base URL for plain gamedata files
-  - usually: `https://hotel.slogga.it/client/nitro/gamedata/`
+  - usually: `https://hotel.example.com/client/nitro/gamedata/`
 
 ## 2. `Nitro-V3/src/bootstrap.ts`
 
@@ -71,7 +71,7 @@ This file controls everything at runtime.
 The current fallback is:
 
 ```ts
-(window as any).NitroSecureApiUrl = clientMode.apiBaseUrl || 'http://192.168.1.52:2096/';
+(window as any).NitroSecureApiUrl = clientMode.apiBaseUrl || 'https://nitro.example.com:2096/';
 ```
 
 So in production it is better to always set `apiBaseUrl` inside `client-mode.json`.
@@ -114,7 +114,7 @@ This file still defines the paths used by the renderer.
 You can use:
 
 ```json
-"gamedata.url": "https://nitro.slogga.it:2096/nitro-sec/file?kind=gamedata&file="
+"gamedata.url": "https://nitro.example.com:2096/nitro-sec/file?kind=gamedata&file="
 ```
 
 and the equivalent secure URLs for the other gamedata resources.
@@ -124,7 +124,7 @@ and the equivalent secure URLs for the other gamedata resources.
 You can use plain classic paths, for example:
 
 ```json
-"gamedata.url": "https://hotel.slogga.it/client/nitro/gamedata"
+"gamedata.url": "https://hotel.example.com/client/nitro/gamedata"
 ```
 
 or you can keep the renderer config as-is and let `secure-assets.ts` handle the fallback conversion.
@@ -214,9 +214,9 @@ nitro.secure.master_key=change-me-to-a-long-random-secret
     "distObfuscationEnabled": true,
     "secureAssetsEnabled": true,
     "secureApiEnabled": true,
-    "apiBaseUrl": "https://nitro.slogga.it:2096",
-    "plainConfigBaseUrl": "https://hotel.slogga.it/",
-    "plainGamedataBaseUrl": "https://hotel.slogga.it/client/nitro/gamedata/"
+    "apiBaseUrl": "https://nitro.example.com:2096",
+    "plainConfigBaseUrl": "https://hotel.example.com/",
+    "plainGamedataBaseUrl": "https://hotel.example.com/client/nitro/gamedata/"
 }
 ```
 
@@ -239,9 +239,9 @@ nitro.secure.master_key=a-long-random-secret
     "distObfuscationEnabled": true,
     "secureAssetsEnabled": false,
     "secureApiEnabled": false,
-    "apiBaseUrl": "https://nitro.slogga.it:2096",
-    "plainConfigBaseUrl": "https://hotel.slogga.it/",
-    "plainGamedataBaseUrl": "https://hotel.slogga.it/client/nitro/gamedata/"
+    "apiBaseUrl": "https://nitro.example.com:2096",
+    "plainConfigBaseUrl": "https://hotel.example.com/",
+    "plainGamedataBaseUrl": "https://hotel.example.com/client/nitro/gamedata/"
 }
 ```
 
@@ -261,9 +261,9 @@ nitro.secure.api.enabled=false
     "distObfuscationEnabled": false,
     "secureAssetsEnabled": false,
     "secureApiEnabled": false,
-    "apiBaseUrl": "https://nitro.slogga.it:2096",
-    "plainConfigBaseUrl": "https://hotel.slogga.it/",
-    "plainGamedataBaseUrl": "https://hotel.slogga.it/client/nitro/gamedata/"
+    "apiBaseUrl": "https://nitro.example.com:2096",
+    "plainConfigBaseUrl": "https://hotel.example.com/",
+    "plainGamedataBaseUrl": "https://hotel.example.com/client/nitro/gamedata/"
 }
 ```
 

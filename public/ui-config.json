@@ -1,8 +1,8 @@
 {
     "image.library.notifications.url": "${image.library.url}notifications/%image%.png",
     "achievements.images.url": "${image.library.url}Quests/%image%.png",
-    "camera.url": "https://hotel.slogga.it/client/camera/",
-    "thumbnails.url": "https://hotel.slogga.it/client/camera/thumbnail/%thumbnail%.png",
+    "camera.url": "https://hotel.example.com/client/camera/",
+    "thumbnails.url": "https://hotel.example.com/client/camera/thumbnail/%thumbnail%.png",
     "url.prefix": "",
     "habbopages.url": "/gamedata/habbopages/",
     "group.homepage.url": "${url.prefix}/groups/%groupid%/id",
@@ -30,9 +30,9 @@
     "show.google.ads": false,
     "loginview": {
         "images": {
-            "background": "https://hotel.slogga.it/client/nitro/images/reception/background_gradient_apr25.png",            "drape": "https://hotel.slogga.it/client/nitro/images/reception/drape.png",
-            "left": "https://hotel.slogga.it/client/nitro/images/reception/mute_reception_backdrop_left.png",
-            "right": "https://hotel.slogga.it/client/nitro/images/reception/background_right.png"
+            "background": "https://hotel.example.com/client/nitro/images/reception/background_gradient_apr25.png",            "drape": "https://hotel.example.com/client/nitro/images/reception/drape.png",
+            "left": "https://hotel.example.com/client/nitro/images/reception/mute_reception_backdrop_left.png",
+            "right": "https://hotel.example.com/client/nitro/images/reception/background_right.png"
         }
     },
     "navigator.room.models": [
@@ -1575,11 +1575,11 @@
     },
     "loginview": {
         "images": {
-            "background": "https://hotel.slogga.it/client/nitro/images/reception/background_gradient_apr25.png",
+            "background": "https://hotel.example.com/client/nitro/images/reception/background_gradient_apr25.png",
             "background.colour": "#6eadc8",
-            "drape": "https://hotel.slogga.it/client/nitro/images/reception/drape.png",
-            "left": "https://hotel.slogga.it/client/nitro/images/reception/mute_reception_backdrop_left.png",
-            "right": "https://hotel.slogga.it/client/nitro/images/reception/background_right.png"
+            "drape": "https://hotel.example.com/client/nitro/images/reception/drape.png",
+            "left": "https://hotel.example.com/client/nitro/images/reception/mute_reception_backdrop_left.png",
+            "right": "https://hotel.example.com/client/nitro/images/reception/background_right.png"
         },
         "widgets": {
             "slot.1.widget": "promoarticle",
