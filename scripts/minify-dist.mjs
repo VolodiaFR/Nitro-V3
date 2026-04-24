@@ -35,7 +35,6 @@ const encryptFile = path =>
 {
     const bytes = gzipSync(readFileSync(path), { level: 9 });
     writeFileSync(path + '.dat', encodeBytes(bytes));
-    rmSync(path);
 };
 
 if(!existsSync(dist)) throw new Error('dist folder not found');

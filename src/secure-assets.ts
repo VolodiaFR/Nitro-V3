@@ -4,6 +4,21 @@ type SecureSession = {
     fingerprint: string;
 };
 
+export type NitroClientMode = {
+    distObfuscationEnabled: boolean;
+    secureAssetsEnabled: boolean;
+    secureApiEnabled: boolean;
+    apiBaseUrl?: string;
+    plainConfigBaseUrl?: string;
+    plainGamedataBaseUrl?: string;
+};
+
+const CLIENT_MODE_DEFAULTS: NitroClientMode = {
+    distObfuscationEnabled: true,
+    secureAssetsEnabled: true,
+    secureApiEnabled: true
+};
+
 const isDebugEnabled = (): boolean =>
 {
     try
@@ -72,6 +87,29 @@ const REKEY_ENDPOINTS = new Set([
     '/api/auth/remember',
     '/api/auth/logout'
 ]);
+
+export const getClientMode = (): NitroClientMode =>
+{
+    try
+    {
+        const configured = (window as any).__nitroClientMode;
+
+        if(configured && typeof configured === 'object')
+        {
+            return {
+                distObfuscationEnabled: configured.distObfuscationEnabled !== false,
+                secureAssetsEnabled: configured.secureAssetsEnabled !== false,
+                secureApiEnabled: configured.secureApiEnabled !== false,
+                apiBaseUrl: typeof configured.apiBaseUrl === 'string' ? configured.apiBaseUrl : '',
+                plainConfigBaseUrl: typeof configured.plainConfigBaseUrl === 'string' ? configured.plainConfigBaseUrl : '',
+                plainGamedataBaseUrl: typeof configured.plainGamedataBaseUrl === 'string' ? configured.plainGamedataBaseUrl : ''
+            };
+        }
+    }
+    catch {}
+
+    return { ...CLIENT_MODE_DEFAULTS };
+};
 
 const bytesToBase64 = (bytes: ArrayBuffer): string =>
 {
@@ -149,6 +187,9 @@ const deriveAesKey = async (privateKey: CryptoKey, serverKeyBase64: string): Pro
 
 const getApiBase = (): string =>
 {
+    const mode = getClientMode();
+    if(typeof mode.apiBaseUrl === 'string' && mode.apiBaseUrl.length) return mode.apiBaseUrl.replace(/\/$/, '');
+
     const configured = (window as any).NitroSecureApiUrl;
 
     if(typeof configured === 'string' && configured.length) return configured.replace(/\/$/, '');
@@ -156,8 +197,42 @@ const getApiBase = (): string =>
     return 'http://localhost:8443/';
 };
 
+const getPlainAssetBase = (kind: 'config' | 'gamedata'): string =>
+{
+    const mode = getClientMode();
+    const configured = kind === 'config' ? mode.plainConfigBaseUrl : mode.plainGamedataBaseUrl;
+
+    if(typeof configured === 'string' && configured.length) return configured.endsWith('/') ? configured : `${ configured }/`;
+
+    if(kind === 'config') return `${ window.location.origin }/`;
+
+    return `${ window.location.origin }/nitro/gamedata/`;
+};
+
+const mapSecureAssetRequestToPlainUrl = (requestUrl: string): string =>
+{
+    const url = new URL(requestUrl, window.location.href);
+    const kind = (url.searchParams.get('kind') || 'config') as 'config' | 'gamedata';
+    const file = (url.searchParams.get('file') || '').replace(/^[\\/]+/, '');
+    const plainUrl = new URL(file, getPlainAssetBase(kind));
+    const cacheBust = url.searchParams.get('v');
+
+    if(cacheBust) plainUrl.searchParams.set('v', cacheBust);
+
+    return plainUrl.toString();
+};
+
 export const secureUrl = (kind: 'config' | 'gamedata', file: string, cacheBust = false): string =>
 {
+    if(!getClientMode().secureAssetsEnabled)
+    {
+        const plainUrl = new URL(file.replace(/^\/+/, ''), `${ window.location.origin }/`);
+
+        if(cacheBust) plainUrl.searchParams.set('v', Date.now().toString(36));
+
+        return plainUrl.toString();
+    }
+
     const base = getApiBase();
     const version = cacheBust ? `&v=${ encodeURIComponent(Date.now().toString(36)) }` : '';
 
@@ -364,6 +439,8 @@ export const installSecureFetch = (): void =>
 
         if(requestUrl.includes('/nitro-sec/file'))
         {
+            if(!getClientMode().secureAssetsEnabled) return nativeFetch(mapSecureAssetRequestToPlainUrl(requestUrl), init);
+
             const method = init?.method || (input instanceof Request ? input.method : 'GET');
             const cacheKey = method.toUpperCase() === 'GET' ? normalizeSecureCacheKey(requestUrl) : null;
 
@@ -405,7 +482,7 @@ export const installSecureFetch = (): void =>
             return cloneCachedResponse(responsePromise);
         }
 
-        if(isApiUrl(requestUrl))
+        if(getClientMode().secureApiEnabled && isApiUrl(requestUrl))
         {
             const method = (init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
             const session = await getSecureSession();

@@ -1,4 +1,4 @@
-import { installSecureFetch, secureUrl } from './secure-assets';
+import { getClientMode, installSecureFetch, secureUrl } from './secure-assets';
 
 installSecureFetch();
 
@@ -17,12 +17,22 @@ const setBootDebug = (message: string) =>
 setBootDebug('boot: secure fetch installed');
 
 const search = new URLSearchParams(window.location.search);
+const clientMode = getClientMode();
+const cacheBustUrl = (path: string): string =>
+{
+    const url = new URL(path.replace(/^\/+/, ''), `${ window.location.origin }/`);
 
-(window as any).NitroSecureApiUrl = 'http://192.168.1.52:2096/';
+    url.searchParams.set('v', Date.now().toString(36));
+
+    return url.toString();
+};
+
+(window as any).NitroSecureApiUrl = clientMode.apiBaseUrl || 'http://192.168.1.52:2096/';
+(window as any).NitroClientMode = clientMode;
 (window as any).NitroConfig = {
     'config.urls': [
-        secureUrl('config', 'renderer-config.json', true),
-        secureUrl('config', 'ui-config.json', true)
+        clientMode.secureAssetsEnabled ? secureUrl('config', 'renderer-config.json', true) : cacheBustUrl('renderer-config.json'),
+        clientMode.secureAssetsEnabled ? secureUrl('config', 'ui-config.json', true) : cacheBustUrl('ui-config.json')
     ],
     'sso.ticket': search.get('sso') || null,
     'forward.type': search.get('room') ? 2 : -1,
