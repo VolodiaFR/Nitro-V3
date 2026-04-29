@@ -78,7 +78,8 @@ export const AvatarEditorView: FC<{}> = props =>
 
     return (
         <NitroCardView
-            className={ `nitro-avatar-editor ${ isWardrobeOpen ? 'w-[880px]' : 'w-[620px]' } h-[460px]` }
+            className={ `nitro-avatar-editor ${ isWardrobeOpen ? 'w-[880px]' : 'w-[600px]' } h-[460px]` }
+            isResizable={ false }
             uniqueKey="avatar-editor">
             <NitroCardHeaderView headerText={ LocalizeText('avatareditor.title') } onCloseClick={ event => setIsVisible(false) } />
             <NitroCardTabsView classNames={ ['avatar-editor-tabs'] }>
