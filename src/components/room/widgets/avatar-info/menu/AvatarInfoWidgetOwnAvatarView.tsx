@@ -55,6 +55,9 @@ export const AvatarInfoWidgetOwnAvatarView: FC<AvatarInfoWidgetOwnAvatarViewProp
                     case 'change_looks':
                         CreateLinkEvent('avatar-editor/show');
                         break;
+                    case 'avatar_effect':
+                        CreateLinkEvent('avatar-effects/show');
+                        break;
                     case 'expressions':
                         hideMenu = false;
                         setMode(MODE_EXPRESSIONS);
@@ -136,6 +139,9 @@ export const AvatarInfoWidgetOwnAvatarView: FC<AvatarInfoWidgetOwnAvatarViewProp
                         </ContextMenuListItemView> }
                     <ContextMenuListItemView onClick={ event => processAction('change_looks') }>
                         { LocalizeText('widget.memenu.myclothes') }
+                    </ContextMenuListItemView>
+                    <ContextMenuListItemView onClick={ event => processAction('avatar_effect') }>
+                        { LocalizeText('product.type.effect') }
                     </ContextMenuListItemView>
                     { (HasHabboClub() && !isRidingHorse) &&
                         <ContextMenuListItemView onClick={ event => processAction('dance_menu') }>
