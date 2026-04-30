@@ -3,12 +3,6 @@ import { FC, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from
 import { GetConfigurationValue, LocalizeText } from '../../api';
 import { TurnstileWidget } from './TurnstileWidget';
 
-/**
- * Looks up a localized string. Falls back to `fallback` when the key is
- * missing (LocalizeText returns the key itself) or when the localization
- * manager isn't ready yet (login runs very early). Parameters are
- * %name%-substituted into the fallback so the UI stays correct pre-init.
- */
 const t = (key: string, fallback: string, params?: string[], replacements?: string[]): string =>
 {
     try
@@ -16,7 +10,7 @@ const t = (key: string, fallback: string, params?: string[], replacements?: stri
         const value = LocalizeText(key, params ?? null, replacements ?? null);
         if(value && value !== key) return value;
     }
-    catch { /* localization manager not initialised yet */ }
+    catch {}
 
     if(!params || !replacements) return fallback;
     let out = fallback;
@@ -328,7 +322,7 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
                     if(rememberMe && rememberToken) window.localStorage.setItem('nitro.remember.token', rememberToken);
                     else window.localStorage.removeItem('nitro.remember.token');
                 }
-                catch { /* localStorage may be disabled in private mode */ }
+                catch {}
 
                 clearLock();
                 onAuthenticated(ssoTicket);
@@ -359,6 +353,8 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
             setSubmitting(false);
         }
     }, [ submitting, username, password, rememberMe, turnstileEnabled, loginTurnstileToken, loginUrl, postJson, clearLock, recordFailure, onAuthenticated, resetLoginTurnstile, pingLoginServer ]);
+
+    const newsUrl = GetConfigurationValue<string>('login.news.endpoint', '/api/auth/news');
 
     const checkEmailUrl = GetConfigurationValue<string>('login.check-email.endpoint', '/api/auth/check-email');
     const checkUsernameUrl = GetConfigurationValue<string>('login.check-username.endpoint', '/api/auth/check-username');
@@ -511,6 +507,8 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated }) =>
             { left ? <div className="login-left login-layer" style={ { backgroundImage: `url(${ left })` } } /> : null }
             { rightRepeat ? <div className="login-right-repeat login-layer" style={ { backgroundImage: `url(${ rightRepeat })` } } /> : null }
             { right ? <div className="login-right login-layer" style={ { backgroundImage: `url(${ right })` } } /> : null }
+
+            <NewsWindow newsUrl={ newsUrl } />
 
             <div className="login-stack">
                 <div className="nitro-login-card">
@@ -1424,6 +1422,162 @@ const ForgotDialog: FC<ForgotDialogProps> = props =>
                             <button type="submit" className="ok-button" disabled={ submitting }>{ t('nitro.login.forgot.send', 'Send email') }</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+interface NewsItem
+{
+    id: number;
+    title: string;
+    body: string;
+    image: string | null;
+    linkText: string;
+    linkUrl: string;
+}
+
+interface NewsWindowProps { newsUrl: string; }
+
+const NEWS_AUTO_ADVANCE_MS = 10000;
+
+const resolveNewsImage = (raw: string | null | undefined): string =>
+{
+    const value = (raw ?? '').trim();
+    if(!value) return '';
+    if(/^https?:\/\//i.test(value)) return value;
+    if(value.startsWith('//')) return value;
+    if(value.startsWith('/') && !value.startsWith('//')) return value;
+    if(value.startsWith('data:'))
+    {
+        return /^data:image\/[a-z0-9.+-]+[,;]/i.test(value) ? value : '';
+    }
+
+    const stripped = value.replace(/\s+/g, '');
+    if(!/^[A-Za-z0-9+/=]+$/.test(stripped)) return '';
+    let mime = 'image/png';
+    if(stripped.startsWith('/9j/')) mime = 'image/jpeg';
+    else if(stripped.startsWith('R0lGOD')) mime = 'image/gif';
+    else if(stripped.startsWith('UklGR')) mime = 'image/webp';
+    else if(stripped.startsWith('PHN2Zy') || stripped.startsWith('PD94bWw')) mime = 'image/svg+xml';
+    else if(stripped.startsWith('iVBORw0KGgo')) mime = 'image/png';
+    return `data:${ mime };base64,${ stripped }`;
+};
+
+const resolveNewsLink = (raw: string | null | undefined): string =>
+{
+    const value = (raw ?? '').trim();
+    if(!value) return '';
+    try
+    {
+        const url = new URL(value, window.location.href);
+        const proto = url.protocol.toLowerCase();
+        if(proto !== 'http:' && proto !== 'https:') return '';
+        return url.href;
+    }
+    catch { return ''; }
+};
+
+const NewsWindow: FC<NewsWindowProps> = ({ newsUrl }) =>
+{
+    const [ items, setItems ] = useState<NewsItem[] | null>(null);
+    const [ failed, setFailed ] = useState(false);
+    const [ index, setIndex ] = useState(0);
+    const [ autoTick, setAutoTick ] = useState(0);
+
+    useEffect(() =>
+    {
+        if(!newsUrl) { setFailed(true); return; }
+        let cancelled = false;
+        fetch(newsUrl, { credentials: 'omit' })
+            .then(async r =>
+            {
+                if(!r.ok) throw new Error('status ' + r.status);
+                return r.json();
+            })
+            .then((json: unknown) =>
+            {
+                if(cancelled) return;
+                const list = Array.isArray((json as { news?: unknown })?.news)
+                    ? (json as { news: NewsItem[] }).news
+                    : [];
+                setItems(list);
+            })
+            .catch(() => { if(!cancelled) setFailed(true); });
+        return () => { cancelled = true; };
+    }, [ newsUrl ]);
+
+    useEffect(() =>
+    {
+        if(!items || items.length < 2) return;
+        const id = window.setTimeout(() =>
+        {
+            setIndex(i => (i + 1) % items.length);
+        }, NEWS_AUTO_ADVANCE_MS);
+        return () => window.clearTimeout(id);
+    }, [ items, index, autoTick ]);
+
+    if(failed) return null;
+    if(!items || !items.length) return null;
+
+    const current = items[Math.min(index, items.length - 1)];
+    const hasMany = items.length > 1;
+    const bumpAuto = () => setAutoTick(t => t + 1);
+    const prev = () => { setIndex(i => (i - 1 + items.length) % items.length); bumpAuto(); };
+    const next = () => { setIndex(i => (i + 1) % items.length); bumpAuto(); };
+
+    const safeLinkUrl = resolveNewsLink(current.linkUrl);
+    const safeImageSrc = resolveNewsImage(current.image);
+    const openLink = () =>
+    {
+        if(!safeLinkUrl) return;
+        window.open(safeLinkUrl, '_blank', 'noopener,noreferrer');
+    };
+
+    return (
+        <div className="login-news-stack">
+            <div className="news-card-wrapper" key={ current.id }>
+                <span className="news-sparkle news-sparkle-1" aria-hidden="true">★</span>
+                <span className="news-sparkle news-sparkle-2" aria-hidden="true">✦</span>
+                <span className="news-sparkle news-sparkle-3" aria-hidden="true">✧</span>
+
+                <div className="news-new-badge" aria-hidden="true">
+                    <span>{ t('nitro.login.news.new', 'NEW!') }</span>
+                </div>
+
+                <div className="nitro-login-card nitro-news-card">
+                    <div className="card-title news-ribbon">
+                        <span className="news-ribbon-text">{ t('nitro.login.news.title', 'Hotel News') }</span>
+                    </div>
+                    <div className="card-body news-body">
+                        { safeImageSrc &&
+                            <div className="news-image">
+                                <img
+                                    src={ safeImageSrc }
+                                    alt={ current.title || 'news' }
+                                    onError={ e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; } }
+                                />
+                            </div>
+                        }
+                        <div className="news-headline">{ current.title }</div>
+                        { current.body &&
+                            <div className="news-text">{ current.body }</div> }
+
+                        <div className="news-footer">
+                            { current.linkText && safeLinkUrl
+                                ? <button type="button" className="ok-button news-link-button" onClick={ openLink }>{ current.linkText }</button>
+                                : <span /> }
+
+                            { hasMany &&
+                                <div className="news-pager">
+                                    <button type="button" className="arrow-btn" aria-label="Previous news" onClick={ prev }>&lsaquo;</button>
+                                    <span className="news-counter">{ index + 1 }/{ items.length }</span>
+                                    <button type="button" className="arrow-btn" aria-label="Next news" onClick={ next }>&rsaquo;</button>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
