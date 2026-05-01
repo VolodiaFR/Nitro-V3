@@ -54,6 +54,7 @@
     "login.room_templates.endpoint": "${api.url}/api/auth/room-templates",
 	"login.remember.endpoint": "${api.url}/api/auth/remember",
 	"login.server_key.endpoint": "${api.url}/api/auth/server-key",
+	"login.news.endpoint": "${api.url}/api/auth/news",
     "login.turnstile.enabled": true,
     "login.turnstile.sitekey": "",
     "avatar.mandatory.libraries": [
