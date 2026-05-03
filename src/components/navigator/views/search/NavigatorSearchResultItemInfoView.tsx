@@ -1,7 +1,7 @@
 import { RoomDataParser, RoomSettingsComposer, UpdateHomeRoomMessageComposer } from '@nitrots/nitro-renderer';
+import * as Popover from '@radix-ui/react-popover';
 import React, { FC, useRef, useState } from 'react';
 import { FaUser } from 'react-icons/fa';
-import { ArrowContainer, Popover } from 'react-tiny-popover';
 import { GetGroupInformation, GetSessionDataManager, GetUserProfile, LocalizeText, ReportType, SendMessageComposer, ToggleFavoriteRoom } from '../../../../api';
 import { Column, Flex, LayoutBadgeImageView, LayoutRoomThumbnailView, NitroCardContentView, Text, UserProfileIconView } from '../../../../common';
 import { useHelp, useNavigator } from '../../../../hooks';
@@ -25,6 +25,12 @@ export const NavigatorSearchResultItemInfoView: FC<NavigatorSearchResultItemInfo
 
     const isControlled = isVisible !== undefined;
     const popoverOpen = isControlled ? isVisible : internalVisible;
+
+    const handleOpenChange = (open: boolean) =>
+    {
+        if(!isControlled) setInternalVisible(open);
+        if(!open && setIsPopoverActive) setIsPopoverActive(false);
+    };
 
     const getUserCounterColor = () =>
     {
@@ -88,17 +94,22 @@ export const NavigatorSearchResultItemInfoView: FC<NavigatorSearchResultItemInfo
     };
 
     return (
-        <Popover
-            containerClassName="max-w-[276px] not-italic font-normal leading-normal text-left no-underline text-shadow-none normal-case tracking-[normal] [word-break:normal] [word-spacing:normal] whitespace-normal text-[.7875rem] [word-wrap:break-word] bg-[#f2f2eb] border border-[#000] rounded-[8px] shadow-none z-[1070]"
-            content={ ({ position, childRect, popoverRect }) => (
-                <ArrowContainer
-                    arrowColor="black"
-                    arrowSize={ 7 }
-                    arrowStyle={ { left: 'calc(-.5rem - 0px)' } }
-                    childRect={ childRect }
-                    popoverRect={ popoverRect }
-                    position={ position }
-                >
+        <Popover.Root open={ popoverOpen } onOpenChange={ handleOpenChange }>
+            <Popover.Trigger asChild>
+                <div
+                    ref={ elementRef }
+                    className="cursor-pointer nitro-icon icon-navigator-info"
+                    onClick={ handleIconClick }
+                    onMouseOver={ () => { if(!isControlled) setInternalVisible(true); } }
+                    onMouseLeave={ () => { if(!isControlled) setInternalVisible(false); } }
+                />
+            </Popover.Trigger>
+            <Popover.Portal>
+                <Popover.Content
+                    side="right"
+                    sideOffset={ 10 }
+                    collisionPadding={ 8 }
+                    className="max-w-[276px] not-italic font-normal leading-normal text-left no-underline normal-case tracking-normal whitespace-normal text-[.7875rem] [word-wrap:break-word] bg-[#f2f2eb] border border-black rounded-[8px] shadow-none z-[1070]">
                     <NitroCardContentView className="bg-transparent room-info image-rendering-pixelated !p-0" overflow="hidden" onClick={ e => e.stopPropagation() }>
                         <Flex gap={ 1 } overflow="hidden" className="p-2">
                             <LayoutRoomThumbnailView className="flex flex-col items-center justify-end mb-1" customUrl={ roomData.officialRoomPicRef } roomId={ roomData.roomId }>
@@ -173,24 +184,9 @@ export const NavigatorSearchResultItemInfoView: FC<NavigatorSearchResultItemInfo
                                 </Flex> }
                         </Column>
                     </NitroCardContentView>
-                </ArrowContainer>
-            ) }
-            isOpen={ popoverOpen }
-            onClickOutside={ () =>
-            {
-                if(!isControlled) setInternalVisible(false);
-                if(setIsPopoverActive) setIsPopoverActive(false);
-            } }
-            padding={ 10 }
-            positions={ [ 'right', 'left', 'top', 'bottom' ] }
-        >
-            <div
-                ref={ elementRef }
-                className="cursor-pointer nitro-icon icon-navigator-info"
-                onClick={ handleIconClick }
-                onMouseOver={ () => { if(!isControlled) setInternalVisible(true); } }
-                onMouseLeave={ () => { if(!isControlled) setInternalVisible(false); } }
-            />
-        </Popover>
+                    <Popover.Arrow className="fill-black" width={ 14 } height={ 7 } />
+                </Popover.Content>
+            </Popover.Portal>
+        </Popover.Root>
     );
 };
