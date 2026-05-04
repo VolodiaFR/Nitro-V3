@@ -1,136 +1,66 @@
-import { CSSProperties } from 'react';
-import { TransitionStatus } from 'react-transition-group';
-import { ENTERING, EXITING } from 'react-transition-group/Transition';
+import { Variants } from 'framer-motion';
 import { TransitionAnimationTypes } from './TransitionAnimationTypes';
 
-export function getTransitionAnimationStyle(type: string, transition: TransitionStatus, timeout: number = 300): Partial<CSSProperties>
+export function getTransitionVariants(type: string): Variants
 {
     switch(type)
     {
         case TransitionAnimationTypes.BOUNCE:
-            switch(transition)
-            {
-                default:
-                    return {};
-                case ENTERING:
-                    return {
-                        animationName: 'bounceIn',
-                        animationDuration: `${ timeout }ms`
-                    };
-                case EXITING:
-                    return {
-                        animationName: 'bounceOut',
-                        animationDuration: `${ timeout }ms`
-                    };
-            }
+            return {
+                hidden: { opacity: 0, scale: 0.3 },
+                visible: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 12 } },
+                exit: { opacity: 0, scale: 0.3 }
+            };
         case TransitionAnimationTypes.SLIDE_LEFT:
-            switch(transition)
-            {
-                default:
-                    return {};
-                case ENTERING:
-                    return {
-                        animationName: 'slideInLeft',
-                        animationDuration: `${ timeout }ms`
-                    };
-                case EXITING:
-                    return {
-                        animationName: 'slideOutLeft',
-                        animationDuration: `${ timeout }ms`
-                    };
-            }
+            return {
+                hidden: { opacity: 0, x: '-100%' },
+                visible: { opacity: 1, x: 0 },
+                exit: { opacity: 0, x: '-100%' }
+            };
         case TransitionAnimationTypes.SLIDE_RIGHT:
-            switch(transition)
-            {
-                default:
-                    return {};
-                case ENTERING:
-                    return {
-                        animationName: 'slideInRight',
-                        animationDuration: `${ timeout }ms`
-                    };
-                case EXITING:
-                    return {
-                        animationName: 'slideOutRight',
-                        animationDuration: `${ timeout }ms`
-                    };
-            }
+            return {
+                hidden: { opacity: 0, x: '100%' },
+                visible: { opacity: 1, x: 0 },
+                exit: { opacity: 0, x: '100%' }
+            };
         case TransitionAnimationTypes.FLIP_X:
-            switch(transition)
-            {
-                default:
-                    return {};
-                case ENTERING:
-                    return {
-                        animationName: 'flipInX',
-                        animationDuration: `${ timeout }ms`
-                    };
-                case EXITING:
-                    return {
-                        animationName: 'flipOutX',
-                        animationDuration: `${ timeout }ms`
-                    };
-            }
+            return {
+                hidden: { opacity: 0, rotateX: 90 },
+                visible: { opacity: 1, rotateX: 0 },
+                exit: { opacity: 0, rotateX: 90 }
+            };
         case TransitionAnimationTypes.FADE_UP:
-            switch(transition)
-            {
-                default:
-                    return {};
-                case ENTERING:
-                    return {
-                        animationName: 'fadeInUp',
-                        animationDuration: `${ timeout }ms`
-                    };
-                case EXITING:
-                    return {
-                        animationName: 'fadeOutDown',
-                        animationDuration: `${ timeout }ms`
-                    };
-            }
+            return {
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+                exit: { opacity: 0, y: 20 }
+            };
         case TransitionAnimationTypes.FADE_IN:
-            switch(transition)
-            {
-                default:
-                    return {};
-                case ENTERING:
-                    return {
-                        animationName: 'fadeIn',
-                        animationDuration: `${ timeout }ms`
-                    };
-                case EXITING:
-                    return {
-                        animationName: 'fadeOut',
-                        animationDuration: `${ timeout }ms`
-                    };
-            }
+            return {
+                hidden: { opacity: 0 },
+                visible: { opacity: 1 },
+                exit: { opacity: 0 }
+            };
         case TransitionAnimationTypes.FADE_DOWN:
-            switch(transition)
-            {
-                default:
-                    return {};
-                case ENTERING:
-                    return {
-                        animationName: 'fadeInDown',
-                        animationDuration: `${ timeout }ms`
-                    };
-                case EXITING:
-                    return {
-                        animationName: 'fadeOutUp',
-                        animationDuration: `${ timeout }ms`
-                    };
-            }
+            return {
+                hidden: { opacity: 0, y: -20 },
+                visible: { opacity: 1, y: 0 },
+                exit: { opacity: 0, y: -20 }
+            };
         case TransitionAnimationTypes.HEAD_SHAKE:
-            switch(transition)
-            {
-                default:
-                    return {};
-                case ENTERING:
-                    return {
-                        animationName: 'headShake',
-                        animationDuration: `${ timeout }ms`
-                    };
-            }
+            return {
+                hidden: { x: 0 },
+                visible: {
+                    x: [ 0, -6, 5, -3, 2, 0 ],
+                    transition: { duration: 0.5 }
+                },
+                exit: { x: 0 }
+            };
     }
 
-    return null;
+    return {
+        hidden: {},
+        visible: {},
+        exit: {}
+    };
 }

@@ -1,6 +1,6 @@
-import { FC, ReactNode, useEffect, useState } from 'react';
-import { Transition } from 'react-transition-group';
-import { getTransitionAnimationStyle } from './TransitionAnimationStyles';
+import { AnimatePresence, motion, Variants } from 'framer-motion';
+import { FC, ReactNode } from 'react';
+import { getTransitionVariants } from './TransitionAnimationStyles';
 
 interface TransitionAnimationProps
 {
@@ -15,38 +15,22 @@ export const TransitionAnimation: FC<TransitionAnimationProps> = props =>
 {
     const { type = null, inProp = false, timeout = 300, className = null, children = null } = props;
 
-    const [ isChildrenVisible, setChildrenVisible ] = useState(false);
-
-    useEffect(() =>
-    {
-        let timeoutData: ReturnType<typeof setTimeout> = null;
-
-        if(inProp)
-        {
-            setChildrenVisible(true);
-        }
-        else
-        {
-            timeoutData = setTimeout(() =>
-            {
-                setChildrenVisible(false);
-                clearTimeout(timeout);
-            }, timeout);
-        }
-
-        return () =>
-        {
-            if(timeoutData) clearTimeout(timeoutData);
-        };
-    }, [ inProp, timeout ]);
+    const variants: Variants = getTransitionVariants(type);
+    const duration = timeout / 1000;
 
     return (
-        <Transition in={ inProp } timeout={ timeout }>
-            { state => (
-                <div className={ (className ?? '') + ' animate__animated' } style={ { ...getTransitionAnimationStyle(type, state, timeout) } }>
-                    { isChildrenVisible && children }
-                </div>
+        <AnimatePresence initial={ false }>
+            { inProp && (
+                <motion.div
+                    className={ className ?? '' }
+                    variants={ variants }
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    transition={ { duration } }>
+                    { children }
+                </motion.div>
             ) }
-        </Transition>
+        </AnimatePresence>
     );
 };
