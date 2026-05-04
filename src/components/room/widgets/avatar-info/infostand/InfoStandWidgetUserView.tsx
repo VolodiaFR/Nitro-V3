@@ -133,13 +133,7 @@ export const InfoStandWidgetUserView: FC<InfoStandWidgetUserViewProps> = props =
     SendMessageComposer(new UserRelationshipsComposer(avatarInfo.webID));
 
     return () => {
-      setIsEditingMotto(false);
-      setMotto(null);
       setRelationships(null);
-      setBackgroundId(null);
-      setStandId(null);
-      setOverlayId(null);
-      setCardBackgroundId(null);
     };
   }, [avatarInfo]);
 
