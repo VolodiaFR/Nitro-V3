@@ -1,4 +1,5 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FaPlus } from 'react-icons/fa';
 import { GetConfigurationValue, LocalizeText } from '../../../../../api';
 import { LayoutBadgeImageView } from '../../../../../common';
@@ -15,7 +16,8 @@ const BadgeMiniPicker: FC<{
     onSelect: (badgeCode: string) => void;
     onClose: () => void;
     activeBadgeCodes: (string | null)[];
-}> = ({ onSelect, onClose, activeBadgeCodes }) =>
+    position: { top: number; left: number };
+}> = ({ onSelect, onClose, activeBadgeCodes, position }) =>
 {
     const { badgeCodes = [], requestBadges = null } = useInventoryBadges();
     const ref = useRef<HTMLDivElement>(null);
@@ -43,10 +45,11 @@ const BadgeMiniPicker: FC<{
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [ onClose ]);
 
-    return (
+    return createPortal(
         <div
             ref={ ref }
-            className="absolute right-[calc(100%+8px)] top-0 z-50 bg-[rgba(28,28,32,0.97)] border border-white/20 rounded-md p-2 shadow-lg min-w-[160px]"
+            className="fixed z-[9999] bg-[rgba(28,28,32,0.97)] border border-white/20 rounded-md p-2 shadow-lg min-w-[160px]"
+            style={ { top: position.top, left: position.left } }
             onClick={ e => e.stopPropagation() }>
             <input
                 autoFocus
@@ -73,7 +76,8 @@ const BadgeMiniPicker: FC<{
                         ) }
                     </div>
                 ) }
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -83,7 +87,9 @@ export const InfoStandBadgeSlotView: FC<InfoStandBadgeSlotProps> = ({ slotIndex,
     const [ isDragOver, setIsDragOver ] = useState(false);
     const [ isDragging, setIsDragging ] = useState(false);
     const [ justDropped, setJustDropped ] = useState(false);
-    const [ showPicker, setShowPicker ] = useState(false);
+    const [ pickerPosition, setPickerPosition ] = useState<{ top: number; left: number } | null>(null);
+    const slotRef = useRef<HTMLDivElement>(null);
+    const showPicker = pickerPosition !== null;
 
     const hookInitialized = activeBadgeCodes.length > 0;
 
@@ -152,9 +158,17 @@ export const InfoStandBadgeSlotView: FC<InfoStandBadgeSlotProps> = ({ slotIndex,
 
     const handleSlotClick = useCallback(() =>
     {
-        if(!isOwnUser || badgeCode) return;
+        if(!isOwnUser || badgeCode || !slotRef.current) return;
 
-        setShowPicker(true);
+        const rect = slotRef.current.getBoundingClientRect();
+        const pickerWidth = 180;
+        const gap = 8;
+        let left = rect.right + gap;
+
+        if((left + pickerWidth) > (window.innerWidth - gap)) left = rect.left - pickerWidth - gap;
+        if(left < gap) left = gap;
+
+        setPickerPosition({ top: rect.top, left });
     }, [ isOwnUser, badgeCode ]);
 
     const handleDoubleClick = useCallback(() =>
@@ -167,12 +181,13 @@ export const InfoStandBadgeSlotView: FC<InfoStandBadgeSlotProps> = ({ slotIndex,
     const handlePickerSelect = useCallback((code: string) =>
     {
         setBadgeAtSlot(code, slotIndex);
-        setShowPicker(false);
+        setPickerPosition(null);
     }, [ setBadgeAtSlot, slotIndex ]);
 
     return (
         <div className="relative">
             <div
+                ref={ slotRef }
                 className={ `flex items-center justify-center relative w-[40px] h-[40px] bg-no-repeat bg-center transition-all duration-150
                     ${ isOwnUser && badgeCode ? 'cursor-grab active:cursor-grabbing' : '' }
                     ${ isOwnUser && !badgeCode ? 'cursor-pointer' : '' }
@@ -196,8 +211,9 @@ export const InfoStandBadgeSlotView: FC<InfoStandBadgeSlotProps> = ({ slotIndex,
             { showPicker && (
                 <BadgeMiniPicker
                     activeBadgeCodes={ activeBadgeCodes }
-                    onClose={ () => setShowPicker(false) }
+                    onClose={ () => setPickerPosition(null) }
                     onSelect={ handlePickerSelect }
+                    position={ pickerPosition }
                 />
             ) }
         </div>
