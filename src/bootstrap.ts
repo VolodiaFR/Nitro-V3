@@ -16,6 +16,30 @@ const setBootDebug = (message: string) =>
 
 setBootDebug('boot: secure fetch installed');
 
+const loadClientMode = async () =>
+{
+    try
+    {
+        if((window as any).__nitroClientMode) return;
+
+        const url = new URL('configuration/client-mode.json', `${ window.location.origin }/`);
+        url.searchParams.set('v', Date.now().toString(36));
+
+        const response = await fetch(url.toString());
+
+        if(!response.ok) throw new Error(`HTTP ${ response.status }`);
+
+        (window as any).__nitroClientMode = await response.json();
+        setBootDebug('boot: client-mode loaded');
+    }
+    catch(error)
+    {
+        setBootDebug(`boot: client-mode fallback ${ error?.message || error }`);
+    }
+};
+
+await loadClientMode();
+
 const search = new URLSearchParams(window.location.search);
 const clientMode = getClientMode();
 const cacheBustUrl = (path: string): string =>

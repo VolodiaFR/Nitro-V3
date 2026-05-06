@@ -13,6 +13,7 @@ import flagNl from '../../assets/images/flag_icon/flag_icon_nl.png';
 import flagSelected from '../../assets/images/flag_icon/flag_icon_selected.png';
 import flagTr from '../../assets/images/flag_icon/flag_icon_tr.png';
 import { applyTextTranslationLocale } from '../../hooks/translation/useTranslation';
+import { NewsWindow } from './components/NewsWindow';
 import { TurnstileWidget } from './TurnstileWidget';
 
 type DialogMode = 'login' | 'register' | 'forgot';
@@ -229,6 +230,7 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
     const loginUrl = GetConfigurationValue<string>('login.endpoint', '/api/auth/login');
     const registerUrl = GetConfigurationValue<string>('login.register.endpoint', '/api/auth/register');
     const forgotUrl = GetConfigurationValue<string>('login.forgot.endpoint', '/api/auth/forgot-password');
+    const newsUrl = interpolate(GetConfigurationValue<string>('login.news.url', ''));
     const turnstileSiteKey = GetConfigurationValue<string>('login.turnstile.sitekey', '');
     const rawTurnstileEnabled = GetConfigurationValue<unknown>('login.turnstile.enabled', false);
     const turnstileEnabled = (rawTurnstileEnabled === true
@@ -677,6 +679,8 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
                         );
                     }) }
                 </div> }
+
+            { newsUrl && <NewsWindow newsUrl={ newsUrl } /> }
 
             <div className="login-stack">
                 <div className="nitro-login-card login-language-card">
