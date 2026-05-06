@@ -1,6 +1,6 @@
 import { ControlYoutubeDisplayPlaybackMessageComposer, YouTubeRoomBroadcastEvent, YouTubeRoomPlayComposer, YouTubeRoomSettingsEvent, YouTubeRoomWatchersEvent, YouTubeRoomWatchingComposer } from "@nitrots/nitro-renderer";
 import { FC, useEffect, useRef, useState } from "react";
-import YouTube from "react-youtube";
+import ReactPlayer from "react-player/youtube";
 import { GetRoomSession, getYoutubeRoomEnabled, GetSessionDataManager, LocalizeText, SendMessageComposer, YoutubeVideoPlaybackStateEnum } from "../../api";
 import { NitroCardContentView, NitroCardHeaderView, NitroCardView, LayoutAvatarImageView } from "../../common";
 import { useFurnitureYoutubeWidget, useMessageEvent } from "../../hooks";
@@ -35,7 +35,7 @@ export const YouTubePlayerView: FC<{}> = () => {
     const [playlist, setPlaylist] = useState<string[]>([]);
     const [history, setHistory] = useState<string[]>([]);
     const [showVolumeSlider, setShowVolumeSlider] = useState(true);
-    const playerRef = useRef<any>(null);
+    const playerRef = useRef<ReactPlayer | null>(null);
     const { objectId: youtubeObjectId, videoId: roomVideoId, currentVideoState, hasControl } = useFurnitureYoutubeWidget();
     const [spectators, setSpectators] = useState< { id: number; name: string; look: string }[] >([]);
     const [broadcastVideo, setBroadcastVideo] = useState("");
@@ -310,22 +310,22 @@ export const YouTubePlayerView: FC<{}> = () => {
                         )}
 
                         {videoId ? (
-                            <YouTube
-                                videoId={videoId}
-                                opts={{
-                                    width: "100%",
-                                    height: isFullscreen ? "100%" : "280",
+                            <ReactPlayer
+                                ref={ref => { playerRef.current = ref; }}
+                                url={`https://www.youtube.com/watch?v=${videoId}`}
+                                width="100%"
+                                height={isFullscreen ? "100%" : 280}
+                                playing
+                                muted={isMuted}
+                                loop={isLooping}
+                                volume={Math.max(0, Math.min(1, volume / 100))}
+                                config={{
                                     playerVars: {
                                         autoplay: 1,
-                                        volume: volume,
-                                        muted: isMuted ? 1 : 0,
                                         loop: isLooping ? 1 : 0,
                                     },
                                 }}
-                                onReady={(e) => {
-                                    playerRef.current = e.target;
-                                    addToHistory(videoId);
-                                }}
+                                onReady={() => addToHistory(videoId)}
                             />
                         ) : (
                             <div className="h-[280px] flex items-center justify-center bg-gray-800 text-gray-500">

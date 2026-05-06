@@ -33,7 +33,7 @@ export const FriendBarItemView: FC<{ friend: MessengerFriend }> = props => {
                     onClick={() => setVisible(prev => !prev)}
                 >
                     <div className="absolute left-[6px] top-1/2 h-[24px] w-[24px] -translate-y-1/2 bg-[url('@/assets/images/toolbar/friend-search.png')] bg-contain bg-center bg-no-repeat pointer-events-none" />
-                    <div className="truncate text-[0.8rem] font-bold">{LocalizeText('friend.bar.find.title')}</div>
+                    <div className="truncate text-[0.83rem]">{LocalizeText('friend.bar.find.title')}</div>
                 </motion.button>
                 
                 <AnimatePresence>
@@ -45,10 +45,10 @@ export const FriendBarItemView: FC<{ friend: MessengerFriend }> = props => {
                             transition={{ type: "spring", stiffness: 400, damping: 25 }}
                             className="absolute bottom-[calc(100%+12px)] left-1/2 -translate-x-1/2 tbme-panel whitespace-nowrap z-[80] flex flex-col items-center gap-2 pointer-events-auto min-w-[170px]"
                         >
-                            <div className="text-white text-[13px] font-bold drop-shadow-[1px_1px_0_#000]">{LocalizeText('friend.bar.find.title')}</div>
+                            <div className="text-white text-[13px] drop-shadow-[1px_1px_0_#000]">{LocalizeText('friend.bar.find.title')}</div>
                             <div className="text-white/80 text-xs px-2">{LocalizeText('friend.bar.find.text')}</div>
                             <button 
-                                className="px-3 py-1 bg-black/40 hover:bg-black/60 border border-white/10 rounded-lg text-white text-[11px] font-bold transition-colors cursor-pointer mt-1"
+                                className="px-3 py-1 bg-black/40 hover:bg-black/60 border border-white/10 rounded-lg text-white text-[11px] transition-colors cursor-pointer mt-1"
                                 onClick={event => { event.stopPropagation(); SendMessageComposer(new FindNewFriendsMessageComposer()); setVisible(false); }}
                             >
                                 {LocalizeText('friend.bar.find.button')}
@@ -62,8 +62,8 @@ export const FriendBarItemView: FC<{ friend: MessengerFriend }> = props => {
 
     return (
         <div ref={elementRef} className="relative">
-            <div className="absolute left-[-4px] bottom-[-2px] z-10 h-[66px] w-[34px] overflow-hidden pointer-events-none">
-                {(friend.id > 0) ? (
+            {(friend.id > 0) ? (
+                <div className="absolute left-[-4px] bottom-[-2px] z-10 h-[66px] w-[34px] overflow-hidden pointer-events-none">
                     <LayoutAvatarImageView
                         direction={2}
                         figure={friend.figure}
@@ -71,17 +71,19 @@ export const FriendBarItemView: FC<{ friend: MessengerFriend }> = props => {
                         className="block pointer-events-none drop-shadow-[1px_1px_0_rgba(0,0,0,0.6)]"
                         style={ { marginLeft: '-28px', marginTop: '-10px' } }
                     />
-                ) : (
-                    <LayoutBadgeImageView badgeCode="ADM" isGroup={false} className="scale-75 block pointer-events-none drop-shadow-[1px_1px_0_rgba(0,0,0,0.6)]" />
-                )}
-            </div>
+                </div>
+            ) : (
+                <div className="absolute left-[6px] top-1/2 -translate-y-1/2 z-10 flex h-[28px] w-[28px] items-center justify-center pointer-events-none">
+                    <LayoutBadgeImageView badgeCode="ADM" isGroup={false} className="block pointer-events-none drop-shadow-[1px_1px_0_rgba(0,0,0,0.6)]" />
+                </div>
+            )}
             <motion.button
                 type="button"
                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                 className="relative flex h-[34px] w-[132px] items-center rounded-[7px] border border-[#9fc56f] bg-[#6f8f39] pl-[44px] pr-[10px] text-left text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_0_rgba(0,0,0,0.25)] overflow-visible"
                 onClick={() => setVisible(prev => !prev)}
             >
-                <div className="truncate text-[0.82rem] font-bold">{friend.name}</div>
+                <div className="truncate text-[0.83rem]">{friend.name}</div>
             </motion.button>
 
             <AnimatePresence>

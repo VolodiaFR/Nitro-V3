@@ -1,5 +1,6 @@
 import { BadgeImageReadyEvent, GetEventDispatcher, GetSessionDataManager, NitroSprite, TextureUtils } from '@nitrots/nitro-renderer';
-import { CSSProperties, FC, useEffect, useMemo, useState } from 'react';
+import { CSSProperties, FC, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { GetConfigurationValue, LocalizeBadgeDescription, LocalizeBadgeName, LocalizeText } from '../../api';
 import { Base, BaseProps } from '../Base';
 
@@ -17,6 +18,26 @@ export const LayoutBadgeImageView: FC<LayoutBadgeImageViewProps> = props =>
 {
     const { badgeCode = null, isGroup = false, showInfo = false, customTitle = null, isGrayscale = false, scale = 1, classNames = [], style = {}, children = null, ...rest } = props;
     const [ imageElement, setImageElement ] = useState<HTMLImageElement>(null);
+    const [ tooltipPosition, setTooltipPosition ] = useState<{ top: number; left: number } | null>(null);
+    const badgeRef = useRef<HTMLDivElement>(null);
+
+    const tooltipsEnabled = showInfo && GetConfigurationValue<boolean>('badge.descriptions.enabled', true);
+
+    const showTooltip = () =>
+    {
+        if(!tooltipsEnabled || !badgeRef.current) return;
+
+        const rect = badgeRef.current.getBoundingClientRect();
+        const tooltipWidth = 210;
+        const gap = 10;
+        let left = rect.left - tooltipWidth - gap;
+
+        if(left < gap) left = rect.right + gap;
+
+        setTooltipPosition({ top: rect.top, left });
+    };
+
+    const hideTooltip = () => setTooltipPosition(null);
 
     const getClassNames = useMemo(() =>
     {
@@ -116,12 +137,22 @@ export const LayoutBadgeImageView: FC<LayoutBadgeImageViewProps> = props =>
     }, [ badgeCode, isGroup ]);
 
     return (
-        <Base className="group" classNames={ getClassNames } style={ getStyle } { ...rest }>
-            { (showInfo && GetConfigurationValue<boolean>('badge.descriptions.enabled', true)) &&
-                <Base className="hidden group-hover:block  before:absolute before:content-['_'] before:w-0 before:h-0 before:border-l-10! before:border-b-10! before:border-t-10! before:top-[10px] before:-right-[10px] before:border-l-[white] before:border-t-transparent before:border-b-transparent z-50 absolute pointer-events-none select-none w-[210px] rounded-[.25rem] bg-[#fff] -left-[220px] text-black py-1 px-2 small">
+        <Base
+            innerRef={ badgeRef }
+            classNames={ getClassNames }
+            style={ getStyle }
+            onMouseEnter={ tooltipsEnabled ? showTooltip : undefined }
+            onMouseLeave={ tooltipsEnabled ? hideTooltip : undefined }
+            { ...rest }>
+            { tooltipsEnabled && tooltipPosition && createPortal(
+                <div
+                    className="fixed z-[9999] pointer-events-none select-none w-[210px] rounded-[.25rem] bg-[#fff] text-black py-1 px-2 small"
+                    style={ { top: tooltipPosition.top, left: tooltipPosition.left } }>
                     <div className="font-bold mb-1">{ isGroup ? customTitle : LocalizeBadgeName(badgeCode) }</div>
                     <div>{ isGroup ? LocalizeText('group.badgepopup.body') : LocalizeBadgeDescription(badgeCode) }</div>
-                </Base> }
+                </div>,
+                document.body
+            ) }
             { children }
         </Base>
     );

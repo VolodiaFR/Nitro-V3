@@ -9,7 +9,7 @@
 
         &.type-0 {
 
-            // normal
+            /* normal */
             .message {
                 font-weight: 400;
             }
@@ -17,7 +17,7 @@
 
         &.type-1 {
 
-            // whisper
+            /* whisper */
             .message {
                 font-weight: 400;
                 font-style: italic;
@@ -27,7 +27,7 @@
 
         &.type-2 {
 
-            // shout
+            /* shout */
             .message {
                 font-weight: 700;
             }

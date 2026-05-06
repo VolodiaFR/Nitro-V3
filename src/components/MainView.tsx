@@ -4,6 +4,8 @@ import { FC, useEffect, useState } from 'react';
 import { useNitroEvent } from '../hooks';
 import { AchievementsView } from './achievements/AchievementsView';
 import { AvatarEditorView } from './avatar-editor';
+import { BadgeCreatorView } from './badge-creator';
+import { AvatarEffectsView } from './avatar-effects';
 import { CameraWidgetView } from './camera/CameraWidgetView';
 import { CampaignView } from './campaign/CampaignView';
 import { CatalogView } from './catalog/CatalogView';
@@ -121,6 +123,8 @@ export const MainView: FC<{}> = props =>
             <CustomizeNickIconView />
             <WiredView />
             <AvatarEditorView />
+            <BadgeCreatorView />
+            <AvatarEffectsView />
             <AchievementsView />
             <NavigatorView />
 			<NitrobubbleHiddenView />
