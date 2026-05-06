@@ -34,6 +34,28 @@
     position: absolute;
     background-repeat: no-repeat;
     pointer-events: none;
+    transform: translateZ(0);
+}
+
+.nitro-login-view .login-layer-img {
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+    object-fit: none;
+}
+
+.nitro-login-view .login-image-preloader {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.nitro-login-view .login-image-preloader img {
+    width: 1px;
+    height: 1px;
 }
 
 .nitro-login-view .login-background {
@@ -41,8 +63,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-repeat: repeat-x;
-    background-position: center top;
+    object-fit: cover;
+    object-position: center top;
 }
 
 .nitro-login-view .login-sun {
@@ -50,8 +72,8 @@
     transform: translateX(-50%);
     width: 600px;
     height: 600px;
-    background-size: contain;
-    background-position: center top;
+    object-fit: contain;
+    object-position: center top;
 }
 
 .nitro-login-view .login-drape {
@@ -60,6 +82,8 @@
     width: 190px;
     height: 220px;
     z-index: 3;
+    object-fit: contain;
+    object-position: left top;
 }
 
 .nitro-login-view .login-left {
@@ -67,9 +91,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-position: left bottom;
-    background-size: auto;
-    background-repeat: no-repeat;
+    object-fit: none;
+    object-position: left bottom;
 }
 
 .nitro-login-view .login-right-repeat {
@@ -84,9 +107,11 @@
 .nitro-login-view .login-right {
     bottom: 0;
     right: 0;
-    width: 400px;
-    height: 100%;
-    background-position: right bottom;
+    width: auto;
+    height: auto;
+    max-width: none;
+    object-fit: initial;
+    object-position: initial;
 }
 
 /* ─── Foreground Login Card Stack ─── */
@@ -102,6 +127,79 @@
     width: 260px;
     z-index: 50;
     pointer-events: auto;
+}
+
+.nitro-login-view .login-widgets {
+    position: absolute;
+    top: 18px;
+    left: 240px;
+    right: 360px;
+    z-index: 25;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 34px 58px;
+    pointer-events: auto;
+}
+
+.nitro-login-view .login-widget-slot {
+    min-height: 110px;
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    align-items: center;
+    gap: 22px;
+    color: #ffffff;
+    font-family: Ubuntu, 'Helvetica Neue', Arial, sans-serif;
+    text-shadow: 0 2px 2px rgba(0, 0, 0, 0.45);
+}
+
+.nitro-login-view .login-widget-image {
+    max-width: 150px;
+    max-height: 150px;
+    width: auto;
+    height: auto;
+    justify-self: center;
+    image-rendering: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.nitro-login-view .login-widget-content {
+    min-width: 0;
+}
+
+.nitro-login-view .login-widget-title {
+    font-size: 18px;
+    line-height: 20px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    margin-bottom: 5px;
+}
+
+.nitro-login-view .login-widget-description {
+    max-width: 285px;
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+.nitro-login-view .login-widget-button {
+    min-width: 178px;
+    height: 25px;
+    padding: 0 18px;
+    border: 1px solid #777777;
+    border-radius: 3px;
+    background: linear-gradient(#ffffff, #d4d4d4);
+    color: #111111;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.85), 0 1px 1px rgba(0, 0, 0, 0.35);
+    text-shadow: none;
+}
+
+.nitro-login-view .login-widget-button:hover {
+    background: linear-gradient(#ffffff, #e9e9e9);
 }
 
 .nitro-login-card {
@@ -174,18 +272,20 @@
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(63, 106, 133, 0.3);
 }
 
-.nitro-login-card .remember-me {
+.nitro-login-card .remember-row {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 11px;
     color: #0a2e45;
-    user-select: none;
+    font-size: 11px;
+    font-weight: 600;
     cursor: pointer;
-    margin: -2px 0 2px 0;
+    user-select: none;
 }
 
-.nitro-login-card .remember-me input[type="checkbox"] {
+.nitro-login-card .remember-row input {
+    width: 13px;
+    height: 13px;
     margin: 0;
     cursor: pointer;
 }
@@ -279,6 +379,75 @@
     text-decoration: underline;
     cursor: pointer;
     font-weight: 600;
+}
+
+.nitro-login-card.login-language-card {
+    padding-bottom: 10px;
+}
+
+.nitro-login-card .login-language-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 46px);
+    justify-content: center;
+    gap: 7px 3px;
+}
+
+.nitro-login-card .login-language-option {
+    position: relative;
+    width: 46px;
+    height: 52px;
+    padding: 0;
+    border: 0;
+    background: transparent center 2px no-repeat;
+    background-size: 38px 32px;
+    cursor: pointer;
+    image-rendering: auto;
+    overflow: hidden;
+}
+
+.nitro-login-card .login-language-option.selected {
+    background-size: 38px 32px;
+}
+
+.nitro-login-card .login-language-option img {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    width: auto;
+    height: auto;
+    max-width: 28px;
+    max-height: 22px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.nitro-login-card .login-language-option span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    color: #1b3444;
+    font-size: 9px;
+    line-height: 10px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nitro-login-card .language-error {
+    margin-top: 6px;
+    color: #9f1b15;
+    font-size: 10px;
+    text-align: center;
+}
+
+.nitro-login-card .login-language-confirm {
+    display: block;
+    min-width: 58px;
+    margin: 7px auto 0;
 }
 
 .nitro-login-card .turnstile-slot {
@@ -519,71 +688,24 @@
     font-size: 11px;
 }
 
-/* ─── Room template picker (step 3) ─── */
+@media (max-width: 1180px) {
+    .nitro-login-view .login-widgets {
+        left: 210px;
+        right: 315px;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
 
-.nitro-login-card .room-templates-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 260px;
-    overflow-y: auto;
-    padding-right: 4px;
-}
+    .nitro-login-view .login-widget-slot {
+        grid-template-columns: 120px minmax(0, 1fr);
+        min-height: 86px;
+        gap: 14px;
+    }
 
-.nitro-login-card .room-template-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 8px 10px;
-    border: 1px solid #b6cfdd;
-    border-radius: 4px;
-    background: #eef4f8;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-}
-
-.nitro-login-card .room-template-option:hover {
-    border-color: #7fa9c3;
-}
-
-.nitro-login-card .room-template-option.selected {
-    border-color: #2e6b92;
-    background: #d9e8f2;
-}
-
-.nitro-login-card .room-template-option input[type="radio"] {
-    margin: 2px 0 0 0;
-    flex-shrink: 0;
-    cursor: pointer;
-}
-
-.nitro-login-card .room-template-thumb {
-    width: 48px;
-    height: 48px;
-    object-fit: cover;
-    border-radius: 3px;
-    flex-shrink: 0;
-}
-
-.nitro-login-card .room-template-body {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-    flex: 1;
-}
-
-.nitro-login-card .room-template-title {
-    font-weight: 700;
-    font-size: 12px;
-    color: #0a2e45;
-    line-height: 1.2;
-}
-
-.nitro-login-card .room-template-description {
-    font-size: 11px;
-    color: #2a4a5c;
-    line-height: 1.3;
+    .nitro-login-view .login-widget-image {
+        max-width: 110px;
+        max-height: 110px;
+    }
 }
 
 /* ─── Login News Window (Habbo flavour) ─── */

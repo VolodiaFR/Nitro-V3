@@ -1,7 +1,7 @@
 import { CreateLinkEvent, HabboClubLevelEnum } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { FaChevronDown, FaQuestionCircle, FaSignOutAlt } from 'react-icons/fa';
-import { FriendlyTime, GetConfigurationValue, LocalizeText } from '../../api';
+import { FaChevronDown, FaLanguage, FaQuestionCircle, FaSignOutAlt } from 'react-icons/fa';
+import { ClearRememberLogin, FriendlyTime, GetConfigurationValue, GetRememberLogin, LocalizeText } from '../../api';
 import { Column, Flex, LayoutCurrencyIcon, Text } from '../../common';
 import { usePurse } from '../../hooks';
 import purseIcon from '../../assets/images/rightside/purse.gif';
@@ -64,9 +64,7 @@ export const PurseView: FC<{}> = props => {
 
         const logoutUrl = GetConfigurationValue<string>('login.logout.endpoint', '/api/auth/logout');
         const ssoTicket = (window.NitroConfig?.['sso.ticket'] as string) ?? '';
-        let rememberToken = '';
-        try { rememberToken = window.localStorage.getItem('nitro.remember.token') ?? ''; }
-        catch { /* localStorage may be disabled */ }
+        const rememberToken = GetRememberLogin()?.token || '';
 
         try
         {
@@ -84,7 +82,7 @@ export const PurseView: FC<{}> = props => {
         }
         catch { /* best-effort — proceed with local logout regardless */ }
 
-        try { window.localStorage.removeItem('nitro.remember.token'); } catch { /* noop */ }
+        ClearRememberLogin();
         if(window.NitroConfig) window.NitroConfig['sso.ticket'] = '';
         window.location.reload();
     }, []);
@@ -122,6 +120,9 @@ export const PurseView: FC<{}> = props => {
                                         </div>
                                     </div> }
                                 <div className="nitro-purse__actions">
+                                    <button type="button" className="nitro-purse__action-button nitro-purse__action-button--translate" onClick={ event => { event.stopPropagation(); CreateLinkEvent('translation-settings/toggle'); } } title="Google Translate">
+                                        <FaLanguage />
+                                    </button>
                                     <button type="button" className="nitro-purse__action-button nitro-purse__action-button--help" onClick={ event => { event.stopPropagation(); CreateLinkEvent('help/show'); } } title={ LocalizeText('help.button.name') }>
                                         <FaQuestionCircle />
                                     </button>

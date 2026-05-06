@@ -113,6 +113,7 @@
     max-height: 280px;
     opacity: 1;
     transform: translateY(0);
+    background: transparent;
 }
 
 .nitro-purse__content.is-closed {
@@ -200,6 +201,7 @@
     font-weight: 700;
     line-height: 1;
     letter-spacing: 0.01em;
+    color: rgba(255, 255, 255, 0.88) !important;
 }
 
 .nitro-purse .nitro-purse-button.currency--1 .text-white {
@@ -270,10 +272,11 @@
     justify-content: center;
     min-height: 20px;
     padding: 0;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(7, 23, 31, 0.82);
     border-radius: 7px;
     color: rgba(255, 255, 255, 0.88);
     background: rgba(255, 255, 255, 0.05);
+    box-shadow: none;
     transition: background-color 0.18s ease, transform 0.18s ease;
 }
 
@@ -335,7 +338,7 @@
 .seasonal-image {
     display: block;
     width: auto;
-    height: 13px;
+    height: 14px;
     object-fit: contain;
 }
 
@@ -349,46 +352,7 @@
     }
 
     .nitro-purse {
-        margin-top: 4px;
-
-        .nitro-purse-subscription {
-            background-color: rgba(248, 249, 250, 0.1);
-        }
-    
-        .nitro-purse-button {
-            padding: 3px 2px;
-        }
-        .coffecurrencybutton{
-            border-radius: 0.5rem !important;
-            background-color: #b69b83;
-            border: 2px solid hsla(0deg, 0%, 100%, 0.5);
-            margin-bottom: 3px;
-            padding: 0px !important;
-            width: 30px;
-			pointer-events: all;
-        }
-        .borderhccontent{
-            background-color: #212131;
-            border-radius: 0.5rem!important;
-            border: 2px solid #383853;
-            height: calc(100% - 3px);
-        }
-        .nitro-purse-button.currency--1 {
-            background: #e8b125;
-            border: 2px solid #f4d892;
-        }
-        .nitro-purse-button.currency-0 {
-            background: #c364c1;
-            border: 2px solid #ecb3ea;
-        }
-        .nitro-purse-button.currency-5 {
-            background: #6bafaa;
-			border: 2px solid #ace6e2;
-        }
-        .allcurrencypurse{
-            border-radius: 5px!important;
-            margin-bottom: 2px;
-        }
+        border-radius: 9px;
     }
 
     .nitro-purse__content {
