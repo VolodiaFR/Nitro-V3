@@ -196,12 +196,15 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
     const [ loginViewConfig, setLoginViewConfig ] = useState<Record<string, unknown>>(() => GetConfigurationValue<Record<string, unknown>>('loginview', {}));
     const submitTimeRef = useRef(0);
 
-    const configuredLoginImages: Record<string, string> = (loginViewConfig?.['images'] as Record<string, string>) ?? {};
-    const loginImages: Record<string, string> = { ...getDefaultLoginImages(), ...configuredLoginImages };
-    
-    const configuredLoginWidgets: Record<string, unknown> = (loginViewConfig?.['widgets'] as Record<string, unknown>) ?? {};
+    const loginImages = useMemo<Record<string, string>>(() =>
+    {
+        const configured = (loginViewConfig?.['images'] as Record<string, string>) ?? {};
+        return { ...getDefaultLoginImages(), ...configured };
+    }, [ loginViewConfig ]);
+
     const loginWidgetSlots = useMemo(() =>
     {
+        const configuredLoginWidgets = (loginViewConfig?.['widgets'] as Record<string, unknown>) ?? {};
         return Object.entries(configuredLoginWidgets)
             .filter(([ key, value ]) => key.startsWith('slot.') && key.endsWith('.widget') && typeof value === 'string' && value.length > 0)
             .map(([ key, value ]) =>
@@ -213,7 +216,7 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
             })
             .filter(slot => slot.slotNum > 0)
             .sort((a, b) => a.slotNum - b.slotNum);
-    }, [ configuredLoginWidgets ]);
+    }, [ loginViewConfig ]);
 
     const backgroundColor = (loginImages['background.colour'] || GetConfigurationValue<string>('login_background.colour', '#6eadc8'));
     const background = interpolate(loginImages['background'] || GetConfigurationValue<string>('login_background', ''));
@@ -222,11 +225,6 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
     const left = interpolate(loginImages['left'] || GetConfigurationValue<string>('login_left', ''));
     const rightRepeat = interpolate(loginImages['right.repeat'] || GetConfigurationValue<string>('login_right.repeat', ''));
     const right = interpolate(loginImages['right'] || GetConfigurationValue<string>('login_right', ''));
-    const widgetImageUrls = useMemo(() => loginWidgetSlots
-        .map(slot => typeof slot.conf.image === 'string' ? interpolate(slot.conf.image) : '')
-        .filter(Boolean), [ loginWidgetSlots ]);
-    const loginImageUrls = useMemo(() => [ background, sun, drape, left, rightRepeat, right, ...widgetImageUrls ].filter(Boolean), [ background, sun, drape, left, rightRepeat, right, widgetImageUrls ]);
-    const [ loginImagesVersion, setLoginImagesVersion ] = useState(0);
     const loginUrl = GetConfigurationValue<string>('login.endpoint', '/api/auth/login');
     const registerUrl = GetConfigurationValue<string>('login.register.endpoint', '/api/auth/register');
     const forgotUrl = GetConfigurationValue<string>('login.forgot.endpoint', '/api/auth/forgot-password');
@@ -305,30 +303,6 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
             setLocaleApplying(false);
         }
     }, [ localeApplying, selectedLocale ]);
-
-    useEffect(() =>
-    {
-        if(!loginImageUrls.length) return;
-
-        let cancelled = false;
-
-        loginImageUrls.forEach(url =>
-        {
-            const image = new Image();
-
-            image.onload = image.onerror = () =>
-            {
-                if(!cancelled) setLoginImagesVersion(version => version + 1);
-            };
-
-            image.src = url;
-        });
-
-        return () =>
-        {
-            cancelled = true;
-        };
-    }, [ loginImageUrls ]);
 
     useEffect(() =>
     {
@@ -645,9 +619,6 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
             { left ? <img className="login-left login-layer login-layer-img" src={ left } alt="" draggable={ false } /> : null }
             { rightRepeat ? <div className="login-right-repeat login-layer" style={ { backgroundImage: `url(${ rightRepeat })` } } /> : null }
             { right ? <img className="login-right login-layer login-layer-img" src={ right } alt="" draggable={ false } /> : null }
-            <div className="login-image-preloader" aria-hidden="true" data-version={ loginImagesVersion }>
-                { loginImageUrls.map(url => <img key={ url } src={ url } decoding="async" loading="eager" alt="" />) }
-            </div>
 
             { loginWidgetSlots.length > 0 &&
                 <div className="login-widgets">
