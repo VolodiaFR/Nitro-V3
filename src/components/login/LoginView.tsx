@@ -1,6 +1,6 @@
 import { GetConfiguration } from '@nitrots/nitro-renderer';
 import { FC, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ClearRememberLogin, GetConfigurationValue, GetRememberLogin, StoreRememberLoginFromPayload } from '../../api';
+import { ClearRememberLogin, GetConfigurationValue, GetOptionalConfigurationValue, GetRememberLogin, StoreRememberLoginFromPayload } from '../../api';
 import { configFileUrl } from '../../secure-assets';
 import flagBr from '../../assets/images/flag_icon/flag_icon_br.png';
 import flagDe from '../../assets/images/flag_icon/flag_icon_de.png';
@@ -237,7 +237,8 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
     const loginUrl = GetConfigurationValue<string>('login.endpoint', '/api/auth/login');
     const registerUrl = GetConfigurationValue<string>('login.register.endpoint', '/api/auth/register');
     const forgotUrl = GetConfigurationValue<string>('login.forgot.endpoint', '/api/auth/forgot-password');
-    const newsUrl = interpolate(GetConfigurationValue<string>('login.news.url', ''));
+    const configuredNewsUrl = interpolate(GetOptionalConfigurationValue<string>('login.news.url', ''));
+    const newsUrl = configuredNewsUrl || configFileUrl('news.json');
     const turnstileSiteKey = GetConfigurationValue<string>('login.turnstile.sitekey', '');
     const rawTurnstileEnabled = GetConfigurationValue<unknown>('login.turnstile.enabled', false);
     const turnstileEnabled = (rawTurnstileEnabled === true
@@ -366,7 +367,7 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
     }, []);
 
     const healthUrl = GetConfigurationValue<string>('login.health.endpoint', '');
-    const healthMethodRaw = GetConfigurationValue<string>('login.health.method', 'GET');
+    const healthMethodRaw = GetOptionalConfigurationValue<string>('login.health.method', 'GET');
     const healthMethod = (healthMethodRaw || 'GET').toUpperCase();
     const checkServerReachable = useCallback(async (): Promise<boolean> =>
     {
@@ -480,7 +481,7 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
 
     const checkEmailUrl = GetConfigurationValue<string>('login.check-email.endpoint', '/api/auth/check-email');
     const checkUsernameUrl = GetConfigurationValue<string>('login.check-username.endpoint', '/api/auth/check-username');
-    const imagingUrl = GetConfigurationValue<string>('login.register.imaging.url', '');
+    const imagingUrl = GetOptionalConfigurationValue<string>('login.register.imaging.url', '');
     const interpretAvailability = (ok: boolean, status: number, payload: Record<string, unknown>): { available: boolean; error?: string } =>
     {
         const isTrue = (v: unknown) => v === true || v === 'true' || v === 1 || v === '1';
