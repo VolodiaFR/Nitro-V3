@@ -18,7 +18,7 @@ export default defineConfig({
         },
         proxy: {
             '/api': {
-                target: process.env.AUTH_PROXY_TARGET || 'http://localhost:2096',
+		    target: process.env.AUTH_PROXY_TARGET || 'http://192.168.0.181:2096',
                 changeOrigin: true,
             }
         }
@@ -49,6 +49,7 @@ export default defineConfig({
     build: {
         assetsInlineLimit: 102400,
         chunkSizeWarningLimit: 200000,
+        manifest: true,
         rollupOptions: {
             output: {
                 assetFileNames: 'src/assets/[name]-[hash].[ext]',

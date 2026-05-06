@@ -46,10 +46,13 @@
     }
 
     .nitro-room-tools {
-        background: #212131;
-        box-shadow: inset 0px 5px rgba(6, 6, 6, 0.6), inset 0 -4px rgba(0, 0, 0, 0.6);
-        border-top-right-radius: .25rem;
-        border-bottom-right-radius: .25rem;
+        background: rgba(10, 10, 12, 0.58);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
         transition: all .2s ease;
         z-index: 71;
         margin-left: 0;
@@ -100,8 +103,9 @@
     }
 
     .nitro-room-history {
-        background: #212131;
-        box-shadow: inset 0px 5px rgba(6, 6, 6, 0.6), inset 0 -4px rgba(0, 0, 0, 0.6);
+        background: rgba(10, 10, 12, 0.58);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
         transition: all .2s ease;
         width: 150px;
         overflow: hidden;
@@ -110,8 +114,9 @@
     }
 
     .nitro-room-tools-info {
-        background: #212131;
-        box-shadow: inset 0px 5px rgba(6, 6, 6, 0.6), inset 0 -4px rgba(0, 0, 0, 0.6);
+        background: rgba(10, 10, 12, 0.58);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
         transition: all .2s ease;
         max-width: 250px;
         border-radius: 14px;
@@ -133,8 +138,8 @@
     transform: translateX(-50%);
     font-size: large;
     background: rgba(0, 0, 0, 0.95);
-    box-shadow: inset 0px 5px rgba(6, 6, 6, 0.6), inset 0 -4px rgba(0, 0, 0, 0.6);
-    border-radius: 0.25rem;
+    box-shadow: inset 0px 5px rgba(10, 10, 10, 0.6), inset 0 -4px rgba(0, 0, 0, 0.6);
+    border-radius: 0.375rem;
     transition: all 0.2s ease;
     z-index: 21;
 

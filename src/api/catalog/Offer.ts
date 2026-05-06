@@ -152,6 +152,10 @@ export class Offer implements IPurchasableOffer
 
     public get localizationName(): string
     {
+        const furnitureProduct = this.product;
+
+        if(furnitureProduct?.furnitureData?.name?.length) return furnitureProduct.furnitureData.name;
+
         const productData = GetProductDataForLocalization(this._localizationId);
 
         if(productData) return productData.name;
@@ -161,6 +165,10 @@ export class Offer implements IPurchasableOffer
 
     public get localizationDescription(): string
     {
+        const furnitureProduct = this.product;
+
+        if(furnitureProduct?.furnitureData?.description?.length) return furnitureProduct.furnitureData.description;
+
         const productData = GetProductDataForLocalization(this._localizationId);
 
         if(productData) return productData.description;

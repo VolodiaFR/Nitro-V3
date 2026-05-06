@@ -4,8 +4,9 @@
     "homepage": ".",
     "private": true,
     "scripts": {
-        "start": "vite --base=/client/ --host",
-        "build": "vite --base=/client/ build",
+        "prebuild": "node scripts/write-asset-loader.mjs",
+        "start": "vite --host",
+        "build": "vite build && node scripts/minify-dist.mjs",
         "build:prod": "npx browserslist@latest --update-db && yarn build",
         "eslint": "eslint ./src"
     },
