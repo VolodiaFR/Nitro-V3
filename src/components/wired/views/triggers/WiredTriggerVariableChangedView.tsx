@@ -5,11 +5,13 @@ import globalVariableIcon from '../../../../assets/images/wired/var/icon_source_
 import userVariableIcon from '../../../../assets/images/wired/var/icon_source_user.png';
 import { Text } from '../../../../common';
 import { useWired, useWiredTools } from '../../../../hooks';
+import { ARRAY_VARIABLE_FURNI, ARRAY_VARIABLE_ROOM, ARRAY_VARIABLE_USER, collectWiredArrayDefinitions } from '../WiredArrayControls';
 import { WiredVariablePicker } from '../WiredVariablePicker';
 import {
     buildWiredVariablePickerEntries,
     createFallbackVariableEntry,
     flattenWiredVariablePickerEntries,
+    getCustomVariableItemId,
     IWiredVariablePickerEntry,
     normalizeVariableTokenFromWire
 } from '../WiredVariablePickerData';
@@ -20,6 +22,22 @@ type VariableTargetType = 'user' | 'furni' | 'global';
 const TARGET_USER = 0;
 const TARGET_FURNI = 1;
 const TARGET_GLOBAL = 3;
+const ARRAY_CREATED = 1;
+const ARRAY_CHANGED = 1 << 1;
+const ARRAY_FIELD_CHANGED = 1 << 9;
+const ARRAY_OPTIONS = [
+    [1 << 2, 'Entry appended'],
+    [1 << 3, 'Entry inserted'],
+    [1 << 4, 'Entry removed'],
+    [1 << 5, 'Index cleared'],
+    [1 << 6, 'Entry replaced'],
+    [1 << 7, 'Entry moved'],
+    [1 << 8, 'Entries swapped'],
+    [ARRAY_FIELD_CHANGED, 'Field value changed'],
+    [1 << 10, 'Length changed'],
+    [1 << 11, 'Array cleared'],
+    [1 << 12, 'Array shuffled']
+] as const;
 
 const TARGET_BUTTONS: Array<{ key: VariableTargetType; icon: string }> = [
     { key: 'furni', icon: furniVariableIcon },
@@ -69,6 +87,8 @@ export const WiredTriggerVariableChangedView: FC<{}> = () => {
     const [decreasedEnabled, setDecreasedEnabled] = useState(true);
     const [unchangedEnabled, setUnchangedEnabled] = useState(true);
     const [deletedEnabled, setDeletedEnabled] = useState(true);
+    const [arrayOptions, setArrayOptions] = useState(ARRAY_CREATED | ARRAY_CHANGED);
+    const [arrayFieldId, setArrayFieldId] = useState(0);
 
     const variableDefinitions = useMemo(() => {
         switch (targetType) {
@@ -80,6 +100,21 @@ export const WiredTriggerVariableChangedView: FC<{}> = () => {
                 return userVariableDefinitions;
         }
     }, [furniVariableDefinitions, roomVariableDefinitions, targetType, userVariableDefinitions]);
+    const arrayDefinitions = useMemo(
+        () => collectWiredArrayDefinitions(furniVariableDefinitions, roomVariableDefinitions, userVariableDefinitions, []),
+        [furniVariableDefinitions, roomVariableDefinitions, userVariableDefinitions]
+    );
+    const arrayVariableType = targetType === 'furni' ? ARRAY_VARIABLE_FURNI : targetType === 'global' ? ARRAY_VARIABLE_ROOM : ARRAY_VARIABLE_USER;
+    const arrayDefinition = useMemo(
+        () =>
+            arrayDefinitions.find(
+                (definition) =>
+                    definition.variableType === arrayVariableType &&
+                    definition.itemId === getCustomVariableItemId(variableToken) &&
+                    definition.valueShape === 'array'
+            ),
+        [arrayDefinitions, arrayVariableType, variableToken]
+    );
     const variableEntries = useMemo(
         () => filterCustomEntries(buildWiredVariablePickerEntries(targetType, 'condition', variableDefinitions)),
         [targetType, variableDefinitions]
@@ -104,7 +139,16 @@ export const WiredTriggerVariableChangedView: FC<{}> = () => {
         const intData = trigger.intData || [];
 
         setTargetType(normalizeTargetType(intData.length > 0 ? intData[0] : TARGET_USER));
-        setVariableToken(normalizeVariableTokenFromWire(trigger.stringData || ''));
+        const stringParts = (trigger.stringData || '').split('\t', 2);
+        let arrayData: { options?: number; fieldId?: number } = {};
+        try {
+            arrayData = stringParts[1] ? JSON.parse(stringParts[1]) : {};
+        } catch {
+            arrayData = {};
+        }
+        setVariableToken(normalizeVariableTokenFromWire(stringParts[0] || ''));
+        setArrayOptions(arrayData.options || ARRAY_CREATED | ARRAY_CHANGED);
+        setArrayFieldId(Number.isInteger(arrayData.fieldId) ? Math.max(0, arrayData.fieldId) : 0);
         setCreatedEnabled(intData.length <= 1 || intData[1] === 1);
         setValueChangedEnabled(intData.length <= 2 || intData[2] === 1);
         setIncreasedEnabled(intData.length <= 3 || intData[3] === 1);
@@ -121,7 +165,7 @@ export const WiredTriggerVariableChangedView: FC<{}> = () => {
     }, [targetType]);
 
     const save = () => {
-        setStringParam(variableToken);
+        setStringParam(`${variableToken}\t${JSON.stringify({ options: arrayOptions, fieldId: arrayFieldId, metadataVersion: 1 })}`);
         setIntParams([
             getTargetValue(targetType),
             effectiveCreatedEnabled ? 1 : 0,
@@ -166,74 +210,124 @@ export const WiredTriggerVariableChangedView: FC<{}> = () => {
 
                 <div className="nitro-wired__divider" />
 
-                <div className="flex flex-col gap-1">
-                    <Text bold>{LocalizeText('wiredfurni.params.variables.trigger_options')}</Text>
+                {arrayDefinition && (
+                    <div className="flex flex-col gap-1">
+                        <Text bold>Array trigger options</Text>
+                        {[
+                            [ARRAY_CREATED, 'Array created'],
+                            [ARRAY_CHANGED, 'Array changed']
+                        ].map(([option, label]) => (
+                            <label key={option} className="flex items-center gap-1">
+                                <input
+                                    checked={(arrayOptions & Number(option)) !== 0}
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    onChange={(event) => setArrayOptions(event.target.checked ? arrayOptions | Number(option) : arrayOptions & ~Number(option))}
+                                />
+                                <Text>{label}</Text>
+                            </label>
+                        ))}
+                        <div className="ml-3 flex flex-col gap-1">
+                            {ARRAY_OPTIONS.map(([option, label]) => (
+                                <label key={option} className="flex items-center gap-1">
+                                    <input
+                                        checked={(arrayOptions & option) !== 0}
+                                        className="form-check-input"
+                                        disabled={(arrayOptions & ARRAY_CHANGED) === 0}
+                                        type="checkbox"
+                                        onChange={(event) => setArrayOptions(event.target.checked ? arrayOptions | option : arrayOptions & ~option)}
+                                    />
+                                    <Text>{label}</Text>
+                                </label>
+                            ))}
+                        </div>
+                        {(arrayOptions & ARRAY_FIELD_CHANGED) !== 0 && arrayDefinition.fields.length > 1 && (
+                            <select
+                                className="form-select form-select-sm"
+                                value={arrayFieldId}
+                                onChange={(event) => setArrayFieldId(Number(event.target.value))}
+                            >
+                                <option value={0}>Any field</option>
+                                {arrayDefinition.fields.map((field) => (
+                                    <option key={field.id} value={field.id}>
+                                        {field.name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+                )}
 
-                    <label className="flex items-center gap-1">
-                        <input
-                            checked={effectiveCreatedEnabled}
-                            className="form-check-input"
-                            disabled={targetType === 'global'}
-                            type="checkbox"
-                            onChange={(event) => setCreatedEnabled(event.target.checked)}
-                        />
-                        <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.0')}</Text>
-                    </label>
+                {!arrayDefinition && (
+                    <div className="flex flex-col gap-1">
+                        <Text bold>{LocalizeText('wiredfurni.params.variables.trigger_options')}</Text>
 
-                    <label className="flex items-center gap-1">
-                        <input
-                            checked={valueChangedEnabled}
-                            className="form-check-input"
-                            type="checkbox"
-                            onChange={(event) => setValueChangedEnabled(event.target.checked)}
-                        />
-                        <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.1')}</Text>
-                    </label>
-
-                    <div className="ml-3 flex flex-col gap-1">
                         <label className="flex items-center gap-1">
                             <input
-                                checked={effectiveIncreasedEnabled}
+                                checked={effectiveCreatedEnabled}
                                 className="form-check-input"
-                                disabled={!valueChangedEnabled}
+                                disabled={targetType === 'global'}
                                 type="checkbox"
-                                onChange={(event) => setIncreasedEnabled(event.target.checked)}
+                                onChange={(event) => setCreatedEnabled(event.target.checked)}
                             />
-                            <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.1.0')}</Text>
+                            <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.0')}</Text>
                         </label>
+
                         <label className="flex items-center gap-1">
                             <input
-                                checked={effectiveDecreasedEnabled}
+                                checked={valueChangedEnabled}
                                 className="form-check-input"
-                                disabled={!valueChangedEnabled}
                                 type="checkbox"
-                                onChange={(event) => setDecreasedEnabled(event.target.checked)}
+                                onChange={(event) => setValueChangedEnabled(event.target.checked)}
                             />
-                            <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.1.1')}</Text>
+                            <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.1')}</Text>
                         </label>
+
+                        <div className="ml-3 flex flex-col gap-1">
+                            <label className="flex items-center gap-1">
+                                <input
+                                    checked={effectiveIncreasedEnabled}
+                                    className="form-check-input"
+                                    disabled={!valueChangedEnabled}
+                                    type="checkbox"
+                                    onChange={(event) => setIncreasedEnabled(event.target.checked)}
+                                />
+                                <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.1.0')}</Text>
+                            </label>
+                            <label className="flex items-center gap-1">
+                                <input
+                                    checked={effectiveDecreasedEnabled}
+                                    className="form-check-input"
+                                    disabled={!valueChangedEnabled}
+                                    type="checkbox"
+                                    onChange={(event) => setDecreasedEnabled(event.target.checked)}
+                                />
+                                <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.1.1')}</Text>
+                            </label>
+                            <label className="flex items-center gap-1">
+                                <input
+                                    checked={effectiveUnchangedEnabled}
+                                    className="form-check-input"
+                                    disabled={!valueChangedEnabled}
+                                    type="checkbox"
+                                    onChange={(event) => setUnchangedEnabled(event.target.checked)}
+                                />
+                                <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.1.2')}</Text>
+                            </label>
+                        </div>
+
                         <label className="flex items-center gap-1">
                             <input
-                                checked={effectiveUnchangedEnabled}
+                                checked={effectiveDeletedEnabled}
                                 className="form-check-input"
-                                disabled={!valueChangedEnabled}
+                                disabled={targetType === 'global'}
                                 type="checkbox"
-                                onChange={(event) => setUnchangedEnabled(event.target.checked)}
+                                onChange={(event) => setDeletedEnabled(event.target.checked)}
                             />
-                            <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.1.2')}</Text>
+                            <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.2')}</Text>
                         </label>
                     </div>
-
-                    <label className="flex items-center gap-1">
-                        <input
-                            checked={effectiveDeletedEnabled}
-                            className="form-check-input"
-                            disabled={targetType === 'global'}
-                            type="checkbox"
-                            onChange={(event) => setDeletedEnabled(event.target.checked)}
-                        />
-                        <Text>{LocalizeText('wiredfurni.params.variables.trigger_options.2')}</Text>
-                    </label>
-                </div>
+                )}
             </div>
         </WiredTriggerBaseView>
     );

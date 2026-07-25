@@ -7,6 +7,7 @@ export interface IWiredVariableDefinitionLike {
     isReadOnly?: boolean;
     itemId: number;
     name: string;
+    valueShape?: 'single' | 'array';
 }
 
 export interface IWiredVariablePickerEntry {
@@ -19,6 +20,7 @@ export interface IWiredVariablePickerEntry {
     hasValue: boolean;
     kind: 'internal' | 'custom';
     target: WiredVariablePickerTarget;
+    valueShape?: 'single' | 'array';
     children?: IWiredVariablePickerEntry[];
 }
 
@@ -195,9 +197,9 @@ const getCustomSelectable = (usage: WiredVariablePickerUsage, definition: IWired
         case 'echo':
             return definition.name.includes('.');
         case 'change-reference':
-            return !!definition.hasValue;
+            return !!definition.hasValue || definition.valueShape === 'array';
         case 'change-destination':
-            return !!definition.hasValue && !definition.isReadOnly;
+            return (!!definition.hasValue || definition.valueShape === 'array') && !definition.isReadOnly;
         default:
             return !definition.isReadOnly;
     }
@@ -236,7 +238,8 @@ const createCustomEntry = (
     selectable: getCustomSelectable(usage, definition),
     hasValue: !!definition.hasValue,
     kind: 'custom',
-    target
+    target,
+    valueShape: definition.valueShape
 });
 
 const groupEntries = (entries: IWiredVariablePickerEntry[]) => {
