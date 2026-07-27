@@ -56,7 +56,6 @@ interface CheckArrayData {
     searchScope?: number;
     criteriaMode?: number;
     resultMode?: number;
-    resultComparison?: number;
     stateCheck?: number;
     stateComparison?: number;
     quantifier?: number;

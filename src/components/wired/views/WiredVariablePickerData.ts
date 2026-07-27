@@ -229,18 +229,25 @@ const createCustomEntry = (
     target: WiredVariablePickerTarget,
     usage: WiredVariablePickerUsage,
     definition: IWiredVariableDefinitionLike
-): IWiredVariablePickerEntry => ({
-    id: `${CUSTOM_TOKEN_PREFIX}${definition.itemId}`,
-    token: `${CUSTOM_TOKEN_PREFIX}${definition.itemId}`,
-    label: definition.name,
-    displayLabel: definition.name,
-    searchableText: definition.name,
-    selectable: getCustomSelectable(usage, definition),
-    hasValue: !!definition.hasValue,
-    kind: 'custom',
-    target,
-    valueShape: definition.valueShape
-});
+): IWiredVariablePickerEntry => {
+    const isCaptureProjection = definition.itemId < 0 && !!definition.isReadOnly;
+    const token = isCaptureProjection
+        ? `${INTERNAL_TOKEN_PREFIX}${normalizeInternalVariableKey(definition.name)}`
+        : `${CUSTOM_TOKEN_PREFIX}${definition.itemId}`;
+
+    return {
+        id: token,
+        token,
+        label: definition.name,
+        displayLabel: definition.name,
+        searchableText: definition.name,
+        selectable: getCustomSelectable(usage, definition),
+        hasValue: !!definition.hasValue,
+        kind: isCaptureProjection ? 'internal' : 'custom',
+        target,
+        valueShape: definition.valueShape
+    };
+};
 
 const groupEntries = (entries: IWiredVariablePickerEntry[]) => {
     const groupedParents = new Map<string, { exact?: IWiredVariablePickerEntry; children: IWiredVariablePickerEntry[] }>();

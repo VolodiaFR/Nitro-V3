@@ -9,4 +9,19 @@ describe('Wired variable picker internal furniture variables', () => {
         expect(references.find((entry) => entry.label === '@gravity')?.selectable).toBe(true);
         expect(destinations.find((entry) => entry.label === '@gravity')?.selectable).toBe(true);
     });
+
+    it('exposes generated array capture projections as read-only context references', () => {
+        const definition = {
+            itemId: -1,
+            name: 'inventory.quantity',
+            hasValue: true,
+            availability: 0,
+            isReadOnly: true
+        };
+        const references = flattenWiredVariablePickerEntries(buildWiredVariablePickerEntries('context', 'change-reference', [definition]));
+        const destinations = flattenWiredVariablePickerEntries(buildWiredVariablePickerEntries('context', 'change-destination', [definition]));
+
+        expect(references.find((entry) => entry.token === 'internal:inventory.quantity')?.selectable).toBe(true);
+        expect(destinations.find((entry) => entry.token === 'internal:inventory.quantity')?.selectable).toBe(false);
+    });
 });

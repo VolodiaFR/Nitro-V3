@@ -1,11 +1,12 @@
 import { FC, useEffect, useMemo, useState } from 'react';
 import { LocalizeText, WiredFurniType } from '../../../../api';
+import contextVariableIcon from '../../../../assets/images/wired/var/icon_source_context_clean.png';
 import furniVariableIcon from '../../../../assets/images/wired/var/icon_source_furni.png';
 import globalVariableIcon from '../../../../assets/images/wired/var/icon_source_global.png';
 import userVariableIcon from '../../../../assets/images/wired/var/icon_source_user.png';
 import { Text } from '../../../../common';
 import { useWired, useWiredTools } from '../../../../hooks';
-import { ARRAY_VARIABLE_FURNI, ARRAY_VARIABLE_ROOM, ARRAY_VARIABLE_USER, collectWiredArrayDefinitions } from '../WiredArrayControls';
+import { ARRAY_VARIABLE_CONTEXT, ARRAY_VARIABLE_FURNI, ARRAY_VARIABLE_ROOM, ARRAY_VARIABLE_USER, collectWiredArrayDefinitions } from '../WiredArrayControls';
 import { WiredVariablePicker } from '../WiredVariablePicker';
 import {
     buildWiredVariablePickerEntries,
@@ -17,10 +18,11 @@ import {
 } from '../WiredVariablePickerData';
 import { WiredTriggerBaseView } from './WiredTriggerBaseView';
 
-type VariableTargetType = 'user' | 'furni' | 'global';
+type VariableTargetType = 'user' | 'furni' | 'context' | 'global';
 
 const TARGET_USER = 0;
 const TARGET_FURNI = 1;
+const TARGET_CONTEXT = 2;
 const TARGET_GLOBAL = 3;
 const ARRAY_CREATED = 1;
 const ARRAY_CHANGED = 1 << 1;
@@ -42,6 +44,7 @@ const ARRAY_OPTIONS = [
 const TARGET_BUTTONS: Array<{ key: VariableTargetType; icon: string }> = [
     { key: 'furni', icon: furniVariableIcon },
     { key: 'user', icon: userVariableIcon },
+    { key: 'context', icon: contextVariableIcon },
     { key: 'global', icon: globalVariableIcon }
 ];
 
@@ -60,6 +63,8 @@ const normalizeTargetType = (value: number): VariableTargetType => {
             return 'furni';
         case TARGET_GLOBAL:
             return 'global';
+        case TARGET_CONTEXT:
+            return 'context';
         default:
             return 'user';
     }
@@ -71,6 +76,8 @@ const getTargetValue = (value: VariableTargetType) => {
             return TARGET_FURNI;
         case 'global':
             return TARGET_GLOBAL;
+        case 'context':
+            return TARGET_CONTEXT;
         default:
             return TARGET_USER;
     }
@@ -78,7 +85,7 @@ const getTargetValue = (value: VariableTargetType) => {
 
 export const WiredTriggerVariableChangedView: FC<{}> = () => {
     const { trigger = null, setIntParams = null, setStringParam = null } = useWired();
-    const { userVariableDefinitions = [], furniVariableDefinitions = [], roomVariableDefinitions = [] } = useWiredTools();
+    const { userVariableDefinitions = [], furniVariableDefinitions = [], contextVariableDefinitions = [], roomVariableDefinitions = [] } = useWiredTools();
     const [targetType, setTargetType] = useState<VariableTargetType>('user');
     const [variableToken, setVariableToken] = useState('');
     const [createdEnabled, setCreatedEnabled] = useState(true);
@@ -96,15 +103,24 @@ export const WiredTriggerVariableChangedView: FC<{}> = () => {
                 return furniVariableDefinitions;
             case 'global':
                 return roomVariableDefinitions;
+            case 'context':
+                return contextVariableDefinitions;
             default:
                 return userVariableDefinitions;
         }
-    }, [furniVariableDefinitions, roomVariableDefinitions, targetType, userVariableDefinitions]);
+    }, [contextVariableDefinitions, furniVariableDefinitions, roomVariableDefinitions, targetType, userVariableDefinitions]);
     const arrayDefinitions = useMemo(
-        () => collectWiredArrayDefinitions(furniVariableDefinitions, roomVariableDefinitions, userVariableDefinitions, []),
-        [furniVariableDefinitions, roomVariableDefinitions, userVariableDefinitions]
+        () => collectWiredArrayDefinitions(furniVariableDefinitions, roomVariableDefinitions, userVariableDefinitions, contextVariableDefinitions),
+        [contextVariableDefinitions, furniVariableDefinitions, roomVariableDefinitions, userVariableDefinitions]
     );
-    const arrayVariableType = targetType === 'furni' ? ARRAY_VARIABLE_FURNI : targetType === 'global' ? ARRAY_VARIABLE_ROOM : ARRAY_VARIABLE_USER;
+    const arrayVariableType =
+        targetType === 'furni'
+            ? ARRAY_VARIABLE_FURNI
+            : targetType === 'context'
+              ? ARRAY_VARIABLE_CONTEXT
+              : targetType === 'global'
+                ? ARRAY_VARIABLE_ROOM
+                : ARRAY_VARIABLE_USER;
     const arrayDefinition = useMemo(
         () =>
             arrayDefinitions.find(
