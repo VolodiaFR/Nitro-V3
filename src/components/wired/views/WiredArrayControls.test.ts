@@ -3,6 +3,7 @@ import {
     ARRAY_REFERENCE_CONSTANT,
     ARRAY_REFERENCE_VARIABLE,
     ARRAY_VARIABLE_ROOM,
+    collectWiredArrayDefinitions,
     createArrayAddress,
     createArrayReference,
     definitionsForType,
@@ -76,5 +77,16 @@ describe('Wired array editor contracts', () => {
         expect(validReference(variable, [scalar])).toBe(false);
         expect(validAddress({ ...createArrayAddress(), mode: ARRAY_REFERENCE_CONSTANT, value: 15 }, array, [])).toBe(true);
         expect(validAddress({ ...createArrayAddress(), mode: ARRAY_REFERENCE_CONSTANT, value: 16 }, array, [])).toBe(false);
+    });
+
+    it('drops definitions whose stored schema the server could not parse', () => {
+        const usable = { itemId: 10, name: 'Inventory', valueShape: 'array' as const, maxEntries: 16, hasValue: true };
+        const broken = { itemId: 11, name: 'Broken', valueShape: 'array_unavailable' as const, maxEntries: 0, hasValue: false };
+
+        const collected = collectWiredArrayDefinitions([], [usable, broken], [], []);
+
+        expect(collected.map((entry) => entry.itemId)).toEqual([10]);
+        expect(definitionsForType(collected, ARRAY_VARIABLE_ROOM, true).map((entry) => entry.itemId)).toEqual([10]);
+        expect(definitionsForType(collected, ARRAY_VARIABLE_ROOM, false)).toEqual([]);
     });
 });

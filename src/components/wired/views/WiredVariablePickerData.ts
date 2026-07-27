@@ -7,6 +7,8 @@ export interface IWiredVariableDefinitionLike {
     isReadOnly?: boolean;
     itemId: number;
     name: string;
+    /** Set when the server reported a stored array schema it could not parse. */
+    unavailable?: boolean;
     valueShape?: 'single' | 'array';
 }
 
@@ -190,6 +192,9 @@ const getInternalSelectable = (usage: WiredVariablePickerUsage, meta: IInternalV
 };
 
 const getCustomSelectable = (usage: WiredVariablePickerUsage, definition: IWiredVariableDefinitionLike) => {
+    // a stored schema the server could not parse cannot back any box until it is corrected
+    if (definition.unavailable) return false;
+
     switch (usage) {
         case 'condition':
         case 'filter-main':

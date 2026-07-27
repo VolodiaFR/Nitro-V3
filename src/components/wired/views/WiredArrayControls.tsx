@@ -16,11 +16,16 @@ export interface WiredArrayFieldMetadata {
     order: number;
 }
 
+export type WiredArrayValueShape = 'single' | 'array';
+
+/** The server also reports `array_unavailable` when it cannot parse a stored schema. */
+export type WiredArrayServerValueShape = WiredArrayValueShape | 'array_unavailable';
+
 export interface WiredArrayDefinitionMetadata {
     itemId: number;
     name: string;
     variableType: number;
-    valueShape: 'single' | 'array';
+    valueShape: WiredArrayValueShape;
     arrayFormat: 'simple' | 'record';
     arrayMode: 'list' | 'slots';
     maxEntries: number;
@@ -61,9 +66,10 @@ export interface WiredArrayAddressData {
     fieldId: number;
 }
 
-export type WiredArrayDefinitionInput = Omit<Partial<WiredArrayDefinitionMetadata>, 'itemId' | 'name'> & {
+export type WiredArrayDefinitionInput = Omit<Partial<WiredArrayDefinitionMetadata>, 'itemId' | 'name' | 'valueShape'> & {
     itemId: number;
     name: string;
+    valueShape?: WiredArrayServerValueShape;
 };
 
 export interface WiredArrayCriterionData {
@@ -191,20 +197,23 @@ export const collectWiredArrayDefinitions = (
     context: WiredArrayDefinitionInput[]
 ): WiredArrayDefinitionMetadata[] => {
     const append = (definitions: WiredArrayDefinitionInput[], variableType: number): WiredArrayDefinitionMetadata[] =>
-        definitions.map(
-            (definition): WiredArrayDefinitionMetadata => ({
-                itemId: definition.itemId,
-                name: definition.name,
-                variableType,
-                valueShape: definition.valueShape === 'array' ? 'array' : 'single',
-                arrayFormat: definition.arrayFormat === 'record' ? 'record' : 'simple',
-                arrayMode: definition.arrayMode === 'slots' ? 'slots' : 'list',
-                maxEntries: definition.maxEntries ?? 0,
-                fields: definition.fields ?? [],
-                permanent: definition.permanent === true,
-                hasValue: definition.hasValue !== false
-            })
-        );
+        definitions
+            // a schema the server could not parse is neither a usable array nor a scalar — offer neither
+            .filter((definition) => definition.valueShape !== 'array_unavailable')
+            .map(
+                (definition): WiredArrayDefinitionMetadata => ({
+                    itemId: definition.itemId,
+                    name: definition.name,
+                    variableType,
+                    valueShape: definition.valueShape === 'array' ? 'array' : 'single',
+                    arrayFormat: definition.arrayFormat === 'record' ? 'record' : 'simple',
+                    arrayMode: definition.arrayMode === 'slots' ? 'slots' : 'list',
+                    maxEntries: definition.maxEntries ?? 0,
+                    fields: definition.fields ?? [],
+                    permanent: definition.permanent === true,
+                    hasValue: definition.hasValue !== false
+                })
+            );
 
     return [
         ...append(furni, ARRAY_VARIABLE_FURNI),
