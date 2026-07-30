@@ -1120,7 +1120,7 @@ export const SnowWarArenaView: FC = () =>
         try { event.currentTarget.releasePointerCapture(event.pointerId); } catch {}
     }, []);
 
-    const useRayGun = useCallback((event: MouseEvent<HTMLButtonElement>, x: number, y: number, rotation: number, width: number, length: number) =>
+    const fireRayGun = useCallback((event: MouseEvent<HTMLButtonElement>, x: number, y: number, rotation: number, width: number, length: number) =>
     {
         event.stopPropagation();
         const direction = ((rotation % 8) + 8) % 8;
@@ -2003,7 +2003,7 @@ export const SnowWarArenaView: FC = () =>
                                         className="snowwar-raygun-hitbox"
                                         aria-label={localizeWithFallback('snowwar.raygun.use', 'Use Ray Gun')}
                                         title={localizeWithFallback('snowwar.raygun.use', 'Use Ray Gun')}
-                                        onClick={event => useRayGun(event, item.x, item.y, item.rotation, item.width ?? 1, item.length ?? 1)}
+                                        onClick={event => fireRayGun(event, item.x, item.y, item.rotation, item.width ?? 1, item.length ?? 1)}
                                     />
                                 )}
                                 {item.name === 'snst_ballpile'
