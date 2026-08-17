@@ -1,8 +1,9 @@
 import { GetOfficialSongIdMessageComposer, GetSoundManager, MusicPriorities, OfficialSongIdMessageEvent, SongInfoReceivedEvent } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { LocalizeText, SendMessageComposer } from '../../../../../api';
-import { Button, LayoutFurniImageView } from '../../../../../common';
+import { LayoutFurniImageView } from '../../../../../common';
 import { getCatalogGridMetrics, useCatalogData, useCatalogDisplayPreferences, useMessageEvent, useNitroEvent } from '../../../../../hooks';
+import { NitroButton } from '../../../../../layout';
 import { CatalogItemGridWidgetView } from '../widgets/CatalogItemGridWidgetView';
 import { CatalogPriceDisplayWidgetView } from '../widgets/CatalogPriceDisplayWidgetView';
 import { CatalogPurchaseSelectionPrompt } from '../widgets/CatalogPurchaseSelectionPrompt';
@@ -99,6 +100,7 @@ export const CatalogLayoutSoundMachineView: FC<CatalogLayoutProps> = (props) => 
                 {currentOffer ? (
                     <>
                         <strong className="nitro-catalog-sound-title">{currentOffer.localizationName}</strong>
+                        <span className="nitro-catalog-sound-description">{currentOffer.localizationDescription}</span>
                         <span className="nitro-catalog-sound-length">{formattedSongLength}</span>
                         <div className="nitro-catalog-sound-product-render">
                             <LayoutFurniImageView
@@ -111,12 +113,18 @@ export const CatalogLayoutSoundMachineView: FC<CatalogLayoutProps> = (props) => 
                         <div className="nitro-catalog-sound-price">
                             <CatalogPriceDisplayWidgetView offer={currentOffer} />
                         </div>
-                        <div className="nitro-catalog-sound-listen-panel">
-                            <span>{LocalizeText('play_preview')}</span>
-                            <Button disabled={songId <= 0 || songLength === null} onClick={() => previewSong(songId)}>
-                                {LocalizeText('play_preview_button')}
-                            </Button>
-                        </div>
+                        {currentOffer.product.extraParam.length > 0 && (
+                            <div className="nitro-catalog-sound-listen-panel">
+                                <span>{LocalizeText('play_preview')}</span>
+                                <NitroButton
+                                    className="nitro-catalog-sound-listen-button"
+                                    disabled={songId <= 0 || songLength === null}
+                                    onClick={() => previewSong(songId)}
+                                >
+                                    {LocalizeText('play_preview_button')}
+                                </NitroButton>
+                            </div>
+                        )}
                     </>
                 ) : (
                     <span className="nitro-catalog-sound-select-product">{LocalizeText('catalog_selectproduct')}</span>
