@@ -1,7 +1,7 @@
 import { AvatarScaleType, AvatarSetType, GetAvatarRenderManager } from '@nitrots/nitro-renderer';
 import { CSSProperties, FC, useEffect, useMemo, useRef, useState } from 'react';
 import { Base, BaseProps } from '../Base';
-import { cropTransparentImageUrl } from './avatarImageCrop';
+import { cropOpaqueBoundsImageUrl, cropTransparentImageUrl } from './avatarImageCrop';
 
 const AVATAR_CACHE_MAX_SIZE = 200;
 const AVATAR_IMAGE_CACHE: Map<string, string> = new Map();
@@ -29,7 +29,7 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
         let newClassNames: string[];
 
         if (fit) {
-            newClassNames = ['avatar-image absolute inset-0 pointer-events-none'];
+            newClassNames = ['avatar-image avatar-image-fit absolute inset-0 pointer-events-none'];
         } else if (headOnly) {
             newClassNames = ['avatar-image absolute inset-0 bg-no-repeat pointer-events-none'];
         } else {
@@ -68,7 +68,7 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
         if (!isReady) return;
 
         const requestId = ++requestIdRef.current;
-        const figureKey = [figure, gender, direction, headOnly, compactHead, compactHeadSize, compactHeadPadding].join('-');
+        const figureKey = [figure, gender, direction, headOnly, compactHead, compactHeadSize, compactHeadPadding, fit].join('-');
 
         if (AVATAR_IMAGE_CACHE.has(figureKey)) {
             setAvatarUrl(AVATAR_IMAGE_CACHE.get(figureKey));
@@ -92,6 +92,13 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
 
                 if(imageUrl && headOnly && compactHead) imageUrl = await cropTransparentImageUrl(imageUrl, compactHeadSize, compactHeadPadding);
 
+                // The full-body canvas is 90x130 with the figure occupying
+                // only part of it, off-center for some figures. Fit consumers
+                // (grid tiles) object-contain the image, so crop the
+                // transparent border first — otherwise the figure renders
+                // tiny and drifts sideways inside the tile.
+                if (imageUrl && fit) imageUrl = await cropOpaqueBoundsImageUrl(imageUrl);
+
                 if (imageUrl && !isDisposed.current && requestIdRef.current === requestId) {
                     if (!avatarImage.isPlaceholder()) {
                         if (AVATAR_IMAGE_CACHE.size >= AVATAR_CACHE_MAX_SIZE) {
@@ -110,7 +117,7 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
 
             resetFigure(figure);
         }
-    }, [figure, gender, direction, headOnly, compactHead, compactHeadSize, compactHeadPadding, isReady]);
+    }, [figure, gender, direction, headOnly, compactHead, compactHeadSize, compactHeadPadding, fit, isReady]);
 
     useEffect(() => {
         isDisposed.current = false;
@@ -130,7 +137,7 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
                     alt=""
                     draggable={false}
                     className="absolute inset-0 w-full h-full object-contain"
-                    style={{ imageRendering: 'pixelated', transform: 'translateY(-20%)' }}
+                    style={{ imageRendering: 'pixelated' }}
                 />
             )}
         </Base>
