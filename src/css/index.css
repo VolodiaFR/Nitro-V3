@@ -221,6 +221,17 @@ body {
 
 }
 
+/* The fit variant stretches to its positioned parent via absolute inset-0.
+   The components-layer .avatar-image above pins a fixed 90x130 box, and with
+   inset-0 the explicit size wins the over-constrained resolution — anchoring
+   the image to the tile's TOP-LEFT corner instead of filling it. Unlayered
+   so it beats the layered rule; auto lets inset-0 (and per-surface bottom
+   offsets like the catalog price strip) size the box. */
+.avatar-image.avatar-image-fit {
+    width: auto;
+    height: auto;
+}
+
 .unique-item {
     .unique-bg-override {
         @apply z-2 bg-center bg-no-repeat;

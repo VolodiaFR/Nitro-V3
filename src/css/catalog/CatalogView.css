@@ -1021,16 +1021,7 @@
     box-shadow:
         inset 1px 1px 0 rgba(0, 0, 0, 0.08),
         inset -1px -1px 0 rgba(255, 255, 255, 0.55);
-    overflow: hidden;
-}
-
-.nitro-catalog-navigation-scroll-area {
-    width: 100%;
-    height: 100%;
-}
-
-.nitro-catalog-navigation-scroll-area .nitro-classic-scroll-area-viewport {
-    padding-right: 17px;
+    overflow: auto;
 }
 
 .nitro-catalog-navigation-list {
@@ -2055,11 +2046,7 @@
     width: 360px;
     min-height: 0;
     padding: 3px 2px 3px 4px;
-    overflow: hidden;
-}
-
-.nitro-catalog-grid-shell .nitro-classic-scroll-area-viewport {
-    padding-right: 17px;
+    overflow: auto;
 }
 
 .nitro-catalog-default-layout:has(.nitro-catalog-default-admin) .nitro-catalog-grid-shell {
@@ -2218,10 +2205,14 @@
 .nitro-catalog-grid .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-price,
 .nitro-catalog-grid .layout-grid-item:has(> .avatar-image) > .nitro-catalog-grid-price,
 .nitro-catalog-grid .avatar-image ~ .nitro-catalog-grid-price {
+    /* Without absolute positioning the bottom/left offsets below are ignored
+       on the statically-positioned badge while translateX(-50%) still applies,
+       leaving the price floating mid-tile and shifted left (bots page). */
+    position: absolute !important;
     top: auto !important;
     left: 50% !important;
     right: auto !important;
-    bottom: 4px !important;
+    bottom: 1px !important;
     transform: translateX(-50%) !important;
     width: auto !important;
     background: rgba(255, 255, 255, 0.85) !important;
@@ -2234,6 +2225,26 @@
     align-items: center !important;
     justify-content: center !important;
     z-index: 5 !important;
+}
+
+/* Bots (avatar offers): keep the bottom strip of the tile clear of the
+   avatar so the price badge sits UNDER the bot instead of on its feet.
+   The avatar img itself arrives with its transparent border already
+   cropped off (LayoutAvatarImageView fit variant), so object-contain
+   centers the actual figure in this box. */
+.nitro-catalog-grid .layout-grid-item > .avatar-image {
+    bottom: 18px;
+}
+
+/* Give bot tiles more room than the default furni tile — a full-body figure
+   plus the price strip doesn't fit in 74px, and the multi-currency price pill
+   (e.g. "35 credits + 5 diamonds") is wider than a 6-column tile. 4 columns
+   makes the tiles wide enough for the pill; the height !important is needed
+   to beat the grid's inline --nitro-grid-column-min-height (set by AutoGrid);
+   grid-auto-rows and the tile height both read this variable. */
+.nitro-catalog-grid:has(.layout-grid-item > .avatar-image) {
+    grid-template-columns: repeat(4, 1fr) !important;
+    --nitro-grid-column-min-height: 100px !important;
 }
 
 .nitro-catalog-grid .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-price-entry,
@@ -2842,6 +2853,12 @@
     z-index: 5;
     display: inline-flex;
     pointer-events: none;
+}
+
+/* Bots (avatar offers): pin the HC badge to the tile's top-left corner —
+   the default 23px offset suits furni tiles. */
+.nitro-catalog-grid .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-club-level {
+    left: 4px;
 }
 
 .nitro-catalog-purchase-selection-prompt {
@@ -4325,3 +4342,4 @@
     margin-top: 2px;
     color: #b83b32;
 }
+
