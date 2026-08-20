@@ -84,7 +84,6 @@ import {
     RoomObjectType,
     resolveBuilderFurniPlaceableStatus
 } from './useCatalog.helpers';
-import { catalogIndexRootFromSnapshot, clearCatalogIndexCache, readCatalogIndexCache, writeCatalogIndexCache } from './useCatalogIndexCache';
 import { useCatalogPlaceMultipleItems } from './useCatalogPlaceMultipleItems';
 import { useCatalogSkipPurchaseConfirmation } from './useCatalogSkipPurchaseConfirmation';
 
@@ -636,7 +635,6 @@ const useCatalogStore = () => {
 
         const { rootNode: builtRoot, offersToNodes: builtOffers } = buildCatalogNodeTree(parser.root);
 
-        writeCatalogIndexCache(parserCatalogType, parser.root);
         setRootNode(builtRoot);
         setOffersToNodes(builtOffers);
     });
@@ -837,7 +835,6 @@ const useCatalogStore = () => {
         const wasVisible = isVisible;
 
         importedFurnidataMerged.current = false;
-        clearCatalogIndexCache();
         resetState();
 
         if (wasVisible)
@@ -1138,7 +1135,6 @@ const useCatalogStore = () => {
         };
 
         const refreshCatalogIndex = () => {
-            clearCatalogIndexCache();
             SendMessageComposer(new GetCatalogIndexComposer(currentType));
         };
 
@@ -1164,19 +1160,9 @@ const useCatalogStore = () => {
     useEffect(() => {
         if (!isVisible || rootNode) return;
 
-        const cachedRoot = readCatalogIndexCache(currentType);
-
-        if (cachedRoot) {
-            const { rootNode: builtRoot, offersToNodes: builtOffers } = buildCatalogNodeTree(catalogIndexRootFromSnapshot(cachedRoot));
-
-            setRootNode(builtRoot);
-            setOffersToNodes(builtOffers);
-
-            SendMessageComposer(new BuildersClubQueryFurniCountMessageComposer());
-
-            return;
-        }
-
+        // Always fetch a fresh index — a persisted snapshot here kept serving
+        // a stale tree (e.g. one recorded while the server sent no offer ids)
+        // for the whole browser session and masked catalog updates.
         SendMessageComposer(new GetCatalogIndexComposer(currentType));
         SendMessageComposer(new BuildersClubQueryFurniCountMessageComposer());
     }, [isVisible, rootNode, currentType]);
