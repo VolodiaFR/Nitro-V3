@@ -66,4 +66,34 @@ describe('responsive catalog item grid', () => {
 
         expect(getComputedStyle(viewport).paddingRight).toBe('17px');
     });
+
+    it('keeps auto-fill active at the compact catalog breakpoint', () => {
+        const compactRule = catalogCss.match(/@media \(max-width: 640px\)[\s\S]*?\.nitro-catalog-grid\s*\{([^}]*)\}/)?.[1] ?? '';
+
+        expect(compactRule.replaceAll(' ', '')).toContain(
+            'grid-template-columns:repeat(auto-fill,minmax(var(--nitro-grid-column-min-width,47px),1fr))'
+        );
+    });
+
+    it('lets fixed-coordinate offer templates expose the full catalog width to auto-fill', () => {
+        const stylesheet = document.createElement('style');
+        const layout = document.createElement('div');
+        const preview = document.createElement('div');
+        const grid = document.createElement('div');
+        const purchase = document.createElement('div');
+
+        stylesheet.textContent = `${catalogCss}\n${experienceCss}`;
+        layout.className = 'nitro-catalog-pet-customization-layout';
+        preview.className = 'nitro-catalog-pet-customization-preview';
+        grid.className = 'nitro-catalog-pet-customization-grid';
+        purchase.className = 'nitro-catalog-pet-customization-purchase';
+        layout.append(preview, grid, purchase);
+        document.head.append(stylesheet);
+        document.body.append(layout);
+
+        expect(getComputedStyle(layout).width).toBe('100%');
+        expect(getComputedStyle(preview).width).toBe('100%');
+        expect(getComputedStyle(grid).width).toBe('100%');
+        expect(getComputedStyle(purchase).width).toBe('100%');
+    });
 });

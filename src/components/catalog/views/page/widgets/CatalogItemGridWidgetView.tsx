@@ -23,6 +23,8 @@ export const CatalogItemGridWidgetView: FC<CatalogItemGridWidgetViewProps> = (pr
     const elementRef = useRef<HTMLDivElement>(null);
     const [dragIndex, setDragIndex] = useState<number | null>(null);
     const [dropIndex, setDropIndex] = useState<number | null>(null);
+    const gridClassName =
+        columnCount > 1 && !className.split(/\s+/).includes('nitro-catalog-grid') ? `${className} nitro-catalog-grid`.trim() : className;
 
     const offers = currentPage?.offers ?? [];
     const useVirtualGrid = shouldVirtualizeCatalogOffers(offers.length, adminMode);
@@ -100,7 +102,7 @@ export const CatalogItemGridWidgetView: FC<CatalogItemGridWidgetViewProps> = (pr
 
     if (useVirtualGrid) {
         return (
-            <div aria-label="Catalog items" className={`nitro-catalog-grid-virtual h-full min-h-0 ${className}`.trim()} role="listbox">
+            <div aria-label="Catalog items" className={`nitro-catalog-grid-virtual h-full min-h-0 ${gridClassName}`.trim()} role="listbox">
                 <InfiniteGrid
                     classicScrollbar
                     columnCount={columnCount}
@@ -119,7 +121,7 @@ export const CatalogItemGridWidgetView: FC<CatalogItemGridWidgetViewProps> = (pr
         <ClassicScrollAreaView className="nitro-catalog-item-grid-scroll-area h-full min-h-0" viewportRef={elementRef}>
             <AutoGrid
                 aria-label="Catalog items"
-                className={className}
+                className={gridClassName}
                 columnCount={columnCount}
                 columnMinHeight={columnMinHeight}
                 columnMinWidth={columnMinWidth}
