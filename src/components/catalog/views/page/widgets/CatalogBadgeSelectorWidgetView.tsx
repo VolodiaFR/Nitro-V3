@@ -86,9 +86,9 @@ export const CatalogBadgeSelectorWidgetView: FC<CatalogBadgeSelectorWidgetViewPr
         <div className={`nitro-catalog-badge-selector ${className}`.trim()}>
             <div className="nitro-catalog-badge-search">
                 <input
-                    aria-label={LocalizeText('catalog.search')}
+                    aria-label={LocalizeText('generic.search')}
                     maxLength={MAX_SEARCH_LENGTH}
-                    placeholder={LocalizeText('catalog.search')}
+                    placeholder={LocalizeText('generic.search')}
                     role="searchbox"
                     type="text"
                     value={searchText}
@@ -100,6 +100,16 @@ export const CatalogBadgeSelectorWidgetView: FC<CatalogBadgeSelectorWidgetViewPr
                         setSearchText('');
                     }}
                 />
+                {!!searchText.length && (
+                    <button
+                        aria-label={LocalizeText('generic.clear')}
+                        className="nitro-catalog-badge-search-clear"
+                        type="button"
+                        onClick={() => setSearchText('')}
+                    >
+                        ×
+                    </button>
+                )}
             </div>
             <ClassicScrollAreaView className="nitro-catalog-badge-scroll-area" scrollStep={45}>
                 <AutoGrid

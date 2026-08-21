@@ -35,7 +35,11 @@ export const CatalogLayoutSoundMachineView: FC<CatalogLayoutProps> = (props) => 
     const previewSong = (previewSongId: number) => {
         if (previewSongId <= 0 || songLength === null) return;
 
-        GetSoundManager().musicController?.playSong(previewSongId, MusicPriorities.PRIORITY_PURCHASE_PREVIEW, 15, 40, 0.5, 2);
+        const controller = GetSoundManager().musicController;
+
+        if (!controller) return;
+
+        controller.playSong(previewSongId, MusicPriorities.PRIORITY_PURCHASE_PREVIEW, 15, 40, 0.5, 2);
     };
 
     useMessageEvent<OfficialSongIdMessageEvent>(OfficialSongIdMessageEvent, (event) => {

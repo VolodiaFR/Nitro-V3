@@ -76,6 +76,22 @@ beforeEach(() => {
 });
 
 describe('catalog badge selector', () => {
+    it('uses the AIR6 search label and clears the active filter from its close control', () => {
+        renderSelector();
+
+        const search = screen.getByRole('searchbox', { name: 'generic.search' });
+
+        fireEvent.change(search, { target: { value: 'helper' } });
+
+        expect(screen.queryByRole('option', { name: 'ALPHA' })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'generic.clear' }));
+
+        expect(search).toHaveValue('');
+        expect(screen.getByRole('option', { name: 'ALPHA' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'generic.clear' })).not.toBeInTheDocument();
+    });
+
     it('excludes configured badges and filters them by localized name or description', () => {
         renderSelector();
 
