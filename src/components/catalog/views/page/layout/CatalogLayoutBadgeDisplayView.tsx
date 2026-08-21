@@ -1,11 +1,12 @@
 import { FC } from 'react';
-import { LocalizeText, SanitizeHtml } from '../../../../../api';
-import { Column, Grid, Text } from '../../../../../common';
+import { SanitizeHtml } from '../../../../../api';
 import { useCatalogData } from '../../../../../hooks';
 import { CatalogBadgeSelectorWidgetView } from '../widgets/CatalogBadgeSelectorWidgetView';
 import { CatalogFirstProductSelectorWidgetView } from '../widgets/CatalogFirstProductSelectorWidgetView';
 import { CatalogItemGridWidgetView } from '../widgets/CatalogItemGridWidgetView';
 import { CatalogLimitedItemWidgetView } from '../widgets/CatalogLimitedItemWidgetView';
+import { CatalogPreviewControls } from '../widgets/CatalogPreviewControls';
+import { CatalogProductDetailsView } from '../widgets/CatalogProductDetailsView';
 import { CatalogPurchaseWidgetView } from '../widgets/CatalogPurchaseWidgetView';
 import { CatalogTotalPriceWidget } from '../widgets/CatalogTotalPriceWidget';
 import { CatalogViewProductWidgetView } from '../widgets/CatalogViewProductWidgetView';
@@ -13,47 +14,51 @@ import { CatalogLayoutProps } from './CatalogLayout.types';
 
 export const CatalogLayoutBadgeDisplayView: FC<CatalogLayoutProps> = (props) => {
     const { page = null } = props;
-    const { currentOffer = null } = useCatalogData();
+    const { currentOffer = null, roomPreviewer = null } = useCatalogData();
 
     return (
-        <>
+        <div className="nitro-catalog-badge-display-layout">
             <CatalogFirstProductSelectorWidgetView />
-            <Grid>
-                <Column overflow="hidden" size={7}>
-                    <CatalogItemGridWidgetView shrink />
-                    <Column gap={1} overflow="hidden">
-                        <Text shrink truncate fontWeight="bold">
-                            {LocalizeText('catalog_selectbadge')}
-                        </Text>
-                        <CatalogBadgeSelectorWidgetView />
-                    </Column>
-                </Column>
-                <Column center={!currentOffer} overflow="hidden" size={5}>
-                    {!currentOffer && (
-                        <>
-                            {!!page.localization.getImage(1) && <img alt="" src={page.localization.getImage(1)} />}
-                            <Text center dangerouslySetInnerHTML={{ __html: SanitizeHtml(page.localization.getText(0)) }} />
-                        </>
-                    )}
-                    {currentOffer && (
-                        <>
-                            <div className="relative overflow-hidden">
-                                <CatalogViewProductWidgetView />
-                            </div>
-                            <Column className="grow!" gap={1}>
-                                <CatalogLimitedItemWidgetView />
-                                <Text truncate className="grow!">
-                                    {currentOffer.localizationName}
-                                </Text>
-                                <div className="flex justify-end">
-                                    <CatalogTotalPriceWidget alignItems="end" />
-                                </div>
-                                <CatalogPurchaseWidgetView />
-                            </Column>
-                        </>
-                    )}
-                </Column>
-            </Grid>
-        </>
+            <section className={`nitro-catalog-badge-preview ${currentOffer ? '' : 'is-empty'}`.trim()}>
+                {!currentOffer && (
+                    <div className="nitro-catalog-badge-intro">
+                        {!!page.localization.getImage(1) && <img alt="" src={page.localization.getImage(1)} />}
+                        <span dangerouslySetInnerHTML={{ __html: SanitizeHtml(page.localization.getText(0)) }} />
+                    </div>
+                )}
+                {currentOffer && (
+                    <>
+                        <div className="nitro-catalog-badge-product-render">
+                            <CatalogViewProductWidgetView height={240} />
+                        </div>
+                        <div className="nitro-catalog-badge-product-copy nitro-catalog-preview-details">
+                            <CatalogProductDetailsView offer={currentOffer} />
+                        </div>
+                        <CatalogPreviewControls productType={currentOffer.product.productType} roomPreviewer={roomPreviewer} />
+                        <div className="nitro-catalog-badge-limited">
+                            <CatalogLimitedItemWidgetView />
+                        </div>
+                        <div className="nitro-catalog-badge-total-price nitro-catalog-preview-price nitro-catalog-price-frame">
+                            <CatalogTotalPriceWidget alignItems="end" />
+                        </div>
+                    </>
+                )}
+            </section>
+
+            <section className="nitro-catalog-badge-product-picker">
+                <CatalogItemGridWidgetView
+                    className="nitro-catalog-badge-offer-list"
+                    columnCount={1}
+                    columnMinHeight={70}
+                    columnMinWidth={70}
+                />
+            </section>
+
+            <section className="nitro-catalog-badge-picker">
+                <CatalogBadgeSelectorWidgetView />
+            </section>
+
+            <div className="nitro-catalog-badge-purchase">{currentOffer && <CatalogPurchaseWidgetView />}</div>
+        </div>
     );
 };
