@@ -615,6 +615,7 @@ export const CatalogAdminManagerView: FC<{}> = () => {
                 validationCurrent={validationCurrent}
                 issues={studio.validation?.issues ?? []}
                 history={studio.history}
+                publishResult={studio.publishResult}
                 loading={studio.loading}
                 publish={() => catalogAdmin.publishCatalog()}
                 undo={studio.undo}

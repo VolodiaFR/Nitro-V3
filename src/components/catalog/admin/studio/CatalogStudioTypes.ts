@@ -119,6 +119,23 @@ export interface CatalogStudioValidationState {
     issues: CatalogStudioValidationIssue[];
 }
 
+export interface CatalogStudioPublishConflict {
+    catalogType: CatalogStudioCatalogType;
+    entityType: string;
+    entityId: number;
+    field: string;
+}
+
+export interface CatalogStudioPublishResult {
+    operationId: string;
+    success: boolean;
+    code: string;
+    message: string;
+    revision: number;
+    importedChanges: number;
+    conflicts: CatalogStudioPublishConflict[];
+}
+
 export interface CatalogStudioDocumentResult {
     operationId: string;
     success: boolean;
