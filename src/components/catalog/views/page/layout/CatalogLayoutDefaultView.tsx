@@ -31,6 +31,7 @@ export const CatalogLayoutDefaultView: FC<CatalogLayoutProps> = (props) => {
                     <div className="nitro-catalog-offer-panel flex gap-0">
                         <div
                             className={`nitro-catalog-offer-preview relative flex items-center justify-center ${currentOffer.product.productType === ProductTypeEnum.BADGE ? 'is-badge' : ''}`}
+                            style={{ flex: '1 1 auto', minWidth: 0, width: '100%' }}
                         >
                             <div className="nitro-catalog-preview-details">
                                 <CatalogProductDetailsView offer={currentOffer} />

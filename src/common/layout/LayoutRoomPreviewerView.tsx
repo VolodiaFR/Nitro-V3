@@ -30,7 +30,8 @@ export const LayoutRoomPreviewerView: FC<{
         renderFailuresRef.current = 0;
 
         const width = elementRef.current.parentElement.clientWidth;
-        const texture = TextureUtils.createRenderTexture(width, height);
+        let textureWidth = width;
+        let texture = TextureUtils.createRenderTexture(width, height);
 
         const noteFailure = (label: string, error: unknown) => {
             renderFailuresRef.current += 1;
@@ -97,6 +98,14 @@ export const LayoutRoomPreviewerView: FC<{
             if (!roomPreviewer || !elementRef.current) return;
 
             const width = elementRef.current.parentElement.offsetWidth;
+
+            if (width > 0 && width !== textureWidth) {
+                const previousTexture = texture;
+
+                texture = TextureUtils.createRenderTexture(width, height);
+                textureWidth = width;
+                previousTexture?.destroy(true);
+            }
 
             roomPreviewer.modifyRoomCanvas(width, height);
 

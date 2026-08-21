@@ -96,15 +96,15 @@
 }
 
 .nitro-catalog-grid.nitro-catalog-grid-density-standard {
-    grid-template-columns: repeat(6, 53px) !important;
+    --nitro-grid-column-min-width: 53px;
 }
 
 .nitro-catalog-grid.nitro-catalog-grid-density-compact {
-    grid-template-columns: repeat(7, 45px) !important;
+    --nitro-grid-column-min-width: 45px;
 }
 
 .nitro-catalog-grid.nitro-catalog-grid-density-large {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    --nitro-grid-column-min-width: 68px;
 }
 
 .nitro-catalog-default-layout .nitro-catalog-grid-shell {
@@ -417,6 +417,11 @@
     min-width: 0;
     min-height: 0;
     overflow: hidden;
+}
+
+.nitro-catalog-item-grid-scroll-area:has(> .nitro-classic-scrollbar[data-visible='true']) > .nitro-classic-scroll-area-viewport,
+.nitro-catalog-grid-virtual .nitro-classic-scroll-area:has(> .nitro-classic-scrollbar[data-visible='true']) > .nitro-classic-scroll-area-viewport {
+    padding-right: 17px;
 }
 
 .nitro-classic-scrollbar {

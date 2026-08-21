@@ -30,7 +30,9 @@ const useColumnMeasure = (itemMinWidth: number | null, columnCountProp: number):
         if (!element) return;
 
         const recompute = () => {
-            const width = element.clientWidth;
+            const computedStyle = window.getComputedStyle(element);
+            const horizontalPadding = Number.parseFloat(computedStyle.paddingLeft) + Number.parseFloat(computedStyle.paddingRight);
+            const width = element.clientWidth - horizontalPadding;
             const cols = Math.max(1, Math.floor((width + GRID_GAP_PX) / (itemMinWidth + GRID_GAP_PX)));
             setMeasuredColumnCount((prev) => (prev === cols ? prev : cols));
         };
@@ -113,7 +115,7 @@ const InfiniteGridVirtualized = <T,>(props: Props<T>) => {
         const checkAndApplyPadding = () => {
             if (!element) return;
 
-            element.style.paddingRight = element.scrollHeight > element.clientHeight ? '0.25rem' : '0';
+            element.style.paddingRight = element.scrollHeight > element.clientHeight ? (classicScrollbar ? '17px' : '0.25rem') : '0';
         };
 
         checkAndApplyPadding();
@@ -123,7 +125,7 @@ const InfiniteGridVirtualized = <T,>(props: Props<T>) => {
         return () => {
             window.removeEventListener('resize', checkAndApplyPadding);
         };
-    }, [items, parentRef]);
+    }, [items, parentRef, classicScrollbar]);
 
     useEffect(() => {
         if (!items || !items.length) return;
