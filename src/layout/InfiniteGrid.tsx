@@ -54,7 +54,7 @@ const InfiniteGridSquare = <T,>(props: Props<T>) => {
     const { items = [], columnCount: columnCountProp = 4, itemMinWidth = null, itemRender = null, classicScrollbar = false } = props;
     const { parentRef } = useColumnMeasure(itemMinWidth, columnCountProp);
 
-    const autoFillStyle = itemMinWidth && itemMinWidth > 0 ? { gridTemplateColumns: `repeat(auto-fill, ${itemMinWidth}px)` } : null;
+    const autoFillStyle = itemMinWidth && itemMinWidth > 0 ? { gridTemplateColumns: `repeat(auto-fill, minmax(${itemMinWidth}px, 1fr))` } : null;
     const fixedColsClass = itemMinWidth && itemMinWidth > 0 ? '' : `grid-cols-${columnCountProp}`;
 
     const content = (
@@ -97,7 +97,7 @@ const InfiniteGridVirtualized = <T,>(props: Props<T>) => {
 
     const rowsContainerClassName = rowGap !== null ? 'flex flex-col w-full relative' : 'flex flex-col w-full *:pb-1 relative';
 
-    const autoFillStyle = itemMinWidth && itemMinWidth > 0 ? { gridTemplateColumns: `repeat(auto-fill, ${itemMinWidth}px)` } : null;
+    const autoFillStyle = itemMinWidth && itemMinWidth > 0 ? { gridTemplateColumns: `repeat(auto-fill, minmax(${itemMinWidth}px, 1fr))` } : null;
     const fixedColsClass = itemMinWidth && itemMinWidth > 0 ? '' : `grid-cols-${columnCountProp}`;
 
     const virtualizer = useVirtualizer({

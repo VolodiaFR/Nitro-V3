@@ -23,7 +23,9 @@ describe('responsive catalog item grid', () => {
         const style = getComputedStyle(grid);
 
         expect(style.getPropertyValue('--nitro-grid-column-min-width').trim()).toBe('53px');
-        expect(style.gridTemplateColumns.replaceAll(' ', '')).toBe('repeat(auto-fill,var(--nitro-grid-column-min-width,53px))');
+        expect(style.gridTemplateColumns.replaceAll(' ', '')).toBe(
+            'repeat(auto-fill,minmax(var(--nitro-grid-column-min-width,53px),1fr))'
+        );
     });
 
     it('keeps the last column clear of the visible classic scrollbar', () => {

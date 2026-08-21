@@ -37,9 +37,10 @@ describe('InfiniteGrid responsive columns', () => {
         );
 
         await waitFor(() => {
-            const firstRow = container.querySelector('[data-index="0"]');
+            const firstRow = container.querySelector<HTMLElement>('[data-index="0"]');
 
             expect(firstRow?.children).toHaveLength(9);
+            expect(firstRow?.style.gridTemplateColumns).toBe('repeat(auto-fill, minmax(53px, 1fr))');
         });
     });
 });
