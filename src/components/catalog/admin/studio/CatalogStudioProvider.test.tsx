@@ -307,4 +307,21 @@ describe('CatalogStudioProvider', () => {
 
         expect(screen.getByTestId('locks')).toHaveTextContent('0');
     });
+    it('invalidates the live catalog cache after a successful publication', () => {
+        const refreshed: string[] = [];
+        const onIndexRefresh = () => refreshed.push('index');
+        const onPageRefresh = () => refreshed.push('page');
+        window.addEventListener('catalog-admin-refresh-index', onIndexRefresh);
+        window.addEventListener('catalog-admin-refresh-current-page', onPageRefresh);
+        render(<CatalogStudioProvider active><Probe /></CatalogStudioProvider>);
+
+        emit('CatalogStudioPublishEvent', {
+            operationId: 'publish-refresh', success: true, code: 'PUBLISHED', message: '',
+            revision: 8, changedEntities: []
+        });
+
+        expect(refreshed).toEqual(['index', 'page']);
+        window.removeEventListener('catalog-admin-refresh-index', onIndexRefresh);
+        window.removeEventListener('catalog-admin-refresh-current-page', onPageRefresh);
+    });
 });
