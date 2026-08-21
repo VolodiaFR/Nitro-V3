@@ -165,14 +165,18 @@ export const CatalogStudioProvider: FC<{ active: boolean; children: ReactNode }>
 
     const handleLifecycleOperation = useCallback((event: CatalogStudioPublishEvent) => {
         const parser = event.getParser();
+        const reconciliation = parser as typeof parser & {
+            importedChanges?: number;
+            conflicts?: Array<{ catalogType: string; entityType: string; entityId: number; field: string }>;
+        };
         setPublishResult({
             operationId: parser.operationId,
             success: parser.success,
             code: parser.code,
             message: parser.message,
             revision: parser.revision,
-            importedChanges: parser.importedChanges ?? 0,
-            conflicts: (parser.conflicts ?? []).map(conflict => ({
+            importedChanges: reconciliation.importedChanges ?? 0,
+            conflicts: (reconciliation.conflicts ?? []).map(conflict => ({
                 ...conflict,
                 catalogType: conflict.catalogType === 'BUILDER' ? 'BUILDER' : 'NORMAL'
             }))
