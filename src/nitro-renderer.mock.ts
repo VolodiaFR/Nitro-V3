@@ -663,6 +663,7 @@ export const GetSessionDataManager = vi.fn(stubManager);
 export const GetTickerTime = vi.fn(() => 0);
 export const GetTicker = vi.fn(stubManager);
 export const GetRenderer = vi.fn(stubManager);
+export const GetDesiredResolution = vi.fn(() => 1);
 export class NitroTicker {}
 // TextureUtils — a real-enough stub of the createRenderTexture
 // roundtrip. Tests that mount LayoutRoomPreviewerView allocate a

@@ -36,6 +36,11 @@
 }
 
 @font-face {
+    font-family: UbuntuRegular;
+    src: url("@/assets/webfonts/Ubuntu.ttf");
+}
+
+@font-face {
     font-family: UbuntuCondensed;
     src: local("Ubuntu Condensed"), local("Ubuntu");
 }

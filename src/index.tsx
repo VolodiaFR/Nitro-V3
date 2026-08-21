@@ -60,6 +60,7 @@ import './css/nitrocard/NitroCardView.css';
 import './css/navigator/NavigatorView.css';
 
 import './css/notification/NotificationCenterView.css';
+import './css/notification/HotelAlertToast.css';
 
 import './css/purse/PurseView.css';
 import './css/radio/RadioView.css';

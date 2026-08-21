@@ -21,6 +21,9 @@ export const CatalogLayoutDefaultView: FC<CatalogLayoutProps> = (props) => {
     const { density = 'standard', showTilePrices = true } = useCatalogDisplayPreferences();
     const gridMetrics = getCatalogGridMetrics(density);
 
+    const teaserText = page?.localization.getText(0) ?? '';
+    const hasTeaserText = !!teaserText.replace(/<[^>]*>/g, '').trim();
+
     return (
         <div className="nitro-catalog-default-layout flex flex-col h-full gap-2">
             <div className="nitro-catalog-product-view">
@@ -48,11 +51,13 @@ export const CatalogLayoutDefaultView: FC<CatalogLayoutProps> = (props) => {
                 )}
 
                 {!currentOffer && (
-                    <div className="nitro-catalog-welcome flex items-center gap-3">
+                    <div className={`nitro-catalog-welcome flex items-center gap-3 ${hasTeaserText ? '' : 'justify-center is-image-only'}`}>
                         {!!page.localization.getImage(1) && (
                             <img alt="" className="w-[70px] h-[70px] object-contain rounded shrink-0" src={page.localization.getImage(1)} />
                         )}
-                        <Text className="text-[11px]! text-muted" dangerouslySetInnerHTML={{ __html: SanitizeHtml(page.localization.getText(0)) }} />
+                        {hasTeaserText && (
+                            <Text className="text-[11px]! text-muted" dangerouslySetInnerHTML={{ __html: SanitizeHtml(teaserText) }} />
+                        )}
                     </div>
                 )}
             </div>
