@@ -27,6 +27,7 @@ describe('current catalog layout geometry', () => {
             bottom: style.bottom,
             height: style.height,
             left: style.left,
+            maxWidth: style.maxWidth,
             padding: style.padding,
             right: style.right,
             top: style.top,
@@ -59,9 +60,10 @@ describe('current catalog layout geometry', () => {
         expect(styleFor('nitro-classic-scroll-area-viewport', 'nitro-catalog-badge-product-picker')).toMatchObject({ width: '87px' });
     });
 
-    it('keeps the current sound machine preview, grid and purchase regions', () => {
-        expect(styleFor('nitro-catalog-sound-product', 'nitro-catalog-sound-layout')).toMatchObject({ left: '0px', top: '0px', width: '360px', height: '240px' });
-        expect(styleFor('nitro-catalog-sound-grid', 'nitro-catalog-sound-layout')).toMatchObject({ left: '0px', top: '245px', width: '360px', height: '180px' });
-        expect(styleFor('nitro-catalog-sound-purchase', 'nitro-catalog-sound-layout')).toMatchObject({ left: '0px', top: '430px', width: '360px', height: '30px' });
+    it('lets the sound machine regions expand with the catalog while preserving their vertical geometry', () => {
+        expect(styleFor('nitro-catalog-sound-layout', 'nitro-catalog-layout-container')).toMatchObject({ width: '100%', maxWidth: 'none', height: '460px' });
+        expect(styleFor('nitro-catalog-sound-product', 'nitro-catalog-sound-layout')).toMatchObject({ left: '0px', top: '0px', width: '100%', height: '240px' });
+        expect(styleFor('nitro-catalog-sound-grid', 'nitro-catalog-sound-layout')).toMatchObject({ left: '0px', top: '245px', width: '100%', height: '180px' });
+        expect(styleFor('nitro-catalog-sound-purchase', 'nitro-catalog-sound-layout')).toMatchObject({ left: '0px', top: '430px', width: '100%', height: '30px' });
     });
 });
