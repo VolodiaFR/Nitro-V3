@@ -803,8 +803,8 @@
 /* standard: bordo esterno #376275 (2px), body #0e3f52 -> border 2px + bg body. */
 .nitro-catalog-standard-header {
     position: relative;
-    flex: 0 0 90px;
-    height: 90px;
+    flex: 0 0 100px;
+    height: 100px;
     margin: 0 1px;
     border: 2px solid #376275;
     background: #0e3f52;
@@ -828,7 +828,7 @@
 .nitro-catalog-standard-header-icon {
     position: absolute;
     left: 24px;
-    top: 30px;
+    top: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -841,27 +841,40 @@
 .nitro-catalog-standard-header-copy {
     position: absolute;
     left: 80px;
-    top: 11px;
+    top: 8px;
     right: 15px;
     color: #fff;
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7);
 }
 
 .nitro-catalog-standard-header-title {
-    min-height: 24px;
+    min-height: 28px;
     font-family: UbuntuCondensed, Ubuntu, sans-serif;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
-    line-height: 24px;
+    line-height: 28px;
 }
 
 .nitro-catalog-standard-header-description {
-    margin-top: 5px;
-    font-size: 12px;
-    line-height: 15px;
+    margin-top: 2px;
+    font-family: UbuntuRegular, Ubuntu, sans-serif;
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 400;
+    text-shadow: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-clamp: 3;
+    max-height: 48px;
+    overflow: hidden;
 }
 
-/* standard tab_context: y=5 h=30 -> strip 35px, offset alto 5px, tab alte 30px. */
+.nitro-catalog-standard-header-description b,
+.nitro-catalog-standard-header-description strong {
+    font-weight: 400;
+}
+
 .nitro-catalog-tabs-shell {
     flex: 0 0 35px;
     height: 35px;
@@ -874,9 +887,6 @@
     flex-wrap: nowrap;
 }
 
-/* standard tab_button style 3 (height 30). Width sizes to the label instead of a
-   fixed 110px cap, so long categories (e.g. "Imported Furniture") aren't
-   truncated; the dynamic window width grows to fit them. */
 .nitro-catalog-tabs-shell .nitro-card-tab-item {
     display: inline-flex;
     align-items: center;
