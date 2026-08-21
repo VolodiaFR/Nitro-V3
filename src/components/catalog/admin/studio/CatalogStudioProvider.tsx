@@ -184,6 +184,8 @@ export const CatalogStudioProvider: FC<{ active: boolean; children: ReactNode }>
         if (parser.code === 'PUBLISHED') {
             locksRef.current = {};
             setLocks({});
+            window.dispatchEvent(new Event('catalog-admin-refresh-index'));
+            window.dispatchEvent(new Event('catalog-admin-refresh-current-page'));
         }
         handleOperation(event);
     }, [handleOperation]);
