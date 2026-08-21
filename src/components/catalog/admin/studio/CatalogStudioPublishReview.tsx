@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
 import { FaCloudUploadAlt, FaExclamationTriangle, FaHistory, FaUndo } from 'react-icons/fa';
 import { CatalogStudioCommandState } from './CatalogStudioCommandCenter';
-import { CatalogStudioHistoryGroup, CatalogStudioValidationIssue } from './CatalogStudioTypes';
+import { CatalogStudioHistoryGroup, CatalogStudioPublishResult, CatalogStudioValidationIssue } from './CatalogStudioTypes';
 
 interface CatalogStudioPublishReviewProps {
     phase: CatalogStudioCommandState['phase'];
@@ -9,6 +9,7 @@ interface CatalogStudioPublishReviewProps {
     validationCurrent: boolean;
     issues: CatalogStudioValidationIssue[];
     history: CatalogStudioHistoryGroup[];
+    publishResult: CatalogStudioPublishResult | null;
     loading: boolean;
     publish: () => void;
     undo: (groupId: number) => void;
@@ -20,13 +21,14 @@ export const CatalogStudioPublishReview: FC<CatalogStudioPublishReviewProps> = (
     validationCurrent,
     issues,
     history,
+    publishResult,
     loading,
     publish,
     undo
 }) => {
     const [publishConfirmationOpen, setPublishConfirmationOpen] = useState(false);
     const [revertCandidate, setRevertCandidate] = useState<CatalogStudioHistoryGroup | null>(null);
-    const canPublish = phase === 'ready' && validationCurrent && issues.length === 0 && pendingCount > 0 && !loading;
+    const canPublish = (phase === 'clean' || (phase === 'ready' && validationCurrent)) && issues.length === 0 && !loading;
     const visibleHistory = pendingCount > 0 ? history : [];
 
     const publishNow = () => {
@@ -43,6 +45,26 @@ export const CatalogStudioPublishReview: FC<CatalogStudioPublishReviewProps> = (
     };
 
     return <div className="nitro-catalog-admin-publish">
+        {!!publishResult?.importedChanges && <div className="nitro-catalog-admin-validation-list">
+            <div className="nitro-catalog-admin-publish-changes-head">
+                {publishResult.importedChanges} external database {publishResult.importedChanges === 1 ? 'change' : 'changes'} imported automatically.
+            </div>
+        </div>}
+
+        {!!publishResult?.conflicts.length && <div className="nitro-catalog-admin-validation-list">
+            <div className="nitro-catalog-admin-publish-changes-head">External database conflicts</div>
+            {publishResult.conflicts.map((conflict, index) => <div
+                key={`${conflict.catalogType}-${conflict.entityType}-${conflict.entityId}-${conflict.field}-${index}`}
+                className="nitro-catalog-admin-validation-row"
+            >
+                <FaExclamationTriangle />
+                <div>
+                    <strong>{conflict.entityType} #{conflict.entityId} &middot; {conflict.field}</strong>
+                    <span>{conflict.catalogType} catalog changed both live and in the draft.</span>
+                </div>
+            </div>)}
+        </div>}
+
         {!!issues.length && <div className="nitro-catalog-admin-validation-list">
             <div className="nitro-catalog-admin-publish-changes-head">Resolve before publishing</div>
             {issues.map((issue, index) => <div
@@ -78,21 +100,25 @@ export const CatalogStudioPublishReview: FC<CatalogStudioPublishReviewProps> = (
             </div>)}
         </div>
 
-        {pendingCount > 0 && <div className="nitro-catalog-admin-publish-actions">
+        <div className="nitro-catalog-admin-publish-actions">
             <button
                 className={`nitro-catalog-admin-btn is-publish ${canPublish ? 'has-pending' : ''}`}
                 disabled={!canPublish}
                 onClick={() => setPublishConfirmationOpen(true)}
             >
-                <FaCloudUploadAlt /> Publish {pendingCount} {pendingCount === 1 ? 'change' : 'changes'}
+                <FaCloudUploadAlt /> {pendingCount > 0
+                    ? `Publish ${pendingCount} ${pendingCount === 1 ? 'change' : 'changes'}`
+                    : 'Check & publish'}
             </button>
-        </div>}
+        </div>
 
         {publishConfirmationOpen && <div className="nitro-catalog-admin-publish-confirmation" role="dialog" aria-modal="true" aria-label="Confirm catalog publication">
             <FaCloudUploadAlt />
             <div>
-                <strong>Publish {pendingCount} {pendingCount === 1 ? 'change' : 'changes'}?</strong>
-                <span>The validated draft will replace the live catalog.</span>
+                <strong>{pendingCount > 0
+                    ? `Publish ${pendingCount} ${pendingCount === 1 ? 'change' : 'changes'}?`
+                    : 'Check live catalog and publish?'}</strong>
+                <span>External database changes will be imported automatically unless they conflict with the draft.</span>
             </div>
             <div className="nitro-catalog-admin-publish-actions">
                 <button className="nitro-catalog-admin-btn" onClick={() => setPublishConfirmationOpen(false)}>Cancel</button>
