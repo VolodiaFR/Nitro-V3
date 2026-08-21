@@ -1950,7 +1950,7 @@
 }
 
 .nitro-catalog-grid {
-    grid-template-columns: repeat(6, 1fr) !important;
+    grid-template-columns: repeat(auto-fill, minmax(var(--nitro-grid-column-min-width, 53px), 1fr)) !important;
     grid-auto-rows: var(--nitro-grid-column-min-height, 70px);
     align-content: start;
     justify-content: start;
@@ -2838,7 +2838,7 @@
     }
 
     .nitro-catalog-grid {
-        grid-template-columns: repeat(auto-fill, minmax(47px, 47px)) !important;
+        grid-template-columns: repeat(auto-fill, minmax(var(--nitro-grid-column-min-width, 47px), 1fr)) !important;
     }
 }
 

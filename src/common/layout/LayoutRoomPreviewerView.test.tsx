@@ -4,6 +4,7 @@ import { LayoutRoomPreviewerView } from './LayoutRoomPreviewerView';
 
 const previewMocks = vi.hoisted(() => ({
     add: vi.fn(),
+    createRenderTexture: vi.fn((_width: number, _height: number) => ({ destroy: vi.fn() })),
     remove: vi.fn(),
     destroy: vi.fn()
 }));
@@ -15,10 +16,16 @@ vi.mock('@nitrots/nitro-renderer', () => ({
     }),
     GetTicker: () => ({ add: previewMocks.add, remove: previewMocks.remove }),
     NitroLogger: { error: vi.fn() },
-    TextureUtils: { createRenderTexture: () => ({ destroy: previewMocks.destroy }) }
+    TextureUtils: { createRenderTexture: previewMocks.createRenderTexture }
 }));
 
+let resizeCallback: ResizeObserverCallback;
+
 class ResizeObserverMock {
+    public constructor(callback: ResizeObserverCallback) {
+        resizeCallback = callback;
+    }
+
     public observe = vi.fn();
     public disconnect = vi.fn();
 }
@@ -28,6 +35,24 @@ vi.stubGlobal('ResizeObserver', ResizeObserverMock);
 afterEach(cleanup);
 
 describe('LayoutRoomPreviewerView interactions', () => {
+    it('recreates its render target when the preview width changes', () => {
+        const roomPreviewer = {
+            changeRoomObjectState: vi.fn(),
+            getRenderingCanvas: vi.fn(() => null),
+            getRoomCanvas: vi.fn(),
+            modifyRoomCanvas: vi.fn(),
+            updatePreviewRoomView: vi.fn()
+        } as any;
+
+        const view = render(<LayoutRoomPreviewerView height={240} roomPreviewer={roomPreviewer} />);
+        const preview = view.container.querySelector('.shadow-room-previewer')!;
+
+        Object.defineProperty(preview.parentElement, 'offsetWidth', { configurable: true, value: 680 });
+        resizeCallback([], {} as ResizeObserver);
+
+        expect(previewMocks.createRenderTexture).toHaveBeenLastCalledWith(680, 240);
+    });
+
     it('keeps furniture state on a single click', () => {
         const roomPreviewer = {
             changeRoomObjectDirection: vi.fn(),
