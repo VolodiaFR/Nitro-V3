@@ -10,7 +10,7 @@ afterEach(() => {
 });
 
 describe('Classic avatar action menu geometry', () => {
-    it('matches the classic menu shell, rows and minimize footer', () => {
+    it('matches the rendered classic menu shell, rows and footer', () => {
         const stylesheet = document.createElement('style');
         const menu = document.createElement('div');
         const header = document.createElement('div');
@@ -38,22 +38,25 @@ describe('Classic avatar action menu geometry', () => {
         const splitItemStyle = getComputedStyle(splitItem);
         const footerStyle = getComputedStyle(footer);
 
-        expect(menuStyle.width).toBe('115px');
-        expect(menuStyle.minWidth).toBe('115px');
-        expect(menuStyle.padding).toBe('7px 3px 5px');
-        expect(menuStyle.backgroundColor).toBe('rgb(110, 107, 103)');
-        expect(headerStyle.width).toBe('107px');
-        expect(headerStyle.height).toBe('16px');
-        expect(itemStyle.width).toBe('103px');
-        expect(itemStyle.height).toBe('26px');
-        expect(itemStyle.backgroundColor).toBe('rgb(45, 42, 39)');
-        expect(splitStyle.width).toBe('103px');
+        expect(menuStyle.width).toBe('101px');
+        expect(menuStyle.minWidth).toBe('101px');
+        expect(menuStyle.padding).toBe('1px 0px 0px');
+        expect(menuStyle.backgroundColor).toBe('rgb(42, 39, 37)');
+        expect(menuStyle.boxShadow).toBe('none');
+        expect(headerStyle.width).toBe('99px');
+        expect(headerStyle.height).toBe('25px');
+        expect(headerStyle.backgroundColor).toBe('rgb(109, 106, 102)');
+        expect(headerStyle.borderBottomColor).toBe('rgb(0, 0, 0)');
+        expect(itemStyle.width).toBe('99px');
+        expect(itemStyle.height).toBe('27px');
+        expect(itemStyle.backgroundColor).toBe('rgb(42, 39, 37)');
+        expect(itemStyle.borderBottomColor).toBe('rgb(79, 76, 72)');
+        expect(splitStyle.width).toBe('99px');
         expect(splitItemStyle.width).toBe('calc(33.3333%)');
         expect(splitItemStyle.margin).toBe('0px');
-        expect(footerStyle.width).toBe('100px');
-        expect(footerStyle.height).toBe('18px');
-        expect(footerStyle.backgroundColor).toBe('rgb(110, 107, 103)');
-        expect(roomWidgetsCss).toMatch(/\.nitro-avatar-action-menu:not\(\.menu-hidden\)::after[\s\S]*border-top:\s*6px solid #6e6b67/);
+        expect(footerStyle.width).toBe('99px');
+        expect(footerStyle.height).toBe('23px');
+        expect(footerStyle.backgroundColor).toBe('rgb(79, 76, 72)');
     });
 
     it('matches the classic minimized bubble and region geometry', () => {

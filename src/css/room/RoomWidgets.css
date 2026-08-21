@@ -862,42 +862,46 @@
 
 .nitro-avatar-action-menu {
     box-sizing: border-box;
-    width: 115px;
-    min-width: 115px;
-    padding: 7px 3px 5px;
+    width: 101px;
+    min-width: 101px;
+    padding: 1px 0 0;
     border: 1px solid #050505;
-    border-radius: 4px;
-    background: #6e6b67;
-    box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.58);
+    border-radius: 3px;
+    background: #2a2725;
+    box-shadow: none;
 }
 
 .nitro-avatar-action-menu .nitro-context-menu-header {
-    width: 107px;
-    height: 16px;
-    margin: 0 0 5px;
-    padding: 0 6px;
+    width: 99px;
+    height: 25px;
+    margin: 0;
+    padding: 0 5px;
     border: 0;
-    border-radius: 0;
-    background: transparent;
+    border-bottom: 1px solid #000000;
+    border-radius: 2px 2px 0 0;
+    background-color: #6d6a66;
+    background-image: linear-gradient(to bottom, #6d6a66 0%, #4f4c48 100%);
     font-size: 11px;
-    line-height: 16px;
+    line-height: 24px;
     text-align: center;
 }
 
 .nitro-avatar-action-menu .nitro-context-menu-item {
-    width: 103px;
-    height: 26px;
-    min-height: 26px;
-    margin: 0 2px;
+    width: 99px;
+    height: 27px;
+    min-height: 27px;
+    margin: 0;
     padding: 0 4px;
-    background: #2d2a27;
+    border-bottom: 1px solid #4f4c48;
+    background-color: #2a2725;
+    background-image: linear-gradient(to bottom, #2a2725 0%, #262321 100%);
     color: #ffffff;
     font-size: 11px;
     line-height: 26px;
 }
 
 .nitro-avatar-action-menu .nitro-context-menu-item + .nitro-context-menu-item {
-    border-top: 1px solid #151515;
+    border-top: 0;
 }
 
 .nitro-avatar-action-menu .nitro-context-menu-item:hover {
@@ -905,8 +909,8 @@
 }
 
 .nitro-avatar-action-menu .menu-list-split-3 {
-    width: 103px;
-    margin: 0 2px;
+    width: 99px;
+    margin: 0;
 }
 
 .nitro-avatar-action-menu .menu-list-split-3 .nitro-context-menu-item {
@@ -926,26 +930,17 @@
 }
 
 .nitro-avatar-action-menu .nitro-context-menu-footer {
-    width: 100px;
-    height: 18px;
-    margin: 0 auto;
+    width: 99px;
+    height: 23px;
+    margin: 0;
     border: 0;
     border-radius: 0 0 2px 2px;
-    background: #6e6b67;
+    background: #4f4c48;
 }
 
 .nitro-avatar-action-menu:not(.menu-hidden)::after {
-    position: absolute;
-    bottom: -6px;
-    left: calc(50% - 6px);
-    width: 0;
-    height: 0;
     content: '';
-    border-top: 6px solid #6e6b67;
-    border-right: 6px solid transparent;
-    border-left: 6px solid transparent;
-    filter: drop-shadow(0 1px 0 #050505);
-    pointer-events: none;
+    display: none;
 }
 
 .nitro-avatar-action-menu.menu-hidden {
