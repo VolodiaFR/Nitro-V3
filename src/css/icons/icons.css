@@ -619,31 +619,31 @@
 }
 
 .nitro-icon.icon-navigator-info {
-    background: url("@/assets/images/navigator/icons/info.png");
+    background: url("@/assets/images/navigator/air/show-room-info.png");
     width: 18px;
     height: 18px;
 }
 
 .nitro-icon.icon-navigator-room-locked {
-    background: url("@/assets/images/navigator/icons/room_locked.png");
+    background: url("@/assets/images/navigator/air/doormode-doorbell.png");
     width: 13px;
     height: 16px;
 }
 
 .nitro-icon.icon-navigator-room-password {
-    background: url("@/assets/images/navigator/icons/room_password.png");
+    background: url("@/assets/images/navigator/air/doormode-password.png");
     width: 13px;
     height: 16px;
 }
 
 .nitro-icon.icon-navigator-room-invisible {
-    background: url("@/assets/images/navigator/icons/room_invisible.png");
+    background: url("@/assets/images/navigator/air/doormode-invisible.png");
     width: 13px;
     height: 16px;
 }
 
 .nitro-icon.icon-navigator-room-group {
-    background: url("@/assets/images/navigator/icons/room_group.png");
+    background: url("@/assets/images/navigator/air/icon-group.png");
     width: 13px;
     height: 11px;
 }
