@@ -176,32 +176,32 @@ export const NavigatorView: FC<{}> = (props) => {
                                             />
                                         )}
                                     </div>
-                                    <div className="nitro-navigator-air__actions">
+                                    <div className="nitro-navigator-air__actions shrink-0">
                                         <button
                                             type="button"
-                                            className="nitro-navigator-air__action nitro-navigator-air__action--create"
-                                            style={{ backgroundImage: `url(${createRoomImg})` }}
+                                            className="nitro-navigator-air__action"
                                             onClick={() => useNavigatorUiStore.getState().openCreator()}
                                         >
+                                            <img src={createRoomImg} alt="" />
                                             <span>{LocalizeText('navigator.createroom.create')}</span>
                                         </button>
                                         {searchResult?.code !== 'myworld_view' && searchResult?.code !== 'roomads_view' && (
                                             <button
                                                 type="button"
-                                                className="nitro-navigator-air__action nitro-navigator-air__action--random"
-                                                style={{ backgroundImage: `url(${randomRoomImg})` }}
+                                                className="nitro-navigator-air__action"
                                                 onClick={() => SendMessageComposer(new FindNewFriendsMessageComposer())}
                                             >
+                                                <img src={randomRoomImg} alt="" />
                                                 <span>{LocalizeText('navigator.random.room')}</span>
                                             </button>
                                         )}
                                         {(searchResult?.code === 'myworld_view' || searchResult?.code === 'roomads_view') && (
                                             <button
                                                 type="button"
-                                                className="nitro-navigator-air__action nitro-navigator-air__action--event"
-                                                style={{ backgroundImage: `url(${promoteRoomImg})` }}
+                                                className="nitro-navigator-air__action"
                                                 onClick={() => CreateLinkEvent('catalog/open/room_event')}
                                             >
+                                                <img src={promoteRoomImg} alt="" />
                                                 <span>{LocalizeText('navigator.promote.room')}</span>
                                             </button>
                                         )}

@@ -165,8 +165,8 @@ export const ChatInputHabbiconSelectorView: FC = () => {
                                                         <span
                                                             style={{
                                                                 backgroundImage: `url(${catalog.baseUrl}habbicons_spritesheet.png)`,
-                                                                backgroundSize: `${(sheetSize.width * 40) / Math.max(entry.width, 1)}px ${(sheetSize.height * 40) / Math.max(entry.height, 1)}px`,
-                                                                backgroundPosition: `-${(entry.x * 40) / Math.max(entry.width, 1)}px -${(entry.y * 40) / Math.max(entry.height, 1)}px`
+                                                                backgroundSize: `${(sheetSize.width * 30) / Math.max(entry.width, 1)}px ${(sheetSize.height * 30) / Math.max(entry.height, 1)}px`,
+                                                                backgroundPosition: `-${(entry.x * 30) / Math.max(entry.width, 1)}px -${(entry.y * 30) / Math.max(entry.height, 1)}px`
                                                             }}
                                                         />
                                                     </button>

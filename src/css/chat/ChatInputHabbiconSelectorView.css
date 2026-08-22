@@ -208,13 +208,15 @@
 
 .habbicon-selector-item span {
     position: absolute;
-    top: 1px;
-    left: 1px;
+    inset: 0;
     display: block;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
+    margin: auto;
     overflow: hidden;
     background-repeat: no-repeat;
+    background-position: center;
+    background-size: 30px 30px;
     image-rendering: pixelated;
     pointer-events: none;
 }
