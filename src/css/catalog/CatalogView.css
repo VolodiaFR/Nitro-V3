@@ -835,8 +835,8 @@
 /* standard: bordo esterno #376275 (2px), body #0e3f52 -> border 2px + bg body. */
 .nitro-catalog-standard-header {
     position: relative;
-    flex: 0 0 100px;
-    height: 100px;
+    flex: 0 0 90px;
+    height: 90px;
     margin: 0 1px;
     border: 2px solid #376275;
     background: #0e3f52;
@@ -848,58 +848,99 @@
    se assente resta il body #0e3f52 (nessun finto gradiente). */
 .nitro-catalog-standard-header-bg {
     position: absolute;
-    inset: 0;
+    inset: -2px;
     opacity: 0.1;
     background-color: transparent;
     background-position: center;
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: auto;
     filter: grayscale(1);
+    transform: scale(2);
+    transform-origin: center;
 }
 
 .nitro-catalog-standard-header-icon {
     position: absolute;
-    left: 24px;
-    top: 32px;
+    left: 22px;
+    top: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 40px;
     height: 35px;
+    overflow: hidden;
+}
+
+.nitro-catalog-standard-header-icon img {
+    width: 20px !important;
+    height: 20px !important;
+    max-width: none !important;
+    max-height: none !important;
     transform: scale(2);
     transform-origin: center;
 }
 
 .nitro-catalog-standard-header-copy {
     position: absolute;
-    left: 80px;
-    top: 8px;
-    right: 15px;
+    left: 78px;
+    top: 9px;
+    width: 475px;
     color: #fff;
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7);
 }
 
 .nitro-catalog-standard-header-title {
-    min-height: 28px;
-    font-family: UbuntuCondensed, Ubuntu, sans-serif;
-    font-size: 28px;
+    height: 24px;
+    min-height: 24px;
+    overflow: hidden;
+    font-family: UbuntuRegular, Ubuntu, sans-serif;
+    font-size: 18px;
     font-weight: 700;
-    line-height: 28px;
+    line-height: 24px;
+    white-space: nowrap;
 }
 
 .nitro-catalog-standard-header-description {
-    margin-top: 2px;
+    margin-top: -1px;
     font-family: UbuntuRegular, Ubuntu, sans-serif;
-    font-size: 13px;
-    line-height: 16px;
+    font-size: 12px;
+    line-height: 17px;
     font-weight: 400;
     text-shadow: none;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     line-clamp: 3;
-    max-height: 48px;
+    max-height: 51px;
     overflow: hidden;
+}
+
+.nitro-catalog-standard-header.is-builder .nitro-catalog-standard-header-title {
+    height: 30px;
+    min-height: 30px;
+    font-size: 24px;
+    line-height: 30px;
+}
+
+.nitro-catalog-standard-header.is-builder .nitro-catalog-standard-header-description {
+    position: absolute;
+    left: 0;
+    width: 475px;
+    height: 19px;
+    margin-top: 0;
+    display: block;
+    -webkit-line-clamp: initial;
+    line-clamp: initial;
+    max-height: 19px;
+    line-height: 19px;
+}
+
+.nitro-catalog-standard-header.is-builder .nitro-catalog-standard-header-description.is-builder-membership {
+    top: 30px;
+}
+
+.nitro-catalog-standard-header.is-builder .nitro-catalog-standard-header-description.is-builder-limit {
+    top: 45px;
 }
 
 .nitro-catalog-standard-header-description b,
@@ -907,7 +948,7 @@
     font-weight: 400;
 }
 
-.nitro-catalog-tabs-shell {
+.nitro-catalog-window .nitro-catalog-tabs-shell {
     flex: 0 0 35px;
     height: 35px;
     min-height: 35px;
@@ -919,31 +960,33 @@
     flex-wrap: nowrap;
 }
 
-.nitro-catalog-tabs-shell .nitro-card-tab-item {
+.nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    height: 30px;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
     min-width: 0;
     flex: 0 0 auto;
     max-width: none;
-    padding: 4px 8px 6px;
+    padding: 4px 8px 6px !important;
     margin: 0 2px 0 0;
     flex-shrink: 0;
     white-space: nowrap;
     overflow: hidden;
 }
 
-.nitro-catalog-tabs-shell .nitro-card-tab-item:last-of-type {
+.nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item:last-of-type {
     margin-right: 0;
 }
 
-.nitro-catalog-tabs-shell .nitro-card-tab-item.nitro-catalog-admin-tab {
+.nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item.nitro-catalog-admin-tab {
     padding: 4px 4px 6px !important;
 }
 
-.nitro-catalog-tabs-shell .nitro-card-tab-item > div {
+.nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item > div {
     align-items: center !important;
     justify-content: center !important;
     gap: 4px;
@@ -1011,7 +1054,7 @@
     align-items: center;
     height: 24px;
     padding: 0;
-    margin: -2px -1px 0 -1px;
+    margin: 0;
     border: 1px solid #b7b7ae;
     border-radius: 3px;
     background: #f7f7f2;
@@ -1227,22 +1270,17 @@
     position: relative;
     display: block !important;
     width: 100%;
-    height: 100%;
+    height: 460px;
     min-height: 460px;
+    max-height: 460px;
 }
 
-.nitro-catalog-product-view,
 .nitro-catalog-grid-shell,
 .nitro-catalog-price-row,
 .nitro-catalog-purchase-row {
     width: 100% !important;
 }
 
-.nitro-catalog-product-view {
-    width: calc(100% + 3px) !important;
-}
-
-.nitro-catalog-product-view,
 .nitro-catalog-grid-shell {
     border: 1px solid #b4b4ae;
     border-radius: 5px;
@@ -1253,10 +1291,14 @@
     position: relative;
     top: 0;
     left: 0;
-    width: 363px;
+    width: 360px !important;
+    max-width: 100%;
     height: 240px;
     min-height: 0;
     overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
 }
 
 .nitro-catalog-product-view::before {
@@ -1299,31 +1341,36 @@
     text-shadow: 0 1px 0 #000;
 }
 
-.nitro-catalog-offer-preview .shadow-room-previewer,
-.nitro-catalog-offer-preview canvas,
-.nitro-catalog-offer-preview img {
+.nitro-catalog-offer-preview > .shadow-room-previewer {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 348px !important;
+    min-height: 348px !important;
+    max-height: 348px !important;
+    max-width: 100%;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.nitro-catalog-offer-preview > .shadow-room-previewer > .shadow-room-previewer-canvas {
+    display: block;
     width: 100% !important;
     height: 100% !important;
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;
     border-radius: 0 !important;
-    box-shadow: none !important;
-    background-position: center bottom !important;
-    background-repeat: no-repeat !important;
-    background-size: contain !important;
+    image-rendering: pixelated;
+    transform: none;
+    transform-origin: center center;
+    transition: transform 180ms ease-out;
 }
 
-.nitro-catalog-offer-preview .shadow-room-previewer {
-    background-size: 100% 100% !important;
-    transition:
-        background-position 180ms ease-out,
-        background-size 180ms ease-out;
-}
-
-.nitro-catalog-offer-preview:has(.nitro-catalog-preview-zoom-btn[aria-pressed="true"]) .shadow-room-previewer {
-    background-position: center calc(50% - 41px) !important;
-    background-size: 200% 200% !important;
+.nitro-catalog-offer-preview:has(.nitro-catalog-preview-zoom-btn[aria-pressed="true"])
+    > .shadow-room-previewer
+    > .shadow-room-previewer-canvas {
+    transform: translateY(-41px) scale(2);
 }
 
 /* Badge offers: the black 3D-preview stage is meant for furni room previews.
@@ -1872,7 +1919,7 @@
     width: 100%;
     height: 180px;
     min-height: 0;
-    padding: 3px 2px 3px 4px;
+    padding: 3px;
     overflow: hidden;
     border: 1px solid #777;
     border-radius: 6px;
@@ -1970,10 +2017,10 @@
     position: absolute;
     left: 0;
     top: 245px;
-    bottom: 68px;
     width: 360px;
+    height: 155px;
     min-height: 0;
-    padding: 3px 2px 3px 4px;
+    padding: 3px;
     overflow: auto;
 }
 
@@ -1986,8 +2033,41 @@
     grid-auto-rows: var(--nitro-grid-column-min-height, 70px);
     align-content: start;
     justify-content: start;
-    gap: 3px !important;
+    column-gap: 3px !important;
+    row-gap: 3px !important;
     overflow: visible !important;
+}
+
+.nitro-catalog-grid-virtual .grid {
+    column-gap: 3px !important;
+    row-gap: 3px !important;
+}
+
+.nitro-catalog-grid-density-standard,
+.nitro-catalog-grid-virtual.nitro-catalog-grid-density-standard .grid {
+    grid-template-columns: repeat(var(--nitro-air-column-count, 6), 53px) !important;
+    row-gap: 0 !important;
+}
+
+.nitro-catalog-grid-density-standard.uses-base-grid-template,
+.nitro-catalog-grid-virtual.nitro-catalog-grid-density-standard.uses-base-grid-template .grid {
+    grid-template-columns: repeat(var(--nitro-air-column-count, 8), 36px) !important;
+    grid-auto-rows: 36px;
+}
+
+.nitro-catalog-air-mixed-grid.uses-mixed-grid-template {
+    --nitro-grid-column-min-width: 53px;
+    --nitro-grid-column-min-height: 74px;
+    display: block !important;
+    position: relative;
+    grid-template-columns: none !important;
+    grid-auto-rows: auto;
+}
+
+.nitro-catalog-item-grid-scroll-area:has(.nitro-catalog-grid-density-standard) > .nitro-classic-scroll-area-viewport,
+.nitro-catalog-grid-virtual.nitro-catalog-grid-density-standard .nitro-classic-scroll-area > .nitro-classic-scroll-area-viewport {
+    padding-right: 17px;
+    overflow-x: auto;
 }
 
 @layer utilities {
@@ -2031,6 +2111,55 @@
     }
 }
 
+.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item:not(.has-highlight) {
+    border: 0 !important;
+    background-color: transparent !important;
+}
+
+.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item.is-active {
+    border: 0 !important;
+    background-color: transparent !important;
+}
+
+.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item.is-active::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: 2px solid #63c5e9;
+    border-radius: 4px;
+    background: #ffffff;
+    pointer-events: none;
+}
+
+.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item.is-active.uses-single-price-template::before {
+    height: 62px;
+}
+
+.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item.uses-base-grid-template {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+}
+
+.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item.is-active.uses-base-grid-template::before {
+    width: 36px;
+    height: 36px;
+}
+
+.nitro-catalog-window .nitro-catalog-grid-density-standard.is-builder-grid .layout-grid-item.is-active::before {
+    border-color: var(--catalog-standard-bc-outer);
+}
+
+.nitro-catalog-window .is-builder-grid .layout-grid-item.is-active {
+    border-color: var(--catalog-standard-bc-outer) !important;
+}
+
 .nitro-catalog-window .layout-grid-item.has-highlight {
     width: 26px !important;
     height: 26px !important;
@@ -2069,6 +2198,40 @@
     image-rendering: pixelated;
     object-fit: contain;
     pointer-events: none;
+}
+
+.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item:not(.unique-item) > .nitro-catalog-grid-offer-icon {
+    position: absolute;
+    top: 2px;
+    left: 8px;
+    z-index: 1;
+    width: 36px !important;
+    height: 36px !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: none !important;
+}
+
+.nitro-catalog-window
+    .nitro-catalog-grid-density-standard
+    .layout-grid-item.uses-base-grid-template:not(.unique-item)
+    > .nitro-catalog-grid-offer-icon {
+    top: 0;
+    left: 0;
+}
+
+.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item > .avatar-image {
+    top: 2px !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: 8px !important;
+    width: 36px !important;
+    height: 36px !important;
+}
+
+.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item.uses-base-grid-template > .avatar-image {
+    top: 0 !important;
+    left: 0 !important;
 }
 
 /* ---- Limited edition (LTD) tiles in the catalog grid ----
@@ -2130,9 +2293,20 @@
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
-.nitro-catalog-grid .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-price,
-.nitro-catalog-grid .layout-grid-item:has(> .avatar-image) > .nitro-catalog-grid-price,
-.nitro-catalog-grid .avatar-image ~ .nitro-catalog-grid-price {
+.nitro-catalog-grid-density-standard .nitro-catalog-grid-price {
+    position: absolute;
+    z-index: 2;
+    gap: 1px;
+    width: auto;
+    padding: 0;
+    font-size: 12px;
+    line-height: 17px;
+    text-shadow: none;
+}
+
+.nitro-catalog-grid:not(.nitro-catalog-grid-density-standard) .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-price,
+.nitro-catalog-grid:not(.nitro-catalog-grid-density-standard) .layout-grid-item:has(> .avatar-image) > .nitro-catalog-grid-price,
+.nitro-catalog-grid:not(.nitro-catalog-grid-density-standard) .avatar-image ~ .nitro-catalog-grid-price {
     /* Without absolute positioning the bottom/left offsets below are ignored
        on the statically-positioned badge while translateX(-50%) still applies,
        leaving the price floating mid-tile and shifted left (bots page). */
@@ -2160,7 +2334,7 @@
    The avatar img itself arrives with its transparent border already
    cropped off (LayoutAvatarImageView fit variant), so object-contain
    centers the actual figure in this box. */
-.nitro-catalog-grid .layout-grid-item > .avatar-image {
+.nitro-catalog-grid:not(.nitro-catalog-grid-density-standard) .layout-grid-item > .avatar-image {
     bottom: 18px;
 }
 
@@ -2170,13 +2344,13 @@
    makes the tiles wide enough for the pill; the height !important is needed
    to beat the grid's inline --nitro-grid-column-min-height (set by AutoGrid);
    grid-auto-rows and the tile height both read this variable. */
-.nitro-catalog-grid:has(.layout-grid-item > .avatar-image) {
+.nitro-catalog-grid:not(.nitro-catalog-grid-density-standard):has(.layout-grid-item > .avatar-image) {
     grid-template-columns: repeat(4, 1fr) !important;
     --nitro-grid-column-min-height: 100px !important;
 }
 
-.nitro-catalog-grid .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-price-entry,
-.nitro-catalog-grid .avatar-image ~ .nitro-catalog-grid-price .nitro-catalog-grid-price-entry {
+.nitro-catalog-grid:not(.nitro-catalog-grid-density-standard) .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-price-entry,
+.nitro-catalog-grid:not(.nitro-catalog-grid-density-standard) .avatar-image ~ .nitro-catalog-grid-price .nitro-catalog-grid-price-entry {
     height: auto !important;
     line-height: 1 !important;
     align-items: center !important;
@@ -2184,8 +2358,8 @@
     gap: 3px !important;
 }
 
-.nitro-catalog-grid .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-price-currency,
-.nitro-catalog-grid .avatar-image ~ .nitro-catalog-grid-price .nitro-catalog-grid-price-currency {
+.nitro-catalog-grid:not(.nitro-catalog-grid-density-standard) .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-price-currency,
+.nitro-catalog-grid:not(.nitro-catalog-grid-density-standard) .avatar-image ~ .nitro-catalog-grid-price .nitro-catalog-grid-price-currency {
     width: 13px !important;
     height: 13px !important;
     object-fit: contain !important;
@@ -2206,6 +2380,23 @@
     row-gap: 1px;
 }
 
+.nitro-catalog-grid-density-standard .nitro-catalog-grid-price.is-single-price {
+    top: 36px;
+    left: -3px;
+    width: 54px;
+    height: 19px;
+    min-height: 19px;
+}
+
+.nitro-catalog-grid-density-standard .nitro-catalog-grid-price.is-multi-price {
+    top: 36px;
+    left: 8px;
+    display: block;
+    width: 43px;
+    height: 34px;
+    min-height: 34px;
+}
+
 .nitro-catalog-grid-price-entry {
     display: inline-flex;
     align-items: center;
@@ -2213,6 +2404,31 @@
     gap: 3px;
     height: 13px;
     white-space: nowrap;
+}
+
+.nitro-catalog-grid-density-standard .nitro-catalog-grid-price-entry {
+    justify-content: flex-end;
+    gap: 1px;
+    height: 19px;
+}
+
+.nitro-catalog-grid-density-standard .nitro-catalog-grid-price.is-single-price .nitro-catalog-grid-price-entry {
+    width: 54px;
+}
+
+.nitro-catalog-grid-density-standard .nitro-catalog-grid-price.is-multi-price .nitro-catalog-grid-price-entry {
+    position: absolute;
+    right: 0;
+}
+
+.nitro-catalog-grid-density-standard .nitro-catalog-grid-price.is-multi-price .nitro-catalog-grid-price-entry:first-child {
+    top: 0;
+    width: 32px;
+}
+
+.nitro-catalog-grid-density-standard .nitro-catalog-grid-price.is-multi-price .nitro-catalog-grid-price-entry:nth-child(2) {
+    top: 15px;
+    width: 43px;
 }
 
 .nitro-catalog-grid-price-plus {
@@ -2229,10 +2445,18 @@
     object-fit: none !important;
 }
 
+.nitro-catalog-grid-density-standard .nitro-catalog-grid-price-currency {
+    width: 15px !important;
+    height: 15px !important;
+    min-width: 15px !important;
+    min-height: 15px !important;
+    object-fit: contain !important;
+}
+
 .nitro-catalog-price-row {
     position: absolute;
     left: 0;
-    bottom: 38px;
+    top: 405px;
     width: 360px;
     height: 25px;
     padding: 0;
@@ -2249,28 +2473,44 @@
 
 .nitro-catalog-total-price-slot {
     position: absolute;
-    right: 2px;
+    left: 180px;
     top: 0;
-    width: auto;
+    width: 180px;
     min-width: 180px;
     height: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    padding-right: 2px;
+    display: block;
+    padding: 0;
 }
 
 .nitro-catalog-total-price-label {
+    position: absolute;
+    top: 3px;
+    left: 20px;
+    width: 158px;
+    height: 17px;
+    overflow: hidden;
     color: #666;
-    font-size: 11px;
+    font-size: 12px;
+    font-weight: 400;
     line-height: 17px;
+    white-space: nowrap;
+}
+
+.nitro-catalog-total-price-value {
+    position: absolute !important;
+    top: 1px;
+    left: 85px;
+    display: block !important;
+    width: 92px;
+    height: 24px;
+    min-height: 24px;
+    padding: 0;
 }
 
 .nitro-catalog-purchase-row {
     position: absolute;
     left: 0;
-    bottom: 4px;
+    top: 430px;
     width: 360px;
     height: 30px;
     padding: 0;
@@ -2287,11 +2527,15 @@
     height: 24px;
     margin-left: 5px;
     margin-right: 5px;
+    margin-top: 3px;
     padding: 0;
 }
 
-.nitro-catalog-window .nitro-catalog-standard-button,
-.nitro-catalog-window button.nitro-catalog-preview-btn {
+.nitro-catalog-default-layout .nitro-catalog-offer-actions > .nitro-catalog-standard-buy-button {
+    margin-left: auto !important;
+}
+
+.nitro-catalog-window .nitro-catalog-standard-button {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -2319,22 +2563,19 @@
     border-radius: 0 !important;
 }
 
-.nitro-catalog-window .nitro-catalog-standard-button:hover,
-.nitro-catalog-window button.nitro-catalog-preview-btn:hover {
+.nitro-catalog-window .nitro-catalog-standard-button:hover {
     border-image-source: var(--habbo-skin-button-hover) !important;
     filter: none !important;
 }
 
-.nitro-catalog-window .nitro-catalog-standard-button:active,
-.nitro-catalog-window button.nitro-catalog-preview-btn:active {
+.nitro-catalog-window .nitro-catalog-standard-button:active {
     border-image-source: var(--habbo-skin-button-pressed) !important;
     filter: none !important;
     box-shadow: none !important;
 }
 
 .nitro-catalog-window .nitro-catalog-standard-button.pointer-events-none,
-.nitro-catalog-window .nitro-catalog-standard-button:disabled,
-.nitro-catalog-window button.nitro-catalog-preview-btn:disabled {
+.nitro-catalog-window .nitro-catalog-standard-button:disabled {
     border-image-source: var(--habbo-skin-button-disabled) !important;
     color: #777777 !important;
     opacity: 1 !important;
@@ -2387,90 +2628,79 @@
 
 .nitro-catalog-standard-spinner {
     position: relative;
-    width: 182px;
+    width: 200px;
     height: 25px;
     color: #000;
-    font-size: 11px;
-    font-weight: 700;
 }
 
 .nitro-catalog-standard-spinner-label {
     position: absolute;
-    left: 7px;
-    top: 5px;
-    width: 126px;
-    height: 15px;
+    left: 0;
+    top: 3px;
+    width: 100px;
+    height: 17px;
     overflow: hidden;
+    color: #666666;
+    font-family: UbuntuRegular, Ubuntu, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 17px;
     white-space: nowrap;
     text-overflow: ellipsis;
-    line-height: 15px;
 }
 
-.nitro-catalog-window button.nitro-catalog-standard-spinner-button {
+.nitro-catalog-standard-spinner-input-frame {
     position: absolute;
-    left: 139px;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 14px !important;
-    min-width: 14px !important;
-    padding: 0 !important;
-    border-width: 3px !important;
+    top: 0;
+    left: 65px;
+    width: 30px;
+    height: 25px;
+}
+
+.nitro-catalog-standard-spinner-input-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    border-width: 6px !important;
     border-style: solid !important;
     border-color: transparent !important;
     border-radius: 0 !important;
-    border-image-source: var(--habbo-skin-button) !important;
-    border-image-slice: 3 !important;
-    border-image-width: 3px !important;
+    border-image-source: var(--habbo-skin-border-white) !important;
+    border-image-slice: 6 fill !important;
+    border-image-width: 6px !important;
     border-image-repeat: stretch !important;
     background: transparent !important;
-    box-shadow: none !important;
-    image-rendering: pixelated !important;
-}
-
-.nitro-catalog-window button.nitro-catalog-standard-spinner-button:hover {
-    border-image-source: var(--habbo-skin-button-hover) !important;
-}
-
-.nitro-catalog-window button.nitro-catalog-standard-spinner-button:active {
-    border-image-source: var(--habbo-skin-button-pressed) !important;
-}
-
-.nitro-catalog-window button.nitro-catalog-standard-spinner-button:disabled {
-    border-image-source: var(--habbo-skin-button-disabled) !important;
-}
-
-.nitro-catalog-window button.nitro-catalog-standard-spinner-button img {
-    display: block;
-    width: 10px;
-    height: 5px;
-    pointer-events: none;
     image-rendering: pixelated;
+    pointer-events: none;
 }
 
-.nitro-catalog-window button.nitro-catalog-standard-spinner-button-more {
-    top: -1px;
-    height: 15px !important;
-    min-height: 15px !important;
-}
-
-.nitro-catalog-window button.nitro-catalog-standard-spinner-button-less {
-    top: 13px;
-    height: 14px !important;
-    min-height: 14px !important;
-}
-
-.nitro-catalog-standard-spinner-value {
+.nitro-catalog-window .nitro-catalog-standard-spinner-value {
     position: absolute;
-    left: 154px;
+    left: 3px;
     top: 5px;
-    width: 24px;
-    height: 15px;
-    color: #000;
-    font-size: 11px;
+    width: 22px !important;
+    height: 15px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    font-family: UbuntuRegular, Ubuntu, sans-serif;
+    font-size: 10px !important;
     font-weight: 400;
-    line-height: 15px;
-    text-align: center;
+    line-height: 15px !important;
+    text-align: left;
+}
+
+.nitro-catalog-window .nitro-catalog-standard-spinner-value:focus {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
 }
 
 .nitro-catalog-standard-price-display {
@@ -2500,6 +2730,53 @@
     font-size: 11px !important;
     font-weight: 700 !important;
     line-height: 17px !important;
+}
+
+.nitro-catalog-total-price-value .nitro-catalog-standard-price-display {
+    width: max-content;
+    height: 24px;
+    min-height: 24px;
+    gap: 0;
+    font-size: 12px;
+    margin-left: auto;
+}
+
+.nitro-catalog-total-price-value .nitro-catalog-standard-price-pill {
+    height: 24px;
+    min-width: 0;
+    gap: 0;
+    padding: 0;
+}
+
+.nitro-catalog-total-price-value .nitro-catalog-standard-price-text {
+    font-size: 12px !important;
+}
+
+.nitro-catalog-total-price-value .nitro-catalog-standard-price-plus {
+    width: 8px;
+    height: 17px;
+    margin-left: -2px;
+}
+
+.nitro-catalog-total-price-value .nitro-currency-icon {
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    min-height: 22px !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.nitro-catalog-total-price-value [data-currency-type="-1"] .nitro-currency-icon {
+    background-image: url("../../assets/images/catalog/air/currency-credit-big.png") !important;
+}
+
+.nitro-catalog-total-price-value [data-currency-type="0"] .nitro-currency-icon {
+    background-image: url("../../assets/images/catalog/air/currency-ducket-big.png") !important;
+}
+
+.nitro-catalog-total-price-value [data-currency-type="5"] .nitro-currency-icon {
+    background-image: url("../../assets/images/catalog/air/currency-diamond-big.png") !important;
 }
 
 .nitro-catalog-window .nitro-catalog-preview-price .nitro-catalog-standard-price-text {
@@ -2553,34 +2830,50 @@
 }
 
 .nitro-catalog-window button.nitro-catalog-preview-btn {
-    width: 28px !important;
-    height: 26px !important;
-    min-width: 28px !important;
-    min-height: 26px !important;
+    width: 25px !important;
+    height: 24px !important;
+    min-width: 25px !important;
+    min-height: 24px !important;
     padding: 0 !important;
-    border: 1px solid #2a2a2a !important;
+    border: 0 !important;
     border-image: none !important;
-    border-image-source: none !important;
-    border-radius: 3px !important;
-    background: linear-gradient(180deg, #f6f6f0 0%, #d3d3c8 100%) !important;
-    background-color: #ecece4 !important;
-    background-image: linear-gradient(180deg, #f6f6f0 0%, #d3d3c8 100%) !important;
-    box-shadow:
-        inset 1px 1px 0 rgba(255, 255, 255, 0.7),
-        0 1px 0 rgba(0, 0, 0, 0.35) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
     z-index: 10 !important;
 }
 
-.nitro-catalog-window button.nitro-catalog-preview-btn:hover {
-    background: linear-gradient(180deg, #ffffff 0%, #dedeD2 100%) !important;
-    background-image: linear-gradient(180deg, #ffffff 0%, #dedeD2 100%) !important;
-    border-color: #000 !important;
+.nitro-catalog-window button.nitro-catalog-preview-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    box-sizing: border-box;
+    border: solid transparent;
+    border-width: 6px 6px 7px;
+    border-image-source: var(--habbo-skin-shiny-large);
+    border-image-slice: 6 6 7 6 fill;
+    border-image-width: 6px 6px 7px;
+    border-image-repeat: stretch;
+    pointer-events: none;
 }
 
-.nitro-catalog-window button.nitro-catalog-preview-btn:active {
-    background: linear-gradient(180deg, #d3d3c8 0%, #f6f6f0 100%) !important;
-    background-image: linear-gradient(180deg, #d3d3c8 0%, #f6f6f0 100%) !important;
-    box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.18) !important;
+.nitro-catalog-window button.nitro-catalog-preview-btn:hover::before {
+    border-image-source: var(--habbo-skin-shiny-large-hover);
+}
+
+.nitro-catalog-window button.nitro-catalog-preview-btn:active::before {
+    border-image-source: var(--habbo-skin-shiny-large-pressed);
+}
+
+.nitro-catalog-window button.nitro-catalog-preview-btn:disabled::before {
+    border-image-source: var(--habbo-skin-shiny-large-disabled);
+}
+
+.nitro-catalog-window button.nitro-catalog-preview-btn > svg {
+    position: relative;
+    z-index: 1;
 }
 
 .nitro-catalog-breadcrumb {
@@ -2603,6 +2896,7 @@
     min-width: 25px !important;
     height: 24px !important;
     min-height: 24px !important;
+    overflow: hidden;
 }
 
 .nitro-catalog-window .nitro-catalog-preview-controls button.nitro-catalog-preview-btn.is-left {
@@ -2614,7 +2908,6 @@
 }
 
 .nitro-catalog-window .nitro-catalog-preview-controls button.nitro-catalog-preview-btn:disabled {
-    border-image-source: var(--habbo-skin-button-disabled) !important;
     opacity: 1 !important;
 }
 
@@ -2655,10 +2948,25 @@
 }
 
 .nitro-catalog-window .nitro-catalog-preview-controls .nitro-catalog-preview-arrow {
+    position: absolute;
+    top: 7px;
     display: block;
-    width: 13px !important;
-    height: 13px !important;
-    fill: #000 !important;
+    width: 10px !important;
+    height: 9px !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: none !important;
+    z-index: 1;
+    filter: none !important;
+    image-rendering: pixelated;
+}
+
+.nitro-catalog-window .nitro-catalog-preview-controls button.is-left .nitro-catalog-preview-arrow {
+    left: 7px;
+}
+
+.nitro-catalog-window .nitro-catalog-preview-controls button.is-right .nitro-catalog-preview-arrow {
+    left: 9px;
 }
 
 .nitro-catalog-window .nitro-catalog-preview-controls .nitro-icon.icon-zoom-more {
@@ -2696,9 +3004,14 @@
     pointer-events: none;
 }
 
+.nitro-catalog-grid-density-standard .layout-grid-item.uses-base-grid-template .nitro-catalog-grid-club-level {
+    top: 2px;
+    left: 15px;
+}
+
 /* Bots (avatar offers): pin the HC badge to the tile's top-left corner —
    the default 23px offset suits furni tiles. */
-.nitro-catalog-grid .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-club-level {
+.nitro-catalog-grid:not(.nitro-catalog-grid-density-standard) .layout-grid-item:has(.avatar-image) .nitro-catalog-grid-club-level {
     left: 4px;
 }
 
@@ -2782,7 +3095,7 @@
         overflow: visible;
     }
 
-    .nitro-catalog-grid {
+    .nitro-catalog-grid:not(.nitro-catalog-grid-density-standard) {
         grid-template-columns: repeat(auto-fill, minmax(var(--nitro-grid-column-min-width, 47px), 1fr)) !important;
     }
 }
@@ -4200,4 +4513,3 @@
     margin-top: 2px;
     color: #b83b32;
 }
-

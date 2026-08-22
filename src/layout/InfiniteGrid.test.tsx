@@ -43,4 +43,72 @@ describe('InfiniteGrid responsive columns', () => {
             expect(firstRow?.style.gridTemplateColumns).toBe('repeat(auto-fill, minmax(53px, 1fr))');
         });
     });
+
+    it('uses the caller column gap when fixed AIR tracks share space with a classic scrollbar', async () => {
+        vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(352);
+        vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(155);
+        vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(800);
+        vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+            paddingLeft: '0px',
+            paddingRight: '17px'
+        } as CSSStyleDeclaration);
+
+        const { container } = render(
+            <InfiniteGrid
+                classicScrollbar
+                columnCount={6}
+                columnGap={3}
+                estimateSize={74}
+                itemMinWidth={53}
+                items={Array.from({ length: 100 }, (_, index) => index + 1)}
+                itemRender={(item) => <span>{item}</span>}
+            />
+        );
+
+        await waitFor(() => {
+            const firstRow = container.querySelector<HTMLElement>('[data-index="0"]');
+            const viewport = container.querySelector<HTMLElement>('.nitro-classic-scroll-area-viewport');
+
+            expect(firstRow?.children).toHaveLength(6);
+            expect(firstRow?.style.columnGap).toBe('3px');
+            expect(viewport?.style.paddingRight).toBe('');
+        });
+    });
+
+    it('uses AIR gap-omitting admission for fixed catalog tracks', async () => {
+        vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(386);
+        vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+            paddingLeft: '0px',
+            paddingRight: '0px'
+        } as CSSStyleDeclaration);
+        const onColumnCountChange = vi.fn();
+
+        const { container } = render(
+            <InfiniteGrid
+                airColumnAdmission
+                columnCount={6}
+                columnGap={3}
+                estimateSize={74}
+                itemMinWidth={53}
+                items={Array.from({ length: 100 }, (_, index) => index + 1)}
+                onColumnCountChange={onColumnCountChange}
+                itemRender={(item) => <span>{item}</span>}
+            />
+        );
+
+        await waitFor(() => {
+            expect(container.querySelector<HTMLElement>('[data-index="0"]')?.children).toHaveLength(7);
+            expect(onColumnCountChange).toHaveBeenLastCalledWith(7);
+        });
+    });
+
+    it('resets horizontal virtual-grid scrolling when items change', async () => {
+        const view = render(<InfiniteGrid columnCount={2} items={[1, 2]} itemRender={(item) => <span>{item}</span>} />);
+        const viewport = view.container.firstElementChild as HTMLElement;
+
+        viewport.scrollLeft = 3;
+        view.rerender(<InfiniteGrid columnCount={2} items={[3, 4]} itemRender={(item) => <span>{item}</span>} />);
+
+        await waitFor(() => expect(viewport.scrollLeft).toBe(0));
+    });
 });

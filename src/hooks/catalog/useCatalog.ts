@@ -81,11 +81,11 @@ import {
     getNodesByOfferIdFromMap,
     getOfferProductKeys,
     normalizeCatalogType,
-    restoreCatalogActivePath,
     RoomControllerLevel,
     RoomObjectCategory,
     RoomObjectType,
-    resolveBuilderFurniPlaceableStatus
+    resolveBuilderFurniPlaceableStatus,
+    restoreCatalogActivePath
 } from './useCatalog.helpers';
 import { useCatalogPlaceMultipleItems } from './useCatalogPlaceMultipleItems';
 import { useCatalogSkipPurchaseConfirmation } from './useCatalogSkipPurchaseConfirmation';
@@ -123,6 +123,7 @@ const useCatalogStore = () => {
         extraParamRequired: false,
         previewStuffData: null
     });
+    const [giftReceiver, setGiftReceiver] = useState<string>(null);
     const [objectMoverRequested, setObjectMoverRequested] = useState(false);
     const [catalogPlaceMultipleObjects, setCatalogPlaceMultipleObjects] = useCatalogPlaceMultipleItems();
     const [catalogSkipPurchaseConfirmation, setCatalogSkipPurchaseConfirmation] = useCatalogSkipPurchaseConfirmation();
@@ -170,6 +171,7 @@ const useCatalogStore = () => {
         setActiveNodes([]);
         setSearchResult(null);
         setFrontPageItems([]);
+        setGiftReceiver(null);
         setIsVisible(false);
     }, []);
 
@@ -1238,6 +1240,8 @@ const useCatalogStore = () => {
         setNavigationHidden,
         purchaseOptions,
         setPurchaseOptions,
+        giftReceiver,
+        setGiftReceiver,
         catalogLocalizationVersion,
         getNodeById,
         getNodeByName,
@@ -1259,6 +1263,7 @@ const useCatalogStore = () => {
         setCatalogPlaceMultipleObjects,
         getBuilderFurniPlaceableStatus,
         selectCatalogOffer,
+        resetPlacedOfferData,
         retryCurrentPage
     };
 };
@@ -1331,6 +1336,8 @@ export const useCatalogUiState = () => {
         setNavigationHidden,
         purchaseOptions,
         setPurchaseOptions,
+        giftReceiver,
+        setGiftReceiver,
         catalogPlaceMultipleObjects,
         setCatalogPlaceMultipleObjects,
         setCurrentPage,
@@ -1349,6 +1356,8 @@ export const useCatalogUiState = () => {
         setNavigationHidden,
         purchaseOptions,
         setPurchaseOptions,
+        giftReceiver,
+        setGiftReceiver,
         catalogPlaceMultipleObjects,
         setCatalogPlaceMultipleObjects,
         setCurrentPage,
@@ -1378,6 +1387,7 @@ export const useCatalogActions = () => {
         getNodeByName,
         getNodesByOfferId,
         getBuilderFurniPlaceableStatus,
+        resetPlacedOfferData,
         retryCurrentPage
     } = useSharedHook(useCatalogStore);
 
@@ -1394,6 +1404,7 @@ export const useCatalogActions = () => {
         getNodeByName,
         getNodesByOfferId,
         getBuilderFurniPlaceableStatus,
+        resetPlacedOfferData,
         retryCurrentPage
     };
 };

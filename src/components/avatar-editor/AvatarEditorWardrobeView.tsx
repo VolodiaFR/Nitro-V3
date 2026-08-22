@@ -1,7 +1,7 @@
 import { GetAvatarRenderManager, HabboClubLevelEnum, IAvatarFigureContainer, SaveWardrobeOutfitMessageComposer } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useMemo } from 'react';
 import { GetClubMemberLevel, GetConfigurationValue, LocalizeText, SendMessageComposer } from '../../api';
-import hcIconSrc from '../../assets/images/avatareditor/hc_icon.png';
+import hcIconSrc from '../../assets/images/avatareditor/air/wardrobe-hc.png';
 import emptySlotSrc from '../../assets/images/avatareditor/wardrobe-empty-slot.png';
 import { LayoutAvatarImageView } from '../../common';
 import { useAvatarEditor } from '../../hooks';

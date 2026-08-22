@@ -15,6 +15,10 @@
     --habbo-skin-shiny-thick-hover: url("../../assets/images/habbo-skin/slices/button-shiny-thick-hover.png");
     --habbo-skin-shiny-thick-pressed: url("../../assets/images/habbo-skin/slices/button-shiny-thick-pressed.png");
     --habbo-skin-shiny-thick-disabled: url("../../assets/images/habbo-skin/slices/button-shiny-thick-disabled.png");
+    --habbo-skin-shiny-large: url("../../assets/images/habbo-skin/slices/button-shiny-large-default.png");
+    --habbo-skin-shiny-large-hover: url("../../assets/images/habbo-skin/slices/button-shiny-large-hover.png");
+    --habbo-skin-shiny-large-pressed: url("../../assets/images/habbo-skin/slices/button-shiny-large-pressed.png");
+    --habbo-skin-shiny-large-disabled: url("../../assets/images/habbo-skin/slices/button-shiny-large-disabled.png");
     --habbo-skin-shiny-thick-green: url("../../assets/images/habbo-skin/slices/button-shiny-thick-green-default.png");
     --habbo-skin-shiny-thick-green-hover: url("../../assets/images/habbo-skin/slices/button-shiny-thick-green-hover.png");
     --habbo-skin-shiny-thick-green-pressed: url("../../assets/images/habbo-skin/slices/button-shiny-thick-green-pressed.png");
@@ -32,10 +36,10 @@
     --habbo-skin-button-settings: url("../../assets/images/habbo-skin/slices/button-settings-default.png");
     --habbo-skin-button-settings-hover: url("../../assets/images/habbo-skin/slices/button-settings-hover.png");
     --habbo-skin-button-settings-pressed: url("../../assets/images/habbo-skin/slices/button-settings-pressed.png");
+    --habbo-skin-border-white: url("../../assets/images/habbo-skin/slices/border-white.png");
 }
 
 .nitro-catalog-window .nitro-catalog-swf-button,
-.nitro-catalog-window button.nitro-catalog-preview-btn,
 .nitro-catalog-window .nitro-catalog-swf-gift-button {
     border: 3px solid transparent !important;
     border-image-source: var(--habbo-skin-button) !important;
@@ -51,14 +55,12 @@
 }
 
 .nitro-catalog-window .nitro-catalog-swf-button:hover,
-.nitro-catalog-window button.nitro-catalog-preview-btn:hover,
 .nitro-catalog-window .nitro-catalog-swf-gift-button:hover {
     border-image-source: var(--habbo-skin-button-hover) !important;
     filter: none !important;
 }
 
 .nitro-catalog-window .nitro-catalog-swf-button:active,
-.nitro-catalog-window button.nitro-catalog-preview-btn:active,
 .nitro-catalog-window .nitro-catalog-swf-gift-button:active {
     border-image-source: var(--habbo-skin-button-pressed) !important;
     filter: none !important;

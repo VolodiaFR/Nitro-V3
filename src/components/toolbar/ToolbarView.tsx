@@ -537,7 +537,8 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
                     <motion.div variants={ itemVariants }>
                         <ToolbarItemView icon="catalog" onClick={ () => CreateLinkEvent('catalog/toggle/normal') } className="tb-icon" />
                     </motion.div>
-                    <motion.div variants={ itemVariants } className="relative shrink-0">
+                    <motion.div variants={ itemVariants } className="relative tb-slot tb-slot-tall tb-slot-memenu shrink-0">
+                        <img src={ memenuBgImg } alt="" className="tb-memenu-bg" />
                         <AnimatePresence>
                             { isMeExpanded &&
                                 <motion.div
@@ -550,14 +551,15 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
                                 </motion.div> }
                         </AnimatePresence>
                         <motion.div
-                            className="cursor-pointer relative h-[40px] w-[40px] overflow-hidden"
+                            className="tb-memenu-avatar"
                             onClick={ event =>
                             {
                                 setMeExpanded(value => !value);
                                 event.stopPropagation();
                             } }>
-                            <LayoutAvatarImageView headOnly={ true } direction={ 2 } figure={ userFigure } className="tb-icon tb-avatar-head" />
+                            <LayoutAvatarImageView airMeMenu={ true } direction={ 3 } figure={ userFigure } className="tb-icon tb-avatar-head" />
                         </motion.div>
+                        <img src={ memenuCircleImg } alt="" className="tb-memenu-circle" />
                         { (getTotalUnseen > 0) &&
                             <LayoutItemCountView count={ getTotalUnseen } className="pointer-events-none absolute -right-1 -top-1 z-10" /> }
                     </motion.div>

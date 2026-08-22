@@ -2,12 +2,12 @@ import { AddLinkEventTracker, FollowFriendMessageComposer, GetSessionDataManager
 import { FC, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { GetUserProfile, LocalizeText, ReportType, SendMessageComposer, useHabbiconCatalog } from '../../../../api';
-import staffChatFrankIcon from '../../../../assets/images/friends/staff-chat-frank.svg';
 import { HabbiconsDmIcon } from '../../../../assets/images/habbicons';
 import { DraggableWindow, DraggableWindowPosition, LayoutAvatarImageView } from '../../../../common';
 import { useFriends, useHelp, useMessenger, useTranslation } from '../../../../hooks';
 import { HabbiconHubView } from '../../../room/widgets/chat-input/HabbiconHubView';
 import { isStaffChatIdentity } from '../../staffChatIdentity';
+import { StaffChatFrankIconView } from '../../StaffChatFrankIconView';
 import { resolveAvatarFigure } from '../friends-list/resolveAvatarFigure';
 import './FriendsMessengerView.css';
 import { FriendsMessengerHabbiconPickerView } from './FriendsMessengerHabbiconPickerView';
@@ -244,7 +244,7 @@ export const FriendsMessengerView: FC<{}> = (props) => {
                                     onClick={() => setActiveThreadId(thread.threadId)}
                                 >
                                     {isStaff ? (
-                                        <img className="staff-chat-frank" src={staffChatFrankIcon} alt="" />
+                                        <StaffChatFrankIconView size={35} className="staff-chat-frank" />
                                     ) : (
                                         <LayoutAvatarImageView
                                             figure={figure}

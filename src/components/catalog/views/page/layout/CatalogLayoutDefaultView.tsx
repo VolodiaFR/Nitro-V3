@@ -1,7 +1,7 @@
 import { FC } from 'react';
-import { GetConfigurationValue, LocalizeText, ProductTypeEnum, SanitizeHtml } from '../../../../../api';
+import { CatalogType, GetConfigurationValue, LocalizeText, ProductTypeEnum, SanitizeHtml } from '../../../../../api';
 import { Text } from '../../../../../common';
-import { getCatalogGridMetrics, useCatalogData, useCatalogDisplayPreferences } from '../../../../../hooks';
+import { getCatalogGridMetrics, useCatalogData, useCatalogDisplayPreferences, useCatalogUiState } from '../../../../../hooks';
 import { CatalogHeaderView } from '../../catalog-header/CatalogHeaderView';
 import { CatalogAddOnBadgeWidgetView } from '../widgets/CatalogAddOnBadgeWidgetView';
 import { CatalogItemGridWidgetView } from '../widgets/CatalogItemGridWidgetView';
@@ -18,11 +18,16 @@ import { CatalogLayoutProps } from './CatalogLayout.types';
 export const CatalogLayoutDefaultView: FC<CatalogLayoutProps> = (props) => {
     const { page = null } = props;
     const { currentOffer = null, currentPage = null, roomPreviewer = null } = useCatalogData();
+    const { currentType = CatalogType.NORMAL } = useCatalogUiState();
     const { density = 'standard', showTilePrices = true } = useCatalogDisplayPreferences();
     const gridMetrics = getCatalogGridMetrics(density);
 
     const teaserText = page?.localization.getText(0) ?? '';
     const hasTeaserText = !!teaserText.replace(/<[^>]*>/g, '').trim();
+    const showBundlePurchase =
+        !!currentOffer?.bundlePurchaseAllowed &&
+        currentType !== CatalogType.BUILDER &&
+        GetConfigurationValue<boolean>('catalog.multiple.purchase.enabled', true);
 
     return (
         <div className="nitro-catalog-default-layout flex flex-col h-full gap-2">
@@ -42,7 +47,7 @@ export const CatalogLayoutDefaultView: FC<CatalogLayoutProps> = (props) => {
                             {currentOffer.product.productType !== ProductTypeEnum.BADGE && (
                                 <>
                                     <CatalogPreviewControls productType={currentOffer.product.productType} roomPreviewer={roomPreviewer} />
-                                    <CatalogViewProductWidgetView />
+                                    <CatalogViewProductWidgetView height={348} />
                                     <CatalogAddOnBadgeWidgetView className="bg-muted rounded bottom-1 right-1 absolute" />
                                 </>
                             )}
@@ -56,9 +61,7 @@ export const CatalogLayoutDefaultView: FC<CatalogLayoutProps> = (props) => {
                         {!!page.localization.getImage(1) && (
                             <img alt="" className="w-[70px] h-[70px] object-contain rounded shrink-0" src={page.localization.getImage(1)} />
                         )}
-                        {hasTeaserText && (
-                            <Text className="text-[11px]! text-muted" dangerouslySetInnerHTML={{ __html: SanitizeHtml(teaserText) }} />
-                        )}
+                        {hasTeaserText && <Text className="text-[11px]! text-muted" dangerouslySetInnerHTML={{ __html: SanitizeHtml(teaserText) }} />}
                     </div>
                 )}
             </div>
@@ -72,14 +75,14 @@ export const CatalogLayoutDefaultView: FC<CatalogLayoutProps> = (props) => {
                 />
             </div>
 
-            {currentOffer && (
+            {showBundlePurchase && (
                 <div className="nitro-catalog-price-row flex items-center justify-between gap-2">
                     <div className="nitro-catalog-spinner-slot">
                         <CatalogSpinnerWidgetView />
                     </div>
                     <div className="nitro-catalog-total-price-slot">
                         <span className="nitro-catalog-total-price-label">{LocalizeText('catalog.bundlewidget.price')}</span>
-                        <CatalogTotalPriceWidget />
+                        <CatalogTotalPriceWidget classNames={['nitro-catalog-total-price-value']} />
                     </div>
                 </div>
             )}

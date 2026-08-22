@@ -187,16 +187,6 @@
     content: "";
 }
 
-.messenger-window .messenger-avatar-tab .staff-chat-frank {
-    position: absolute;
-    inset: 0;
-    width: 35px;
-    height: 35px;
-    margin: auto;
-    object-fit: contain;
-    image-rendering: pixelated;
-}
-
 .messenger-window .messenger-thread-header {
     position: absolute;
     top: 80px;

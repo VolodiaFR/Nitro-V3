@@ -1,8 +1,18 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CreateLinkEvent } from '@nitrots/nitro-renderer';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DispatchUiEvent, SendMessageComposer } from '../../../../../api';
-import { useCatalogData, useCatalogSkipPurchaseConfirmation, useClubOffers, usePurse } from '../../../../../hooks';
+import {
+    useCatalogActions,
+    useCatalogData,
+    useCatalogSkipPurchaseConfirmation,
+    useCatalogUiState,
+    useClubOffers,
+    useGiftConfiguration,
+    useNotification,
+    usePurse,
+    useUiEvent
+} from '../../../../../hooks';
 import { CatalogLayoutVipBuyView } from './CatalogLayoutVipBuyView';
 
 const composerTypes = vi.hoisted(() => {
@@ -32,7 +42,9 @@ vi.mock('@nitrots/nitro-renderer', () => ({
 vi.mock('../../../../../api', () => ({
     CatalogPurchaseState: { CONFIRM: 1, FAILED: 3, NONE: 0, PURCHASE: 2 },
     DispatchUiEvent: vi.fn(),
+    GetConfigurationValue: vi.fn((_key: string, fallback: string) => fallback),
     LocalizeText: (key: string, _names?: string[], values?: string[]) => `${key}${values?.length ? `:${values.join(',')}` : ''}`,
+    OpenUrl: vi.fn(),
     SanitizeHtml: (value: string) => value,
     SendMessageComposer: vi.fn()
 }));
@@ -45,23 +57,48 @@ vi.mock('../../../../../common', () => ({
     Grid: ({ children, ...props }: any) => <div {...props}>{children}</div>,
     LayoutCurrencyIcon: () => <span />,
     LayoutLoadingSpinnerView: () => <span />,
+    NitroCardContentView: ({ children, classNames = [], overflow: _overflow, ...props }: any) => (
+        <div className={classNames.join(' ')} {...props}>
+            {children}
+        </div>
+    ),
+    NitroCardHeaderView: ({ headerText, onCloseClick }: any) => (
+        <header>
+            <span>{headerText}</span>
+            <button aria-label="close" type="button" onClick={onCloseClick} />
+        </header>
+    ),
+    NitroCardView: ({ children, classNames = [], frameStyle, isResizable: _isResizable, theme: _theme, ...props }: any) => (
+        <div className={`${classNames.join(' ')} nitro-card-frame-${frameStyle}`} {...props}>
+            {children}
+        </div>
+    ),
     Text: ({ children, ...props }: any) => <span {...props}>{children}</span>
 }));
 
 vi.mock('../../../../../events', () => ({
     CatalogEvent: class {},
     CatalogInitGiftEvent: class {
-        public constructor(public pageId: number, public offerId: number, public extraData: string) {}
+        public constructor(
+            public pageId: number,
+            public offerId: number,
+            public extraData: string,
+            public receiverName: string
+        ) {}
     },
     CatalogPurchasedEvent: { PURCHASE_SUCCESS: 'purchase-success' },
     CatalogPurchaseFailureEvent: { PURCHASE_FAILED: 'purchase-failed' }
 }));
 
 vi.mock('../../../../../hooks', () => ({
+    useCatalogActions: vi.fn(),
     useCatalogData: vi.fn(),
     useCatalogSkipPurchaseConfirmation: vi.fn(),
+    useCatalogUiState: vi.fn(),
     useClubOffers: vi.fn(),
+    useGiftConfiguration: vi.fn(),
     useMessageEvent: vi.fn(),
+    useNotification: vi.fn(),
     usePurse: vi.fn(),
     useUiEvent: vi.fn(),
     useUserDataSnapshot: () => ({ userName: 'Owner' })
@@ -93,11 +130,18 @@ afterEach(cleanup);
 
 beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useCatalogData).mockImplementation(() => ({
-        currentPage: (screen.queryByTestId('unused') as any) ?? null
-    }) as any);
+    vi.mocked(useCatalogData).mockImplementation(
+        () =>
+            ({
+                currentPage: (screen.queryByTestId('unused') as any) ?? null
+            }) as any
+    );
     vi.mocked(useClubOffers).mockReturnValue({ data: [makeOffer(1, 1, false), makeOffer(2, 2, true)] } as any);
+    vi.mocked(useCatalogActions).mockReturnValue({ resetPlacedOfferData: vi.fn() } as any);
+    vi.mocked(useGiftConfiguration).mockReturnValue({ data: { isEnabled: true } } as any);
     vi.mocked(useCatalogSkipPurchaseConfirmation).mockReturnValue([false] as any);
+    vi.mocked(useCatalogUiState).mockReturnValue({ giftReceiver: 'Gift Friend' } as any);
+    vi.mocked(useNotification).mockReturnValue({ showConfirm: vi.fn(), simpleAlert: vi.fn() } as any);
     vi.mocked(usePurse).mockReturnValue({
         getCurrencyAmount: () => 1000,
         purse: { clubDays: 0, clubPeriods: 0, isVip: false }
@@ -120,8 +164,8 @@ describe('club purchase layout', () => {
         expect(document.querySelector('.nitro-club-vip-intro')).toBeInTheDocument();
         expect(document.querySelector('.nitro-club-vip-offers')).toBeInTheDocument();
         expect(document.querySelector('.nitro-club-columns')).not.toBeInTheDocument();
-        expect(document.querySelector('.is-vip-page .nitro-club-hc-mark')).toBeInTheDocument();
-        expect(document.querySelector('.is-vip-page .nitro-club-vip-mark')).not.toBeInTheDocument();
+        expect(document.querySelector('.is-vip-page .nitro-club-vip-medium-mark')).toBeInTheDocument();
+        expect(document.querySelector('.is-vip-page .nitro-club-compact-mark')).not.toBeInTheDocument();
     });
 
     it('renders separate HC and VIP offer groups on the club page', () => {
@@ -133,7 +177,20 @@ describe('club purchase layout', () => {
         expect(document.querySelector('.nitro-club-vip-column')).toBeInTheDocument();
         expect(screen.getByText('catalog.club.item.header:1')).toBeInTheDocument();
         expect(screen.getByText('catalog.club.item.header:2')).toBeInTheDocument();
+        expect(screen.getAllByText('catalog.club.price:10')).toHaveLength(2);
+        expect(document.querySelector('.nitro-club-offer.is-compact .nitro-currency-icon')).not.toBeInTheDocument();
         expect(document.querySelector('.nitro-club-purchase-panel')).not.toBeInTheDocument();
+    });
+
+    it('keeps Polaris activity-point costs as text in compact club offers', () => {
+        setCurrentPage('club_buy');
+        vi.mocked(useClubOffers).mockReturnValue({
+            data: [{ ...makeOffer(2, 2, true), priceActivityPoints: 5, priceActivityPointsType: 5 }]
+        } as any);
+        renderLayout('club_buy');
+
+        expect(screen.getByText('catalog.club.price:10 + 5 tooltip.diamonds')).toBeInTheDocument();
+        expect(document.querySelector('.nitro-club-offer.is-compact .nitro-currency-icon')).not.toBeInTheDocument();
     });
 
     it('renders safely while membership data is unavailable', () => {
@@ -153,12 +210,23 @@ describe('club purchase layout', () => {
         expect(CreateLinkEvent).toHaveBeenCalledWith('habboUI/open/hccenter');
     });
 
+    it('keeps the AIR-formatted VIP club-center link keyboard operable', () => {
+        setCurrentPage('vip_buy');
+        renderLayout('vip_buy');
+
+        const clubCenterLink = screen.getByRole('link');
+
+        fireEvent.keyDown(clubCenterLink, { key: 'Enter' });
+
+        expect(CreateLinkEvent).toHaveBeenCalledWith('habboUI/open/hccenter');
+    });
+
     it('submits an offer from its own buy button once', async () => {
         setCurrentPage('club_buy');
         vi.mocked(useCatalogSkipPurchaseConfirmation).mockReturnValue([true] as any);
         renderLayout('club_buy');
 
-        const buyButton = (await screen.findAllByRole('button', { name: 'buy' }))[0];
+        const buyButton = (await screen.findAllByRole('button', { name: 'catalog.club.button.buy' }))[0];
         fireEvent.click(buyButton);
         fireEvent.click(buyButton);
 
@@ -167,13 +235,145 @@ describe('club purchase layout', () => {
         expect(vi.mocked(SendMessageComposer).mock.calls[0][0]).toMatchObject({ amount: 1, offerId: 1, pageId: 50 });
     });
 
-    it('opens the existing gift flow from the offer gift button', () => {
+    it('keeps the AIR Buy caption and opens a shortage alert only after click', () => {
+        const showConfirm = vi.fn();
+
+        setCurrentPage('vip_buy');
+        vi.mocked(useClubOffers).mockReturnValue({ data: [{ ...makeOffer(2, 2, true), priceCredits: 50 }] } as any);
+        vi.mocked(useNotification).mockReturnValue({ showConfirm, simpleAlert: vi.fn() } as any);
+        vi.mocked(usePurse).mockReturnValue({ getCurrencyAmount: () => 0, purse: { clubDays: 0, clubPeriods: 0, isVip: false } } as any);
+        renderLayout('vip_buy');
+
+        const buyButton = screen.getByRole('button', { name: 'catalog.club.button.buy' });
+
+        expect(buyButton).toBeEnabled();
+        expect(screen.queryByText('catalog.alert.notenough.title')).not.toBeInTheDocument();
+
+        fireEvent.click(buyButton);
+
+        expect(showConfirm).toHaveBeenCalledWith(
+            'catalog.alert.notenough.credits.description',
+            expect.any(Function),
+            expect.any(Function),
+            null,
+            null,
+            'catalog.alert.notenough.title'
+        );
+        expect(SendMessageComposer).not.toHaveBeenCalled();
+    });
+
+    it('opens the HC confirmation as the standalone AIR frame', () => {
+        setCurrentPage('club_buy');
+        renderLayout('club_buy');
+
+        fireEvent.click(screen.getAllByRole('button', { name: 'catalog.club.button.buy' })[0]);
+
+        const dialog = screen.getByRole('dialog', { name: 'catalog.club.buy.confirm' });
+
+        expect(dialog).toHaveClass('nitro-club-purchase-confirm', 'nitro-card-frame-3');
+        expect(document.querySelector('.nitro-club-confirmation')).not.toBeInTheDocument();
+        expect(within(dialog).getByText('catalog.vip.buy.confirm.subscription.months:1')).toBeInTheDocument();
+        expect(within(dialog).getByText('catalog.vip.buy.confirm.end_date:1,1,2030')).toBeInTheDocument();
+        expect(within(dialog).getByRole('button', { name: 'cancel' })).toHaveClass('nitro-club-purchase-confirm-cancel');
+        expect(within(dialog).getByRole('button', { name: 'catalog.club.buy.subscribe' })).toHaveClass('nitro-club-purchase-confirm-submit');
+        expect(dialog.querySelector('.nitro-club-purchase-confirm-icon')).toBeInTheDocument();
+    });
+
+    it('uses extension copy only for an active VIP membership', () => {
+        setCurrentPage('vip_buy');
+        vi.mocked(useClubOffers).mockReturnValue({ data: [makeOffer(2, 2, true)] } as any);
+        vi.mocked(usePurse).mockReturnValue({
+            getCurrencyAmount: () => 1000,
+            purse: { clubDays: 5, clubPeriods: 0, isVip: true }
+        } as any);
+        renderLayout('vip_buy');
+
+        fireEvent.click(screen.getByRole('button', { name: 'catalog.club.button.buy' }));
+
+        expect(within(screen.getByRole('dialog')).getByText('catalog.vip.buy.confirm.extension.months:2')).toBeInTheDocument();
+    });
+
+    it('uses the AIR price renderer prefixes and zero-credit fallback', () => {
+        setCurrentPage('vip_buy');
+        vi.mocked(useClubOffers).mockReturnValue({
+            data: [{ ...makeOffer(2, 2, true), priceActivityPoints: 5, priceActivityPointsType: 5 }]
+        } as any);
+        const firstRender = renderLayout('vip_buy');
+
+        fireEvent.click(screen.getByRole('button', { name: 'catalog.club.button.buy' }));
+
+        expect(within(screen.getByRole('dialog')).getByText('+ 5')).toBeInTheDocument();
+
+        firstRender.unmount();
+        vi.mocked(useClubOffers).mockReturnValue({ data: [{ ...makeOffer(2, 2, true), priceCredits: 0 }] } as any);
+        renderLayout('vip_buy');
+        fireEvent.click(screen.getByRole('button', { name: 'catalog.club.button.buy' }));
+
+        const zeroCreditPart = screen.getByRole('dialog').querySelector('.nitro-club-purchase-confirm-price-part[data-currency-type="-1"]');
+
+        expect(zeroCreditPart).toHaveTextContent('0');
+    });
+
+    it('turns the purchase confirmation into gifting before opening the customizer', () => {
         setCurrentPage('vip_buy');
         vi.mocked(useClubOffers).mockReturnValue({ data: [{ ...makeOffer(2, 2, true), giftable: true }] } as any);
         renderLayout('vip_buy');
 
         fireEvent.click(screen.getByRole('button', { name: 'catalog.purchase_confirmation.gift' }));
 
-        expect(DispatchUiEvent).toHaveBeenCalledWith(expect.objectContaining({ extraData: '', offerId: 2, pageId: 50 }));
+        expect(DispatchUiEvent).not.toHaveBeenCalled();
+        const dialog = screen.getByRole('dialog', { name: 'catalog.club.buy.confirm' });
+
+        fireEvent.click(within(dialog).getByRole('button', { name: 'catalog.club.buy.subscribe' }));
+
+        expect(DispatchUiEvent).toHaveBeenCalledWith(expect.objectContaining({ extraData: '', offerId: 2, pageId: 50, receiverName: 'Gift Friend' }));
+    });
+
+    it('checks club-gift affordability before opening the customizer', () => {
+        const showConfirm = vi.fn();
+
+        setCurrentPage('vip_buy');
+        vi.mocked(useClubOffers).mockReturnValue({ data: [{ ...makeOffer(2, 2, true), giftable: true, priceCredits: 50 }] } as any);
+        vi.mocked(useNotification).mockReturnValue({ showConfirm, simpleAlert: vi.fn() } as any);
+        vi.mocked(usePurse).mockReturnValue({ getCurrencyAmount: () => 0, purse: { clubDays: 0, clubPeriods: 0, isVip: false } } as any);
+        renderLayout('vip_buy');
+
+        fireEvent.click(screen.getByRole('button', { name: 'catalog.purchase_confirmation.gift' }));
+
+        expect(showConfirm).toHaveBeenCalledWith(
+            'catalog.alert.notenough.credits.description',
+            expect.any(Function),
+            expect.any(Function),
+            null,
+            null,
+            'catalog.alert.notenough.title'
+        );
+        expect(DispatchUiEvent).not.toHaveBeenCalled();
+    });
+
+    it('ignores gift purchase failures while no normal club purchase is in flight', () => {
+        setCurrentPage('vip_buy');
+        renderLayout('vip_buy');
+
+        const registration = vi.mocked(useUiEvent).mock.calls.find(([type]) => type === 'purchase-failed');
+
+        act(() => registration?.[1]({ type: 'purchase-failed' } as never));
+
+        expect(screen.queryByText('generic.failed')).not.toBeInTheDocument();
+    });
+
+    it('keeps the AIR club confirmation closed after a submitted purchase fails', () => {
+        setCurrentPage('vip_buy');
+        renderLayout('vip_buy');
+
+        fireEvent.click(screen.getByRole('button', { name: 'catalog.club.button.buy' }));
+        fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'catalog.club.buy.subscribe' }));
+
+        const registration = vi.mocked(useUiEvent).mock.calls.find(([type]) => type === 'purchase-failed');
+
+        act(() => registration?.[1]({ type: 'purchase-failed' } as never));
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'catalog.club.button.buy' })).toBeEnabled();
     });
 });

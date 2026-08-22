@@ -2,17 +2,23 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CatalogPurchaseConfirmView } from './CatalogPurchaseConfirmView';
 
+const configuration = vi.hoisted(() => ({ spendingDisclaimerEnabled: false }));
+
 vi.mock('../../../api', async () => {
     const actual = await vi.importActual<typeof import('../../../api')>('../../../api');
 
     return {
         ...actual,
-        GetConfigurationValue: () => '/currency/%type%.png',
+        GetConfigurationValue: (key: string) =>
+            key === 'disclaimer.credit_spending.enabled' ? configuration.spendingDisclaimerEnabled : '/currency/%type%.png',
         LocalizeText: (key: string) => key
     };
 });
 
-afterEach(cleanup);
+afterEach(() => {
+    configuration.spendingDisclaimerEnabled = false;
+    cleanup();
+});
 
 const offer = {
     localizationName: 'Sedia classica',
@@ -33,10 +39,11 @@ describe('catalog purchase confirmation', () => {
 
         expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true');
         expect(screen.getByText('Sedia classica')).toBeInTheDocument();
-        expect(screen.getByText('Una sedia molto comoda')).toBeInTheDocument();
         expect(screen.getByRole('img', { name: 'Sedia classica' })).toHaveAttribute('src', '/catalog/sedia.png');
+        expect(screen.getByText('X 2')).toBeInTheDocument();
         expect(screen.getByText('50')).toBeInTheDocument();
-        expect(screen.getByText('10')).toBeInTheDocument();
+        expect(screen.getByText('+ 10')).toBeInTheDocument();
+        expect(screen.queryByText('Una sedia molto comoda')).not.toBeInTheDocument();
     });
 
     it('supports explicit confirmation and Escape cancellation', () => {
@@ -50,6 +57,21 @@ describe('catalog purchase confirmation', () => {
         rerender(<CatalogPurchaseConfirmView offer={offer} quantity={1} onCancel={onCancel} onConfirm={onConfirm} />);
         fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
         expect(onCancel).toHaveBeenCalledOnce();
+    });
+
+    it('disables both AIR actions while the purchase request is in flight', () => {
+        render(<CatalogPurchaseConfirmView isSubmitting offer={offer} quantity={1} onCancel={() => undefined} onConfirm={() => undefined} />);
+
+        expect(screen.getByRole('button', { name: /generic\.cancel/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /catalog\.purchase_confirmation\.buy/i })).toBeDisabled();
+    });
+
+    it('turns the confirmation into AIR gifting before opening the wrapper dialog', () => {
+        render(<CatalogPurchaseConfirmView isGift offer={offer} quantity={1} onCancel={() => undefined} onConfirm={() => undefined} />);
+
+        expect(screen.getByText('catalog.purchase_confirmation.gift.title')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'catalog.purchase_confirmation.gift' })).toBeInTheDocument();
+        expect(screen.queryByText('X 1')).not.toBeInTheDocument();
     });
 
     it('shows the remaining limited stock before confirmation', () => {
@@ -66,6 +88,33 @@ describe('catalog purchase confirmation', () => {
         render(<CatalogPurchaseConfirmView offer={limitedOffer} quantity={1} onCancel={() => undefined} onConfirm={() => undefined} />);
 
         expect(screen.getByText('7 / 100')).toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveClass('nitro-catalog-purchase-confirm-limited');
+    });
+
+    it('uses the AIR spending disclaimer gate when configured', () => {
+        configuration.spendingDisclaimerEnabled = true;
+
+        render(<CatalogPurchaseConfirmView offer={offer} quantity={1} onCancel={() => undefined} onConfirm={() => undefined} />);
+
+        const buyButton = screen.getByRole('button', { name: 'catalog.purchase_confirmation.buy' });
+        const checkbox = screen.getByRole('checkbox', { name: 'disclaimer.credit_spending' });
+
+        expect(buyButton).toBeDisabled();
+        fireEvent.click(checkbox);
+        expect(buyButton).toBeEnabled();
+    });
+
+    it('keeps the AIR zero-credit price display for a free offer', () => {
+        render(
+            <CatalogPurchaseConfirmView
+                offer={{ ...offer, priceInActivityPoints: 0, priceInCredits: 0 } as any}
+                quantity={1}
+                onCancel={() => undefined}
+                onConfirm={() => undefined}
+            />
+        );
+
+        expect(screen.getByText('0')).toBeInTheDocument();
     });
 
     it('traps keyboard focus and restores it to the opener when closed', () => {

@@ -1,7 +1,5 @@
-import { FC } from 'react';
-import spinnerArrowDown from '../../../../../assets/images/catalog/buttons/spinner-arrow-down.png';
-import spinnerArrowUp from '../../../../../assets/images/catalog/buttons/spinner-arrow-up.png';
-import { LocalizeText } from '../../../../../api';
+import { FC, useEffect, useId, useState } from 'react';
+import { CatalogType, GetConfigurationValue, LocalizeText } from '../../../../../api';
 import { useCatalogData, useCatalogUiState } from '../../../../../hooks';
 
 const MIN_VALUE: number = 1;
@@ -13,10 +11,14 @@ export const clampCatalogPurchaseQuantity = (value: number): number => {
     return Math.min(Math.max(Math.trunc(value), MIN_VALUE), MAX_VALUE);
 };
 
-export const CatalogSpinnerWidgetView: FC<{}> = (props) => {
+export const CatalogSpinnerWidgetView: FC<{}> = () => {
     const { currentOffer = null } = useCatalogData();
-    const { purchaseOptions = null, setPurchaseOptions = null } = useCatalogUiState();
-    const { quantity = 1 } = purchaseOptions;
+    const { currentType = CatalogType.NORMAL, purchaseOptions = null, setPurchaseOptions = null } = useCatalogUiState();
+    const quantityInputId = useId();
+    const quantity = purchaseOptions?.quantity ?? MIN_VALUE;
+    const [quantityDraft, setQuantityDraft] = useState(() => quantity.toString());
+
+    useEffect(() => setQuantityDraft(quantity.toString()), [currentOffer]);
 
     const updateQuantity = (value: number) => {
         value = clampCatalogPurchaseQuantity(value);
@@ -32,30 +34,45 @@ export const CatalogSpinnerWidgetView: FC<{}> = (props) => {
         });
     };
 
-    if (!currentOffer) return null;
+    const updateQuantityDraft = (value: string) => {
+        if (value.length && !/^\d+$/.test(value)) return;
+
+        if (!value.length) {
+            setQuantityDraft('');
+            updateQuantity(Number.NaN);
+            return;
+        }
+
+        const nextQuantity = clampCatalogPurchaseQuantity(Number(value));
+
+        setQuantityDraft(nextQuantity.toString());
+        updateQuantity(nextQuantity);
+    };
+
+    if (
+        !currentOffer?.bundlePurchaseAllowed ||
+        currentType === CatalogType.BUILDER ||
+        !GetConfigurationValue<boolean>('catalog.multiple.purchase.enabled', true)
+    )
+        return null;
 
     return (
         <div className="nitro-catalog-standard-spinner">
-            <span className="nitro-catalog-standard-spinner-label">{LocalizeText('catalog.bundlewidget.spinner.select.amount')}</span>
-            <button
-                type="button"
-                className="nitro-catalog-standard-spinner-button nitro-catalog-standard-spinner-button-more"
-                aria-label="+"
-                disabled={quantity >= MAX_VALUE}
-                onClick={() => updateQuantity(quantity + 1)}
-            >
-                <img src={spinnerArrowUp} alt="" />
-            </button>
-            <button
-                type="button"
-                className="nitro-catalog-standard-spinner-button nitro-catalog-standard-spinner-button-less"
-                aria-label="-"
-                disabled={quantity <= MIN_VALUE}
-                onClick={() => updateQuantity(quantity - 1)}
-            >
-                <img src={spinnerArrowDown} alt="" />
-            </button>
-            <span className="nitro-catalog-standard-spinner-value">{quantity}</span>
+            <label className="nitro-catalog-standard-spinner-label" htmlFor={quantityInputId}>
+                {LocalizeText('catalog.bundlewidget.quantity')}
+            </label>
+            <div className="nitro-catalog-standard-spinner-input-frame">
+                <input
+                    id={quantityInputId}
+                    className="nitro-catalog-standard-spinner-value"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={3}
+                    value={quantityDraft}
+                    onChange={(event) => updateQuantityDraft(event.target.value)}
+                />
+            </div>
         </div>
     );
 };

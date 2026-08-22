@@ -24,7 +24,7 @@ vi.mock('../../../../../common', () => ({
     AutoGrid: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
     Column: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
     LayoutGridItem: () => <div />,
-    LayoutRoomPreviewerView: () => <div data-testid="product-preview" />
+    LayoutRoomPreviewerView: ({ height }: { height: number }) => <div data-height={height} data-testid="product-preview" />
 }));
 
 vi.mock('../../../../../hooks', () => ({
@@ -33,6 +33,7 @@ vi.mock('../../../../../hooks', () => ({
 }));
 
 const createRoomPreviewer = () => ({
+    addViewOffset: { x: 0, y: 0 },
     addAvatarIntoRoom: vi.fn(function (this: { setAutomaticStateChange: (enabled: boolean) => void }) {
         this.setAutomaticStateChange(true);
     }),
@@ -96,7 +97,7 @@ describe('catalog product preview', () => {
         render(<CatalogViewProductWidgetView />);
 
         await waitFor(() => {
-            expect(roomPreviewer.reset).toHaveBeenCalledWith(false);
+            expect(roomPreviewer.reset).not.toHaveBeenCalled();
             expect(avatarRenderManager.isValidFigureSetForGender).toHaveBeenCalledWith(101, 'M');
             expect(avatarRenderManager.isValidFigureSetForGender).toHaveBeenCalledWith(202, 'M');
             expect(avatarRenderManager.getFigureStringWithFigureIds).toHaveBeenCalledWith('base-figure', 'M', [101, 202]);
@@ -125,12 +126,38 @@ describe('catalog product preview', () => {
         render(<CatalogViewProductWidgetView />);
 
         await waitFor(() => {
-            expect(roomPreviewer.reset).toHaveBeenCalledWith(false);
+            expect(roomPreviewer.reset).toHaveBeenCalledWith(true);
             expect(roomPreviewer.addFurnitureIntoRoom).toHaveBeenCalledWith(500, expect.anything(), null, '');
             expect(roomPreviewer.addAvatarIntoRoom).not.toHaveBeenCalled();
             expect(roomPreviewer.zoomIn).not.toHaveBeenCalled();
             expect(roomPreviewer.centerWallItems).toBe(true);
+            expect(roomPreviewer.updateObjectRoom).not.toHaveBeenCalled();
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(true);
+        });
+    });
+
+    it('refreshes the same furniture when its preview stuff data changes', async () => {
+        const roomPreviewer = createRoomPreviewer();
+        const offer = createFloorOffer(1);
+        const firstStuffData = { color: 1 };
+        const secondStuffData = { color: 2 };
+
+        vi.mocked(GetSessionDataManager).mockReturnValue({
+            getFloorItemData: () => ({ customParams: '' })
+        } as any);
+        vi.mocked(useCatalogData).mockReturnValue({ currentOffer: offer, roomPreviewer } as any);
+        vi.mocked(useCatalogUiState).mockReturnValue({ purchaseOptions: { previewStuffData: firstStuffData } } as any);
+
+        const view = render(<CatalogViewProductWidgetView />);
+
+        await waitFor(() => expect(roomPreviewer.addFurnitureIntoRoom).toHaveBeenCalledWith(500, expect.anything(), firstStuffData, ''));
+
+        vi.mocked(useCatalogUiState).mockReturnValue({ purchaseOptions: { previewStuffData: secondStuffData } } as any);
+        view.rerender(<CatalogViewProductWidgetView />);
+
+        await waitFor(() => {
+            expect(roomPreviewer.reset).toHaveBeenCalledTimes(2);
+            expect(roomPreviewer.addFurnitureIntoRoom).toHaveBeenLastCalledWith(500, expect.anything(), secondStuffData, '');
         });
     });
 
@@ -161,6 +188,21 @@ describe('catalog product preview', () => {
         });
     });
 
+    it('publishes an empty room frame instead of retaining a stale product when metadata is missing', async () => {
+        const roomPreviewer = createRoomPreviewer();
+        const offer = createFloorOffer(1);
+
+        offer.product.furnitureData = null;
+        vi.mocked(useCatalogData).mockReturnValue({ currentOffer: offer, roomPreviewer } as any);
+
+        render(<CatalogViewProductWidgetView />);
+
+        await waitFor(() => {
+            expect(roomPreviewer.reset).toHaveBeenCalledWith(false);
+            expect(roomPreviewer.addFurnitureIntoRoom).not.toHaveBeenCalled();
+        });
+    });
+
     it('keeps landscape previews static after the wall object is loaded', async () => {
         const roomPreviewer = createRoomPreviewer();
 
@@ -175,5 +217,24 @@ describe('catalog product preview', () => {
             expect(roomPreviewer.addWallItemIntoRoom).toHaveBeenCalledWith(600, expect.anything(), undefined);
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(false);
         });
+    });
+
+    it('keeps one 360x348 AIR preview surface while offers change', () => {
+        const roomPreviewer = createRoomPreviewer();
+        const firstOffer = { ...createFloorOffer(1), offerId: 1 };
+        const secondOffer = { ...createFloorOffer(1), offerId: 2 };
+
+        vi.mocked(GetSessionDataManager).mockReturnValue({ getFloorItemData: () => ({ customParams: '' }) } as any);
+        vi.mocked(useCatalogData).mockReturnValue({ currentOffer: firstOffer, roomPreviewer } as any);
+
+        const view = render(<CatalogViewProductWidgetView height={348} />);
+        const preview = view.getByTestId('product-preview');
+
+        expect(preview).toHaveAttribute('data-height', '348');
+
+        vi.mocked(useCatalogData).mockReturnValue({ currentOffer: secondOffer, roomPreviewer } as any);
+        view.rerender(<CatalogViewProductWidgetView height={348} />);
+
+        expect(view.getByTestId('product-preview')).toBe(preview);
     });
 });

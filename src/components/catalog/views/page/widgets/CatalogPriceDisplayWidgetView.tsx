@@ -19,14 +19,14 @@ export const CatalogPriceDisplayWidgetView: FC<CatalogPriceDisplayWidgetViewProp
     return (
         <div className="nitro-catalog-standard-price-display">
             {offer.priceInCredits > 0 && (
-                <div className="nitro-catalog-standard-price-pill is-credits">
+                <div className="nitro-catalog-standard-price-pill is-credits" data-currency-type="-1">
                     <Text className="nitro-catalog-standard-price-text">{offer.priceInCredits * quantity}</Text>
                     <LayoutCurrencyIcon type={-1} />
                 </div>
             )}
             {separator && offer.priceInCredits > 0 && offer.priceInActivityPoints > 0 && <FaPlus className="nitro-catalog-standard-price-plus" />}
             {offer.priceInActivityPoints > 0 && (
-                <div className="nitro-catalog-standard-price-pill is-activity-points">
+                <div className="nitro-catalog-standard-price-pill is-activity-points" data-currency-type={offer.activityPointType}>
                     <Text className="nitro-catalog-standard-price-text">{offer.priceInActivityPoints * quantity}</Text>
                     <LayoutCurrencyIcon type={offer.activityPointType} />
                 </div>

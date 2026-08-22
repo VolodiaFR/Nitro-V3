@@ -58,6 +58,7 @@ import './css/inventory/InventoryView.css';
 import './css/layout/LayoutTrophy.css';
 
 import './css/nitrocard/NitroCardView.css';
+import './css/achievements/AchievementsView.css';
 import './css/navigator/NavigatorView.css';
 
 import './css/notification/NotificationCenterView.css';
@@ -80,6 +81,8 @@ import './css/user-settings/UserSettingsView.css';
 import './css/vault/VaultView.css';
 import './css/widgets/FurnitureWidgets.css';
 import './css/WiredView.css';
+import './css/camera/CameraWidget.css';
+import './css/catalog/CatalogGiftView.css';
 import './css/common/ClassicScrollbar.css';
 
 document.documentElement.classList.add('has-classic-scrollbar');

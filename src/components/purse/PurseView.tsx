@@ -1,8 +1,9 @@
 import { CreateLinkEvent, DisconnectMessageComposer, GetCommunication } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useMemo, useState } from 'react';
 import { ClearRememberLogin, FriendlyTime, GetConfigurationValue, GetRememberLogin, LocalizeText, SendMessageComposer, localizeWithFallback } from '../../api';
-import { Column, LayoutCurrencyIcon } from '../../common';
+import { Column } from '../../common';
 import earningsIcon from '../../assets/images/purse-swf/icons/1747_icon_earnings_png$5e39e03f65fbbb9a85bedd0d577dc12d307477063.png';
+import hcIcon from '../../assets/images/purse-swf/icons/1801_hc_icon_png$2f8b554609e9c5cbbdc46bcbe5764be5-210881771.png';
 import logoutIcon from '../../assets/images/purse-swf/icons/1936_logout_icon_png$6a29fdff1e5e3cdd3c6290cec5c962b4-234470554.png';
 import settingsIcon from '../../assets/images/purse-swf/icons/2291_settings_icon_png$c9dcf215bb7a7e35a3f128c7c60151bc1008066621.png';
 import { ClearStoredChatHistory, usePurse } from '../../hooks';
@@ -133,6 +134,7 @@ export const PurseView: FC<{}> = (props) => {
     return (
         <Column alignItems="end" className="nitro-purse-container" gap={0}>
             <div className="nitro-purse">
+                <div className="nitro-purse__chrome" aria-hidden="true" />
                 <div className="nitro-purse__body">
                     <div className="nitro-purse__currencies">
                         {hasDiamonds && <CurrencyView type={5} amount={purse.activityPoints.get(5) || 0} short={currencyDisplayNumberShort} />}
@@ -142,7 +144,7 @@ export const PurseView: FC<{}> = (props) => {
                     <div className="nitro-purse__col nitro-purse__col--primary subscription-container">
                         {!hcDisabled && (
                             <button type="button" className="nitro-purse__btn nitro-purse__btn--join nitro-purse-subscription club-text" onClick={openClub} title={clubLabel}>
-                                <LayoutCurrencyIcon type="hc" />
+                                <img src={hcIcon} alt="" className="nitro-purse__btn-img" />
                                 <span>{clubLabel}</span>
                             </button>
                         )}
@@ -183,17 +185,17 @@ export const PurseView: FC<{}> = (props) => {
                         >
                             <img src={settingsIcon} alt="" className="nitro-purse__btn-img" />
                         </button>
-                        <button
-                            type="button"
-                            className="nitro-purse__btn nitro-purse__btn--icon nitro-purse__btn--translate nitro-purse-right-button"
-                            onClick={openTranslate}
-                            title={translateLabel}
-                        >
-                            <span>{translateLabel}</span>
-                        </button>
                     </div>
                 </div>
             </div>
+            <button
+                type="button"
+                className="nitro-purse__translate"
+                onClick={openTranslate}
+                title={translateLabel}
+            >
+                <span>{translateLabel}</span>
+            </button>
             {settingsMenuOpen && (
                 <div className="nitro-purse-menu">
                     <button type="button" className="nitro-purse-menu__item" onClick={() => openSettingsSection('')}>
