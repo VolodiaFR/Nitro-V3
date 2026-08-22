@@ -1,7 +1,6 @@
 import { GetConfiguration } from '@nitrots/nitro-renderer';
 import { FC, useMemo } from 'react';
-import loadingGif from '@/assets/images/loading/loading.gif';
-import nitroV3Logo from '@/assets/images/notifications/nitro_v3.png';
+import octaneLogo from '@/assets/images/loading/octane-logo.png';
 import { Base, Column, Text } from '../../common';
 
 interface LoadingViewProps {
@@ -49,7 +48,6 @@ export const LoadingView: FC<LoadingViewProps> = (props) => {
 
     return (
         <Column fullHeight position="fixed" className={backgroundClassName} style={backgroundStyle}>
-            <img src={nitroV3Logo} alt="Nitro V3" draggable={false} className="absolute top-5 left-0 z-2 w-37.5 h-auto select-none pointer-events-none" />
             <Base fullHeight className="container h-100">
                 <Column fullHeight alignItems="center" justifyContent="center">
                     {isError && message && message.length ? (
@@ -70,10 +68,10 @@ export const LoadingView: FC<LoadingViewProps> = (props) => {
                         <>
                             <Column alignItems="center" justifyContent="center" className="z-[3] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                                 <img
-                                    src={customLogoUrl || loadingGif}
-                                    alt=""
+                                    src={customLogoUrl || octaneLogo}
+                                    alt="Octane"
                                     draggable={false}
-                                    className="block w-auto h-auto max-w-[80vw] max-h-[40vh] select-none pointer-events-none"
+                                    className="block w-auto h-auto max-w-[min(80vw,780px)] max-h-[32vh] select-none pointer-events-none drop-shadow-[0_10px_24px_rgba(0,0,0,0.5)]"
                                 />
                                 {message && message.length ? (
                                     <Text
