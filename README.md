@@ -1,4 +1,4 @@
-# Octane UI
+# Nitro V3
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ in one go: prerequisites check, renderer clone & link, dependency install,
 config copy, JSON parsing mode selection, URL prompt with validation, and the
 production build.
 
-After cloning Octane UI, from its root run:
+After cloning Nitro V3, from its root run:
 
 ```
 # Windows
@@ -189,7 +189,7 @@ Both styles work; you can migrate one gamedata file at a time.
 
 ## JSON / JSONC configuration mode
 
-Starting with this version of Octane UI, you can choose how the client parses the
+Starting with this version of Nitro V3, you can choose how the client parses the
 configuration files (`renderer-config.json`, `ui-config.json`, `client-mode.json`,
 and the gamedata JSONs served by the renderer):
 
