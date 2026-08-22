@@ -803,8 +803,8 @@
 /* standard: bordo esterno #376275 (2px), body #0e3f52 -> border 2px + bg body. */
 .nitro-catalog-standard-header {
     position: relative;
-    flex: 0 0 90px;
-    height: 90px;
+    flex: 0 0 100px;
+    height: 100px;
     margin: 0 1px;
     border: 2px solid #376275;
     background: #0e3f52;
@@ -828,7 +828,7 @@
 .nitro-catalog-standard-header-icon {
     position: absolute;
     left: 24px;
-    top: 30px;
+    top: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -841,27 +841,40 @@
 .nitro-catalog-standard-header-copy {
     position: absolute;
     left: 80px;
-    top: 11px;
+    top: 8px;
     right: 15px;
     color: #fff;
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7);
 }
 
 .nitro-catalog-standard-header-title {
-    min-height: 24px;
+    min-height: 28px;
     font-family: UbuntuCondensed, Ubuntu, sans-serif;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
-    line-height: 24px;
+    line-height: 28px;
 }
 
 .nitro-catalog-standard-header-description {
-    margin-top: 5px;
-    font-size: 12px;
-    line-height: 15px;
+    margin-top: 2px;
+    font-family: UbuntuRegular, Ubuntu, sans-serif;
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 400;
+    text-shadow: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-clamp: 3;
+    max-height: 48px;
+    overflow: hidden;
 }
 
-/* standard tab_context: y=5 h=30 -> strip 35px, offset alto 5px, tab alte 30px. */
+.nitro-catalog-standard-header-description b,
+.nitro-catalog-standard-header-description strong {
+    font-weight: 400;
+}
+
 .nitro-catalog-tabs-shell {
     flex: 0 0 35px;
     height: 35px;
@@ -874,9 +887,6 @@
     flex-wrap: nowrap;
 }
 
-/* standard tab_button style 3 (height 30). Width sizes to the label instead of a
-   fixed 110px cap, so long categories (e.g. "Imported Furniture") aren't
-   truncated; the dynamic window width grows to fit them. */
 .nitro-catalog-tabs-shell .nitro-card-tab-item {
     display: inline-flex;
     align-items: center;
@@ -1304,8 +1314,560 @@
     max-height: 154px;
 }
 
-.nitro-catalog-sound-preview {
-    height: 140px;
+.nitro-catalog-badge-display-layout {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    height: 460px;
+    min-height: 460px;
+    overflow: hidden;
+    color: #222;
+    background: var(--catalog-standard-bg, #e4e3db);
+}
+
+.nitro-catalog-badge-product-picker {
+    position: absolute;
+    top: 245px;
+    left: 0;
+    width: 95px;
+    height: 175px;
+    padding: 3px;
+    border: 1px solid #777;
+    border-radius: 4px;
+    background: #c9c9c3;
+    overflow: hidden;
+}
+
+.nitro-catalog-badge-product-picker .nitro-catalog-item-grid-scroll-area,
+.nitro-catalog-badge-product-picker .nitro-classic-scroll-area-viewport {
+    width: 87px;
+    height: 167px;
+}
+
+.nitro-catalog-badge-product-picker .nitro-classic-scroll-area-viewport {
+    padding-right: 17px;
+}
+
+.nitro-catalog-badge-offer-list {
+    display: grid !important;
+    grid-template-columns: 70px !important;
+    grid-auto-rows: 70px !important;
+    align-content: start;
+    justify-content: start;
+    gap: 3px !important;
+    overflow: visible !important;
+}
+
+@layer utilities {
+    .nitro-catalog-window .nitro-catalog-badge-offer-list .layout-grid-item {
+        width: 70px !important;
+        min-width: 70px !important;
+        height: 70px !important;
+        min-height: 70px !important;
+        border-radius: 4px !important;
+    }
+}
+
+.nitro-catalog-badge-picker {
+    position: absolute;
+    top: 245px;
+    left: 105px;
+    width: 255px;
+    height: 175px;
+    overflow: hidden;
+}
+
+.nitro-catalog-badge-selector {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 255px;
+    height: 175px;
+    overflow: hidden;
+}
+
+.nitro-catalog-badge-scroll-area {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    width: 255px;
+    height: 145px;
+}
+
+.nitro-catalog-badge-scroll-area .nitro-classic-scroll-area-viewport {
+    width: 255px;
+    height: 145px;
+    padding-right: 17px;
+}
+
+.nitro-catalog-badge-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, 44px) !important;
+    grid-auto-rows: 44px !important;
+    align-content: start;
+    justify-content: start;
+    gap: 1px !important;
+    padding: 0;
+    overflow: visible !important;
+}
+
+@layer utilities {
+    .nitro-catalog-window .nitro-catalog-badge-tile {
+        width: 44px !important;
+        min-width: 44px !important;
+        height: 44px !important;
+        min-height: 44px !important;
+        border: 1px solid #aeb4aa !important;
+        border-radius: 0 !important;
+        background: #d9ddd5 !important;
+        box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.75), inset -1px -1px 0 rgba(0, 0, 0, 0.12) !important;
+        overflow: hidden !important;
+    }
+
+    .nitro-catalog-window .nitro-catalog-badge-tile:hover {
+        background: #e5e8e1 !important;
+    }
+
+    .nitro-catalog-window .nitro-catalog-badge-tile.is-grid-active {
+        border-color: #222 !important;
+        background: #fff !important;
+        box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 3px #222 !important;
+    }
+}
+
+.nitro-catalog-badge-tile > div {
+    max-width: 40px;
+    max-height: 40px;
+    image-rendering: pixelated;
+}
+
+.nitro-catalog-badge-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 153px;
+    min-height: 80px;
+    padding: 8px;
+    color: #777;
+    font-size: 10px;
+    line-height: 13px;
+    text-align: center;
+}
+
+.nitro-catalog-badge-preview {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 360px;
+    height: 240px;
+    overflow: hidden;
+    background: #000;
+}
+
+.nitro-catalog-badge-preview.is-empty {
+    top: 0;
+    left: 0;
+    width: 360px;
+    height: 240px;
+}
+
+.nitro-catalog-badge-product-copy {
+    position: absolute;
+    top: 12px;
+    left: 10px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    width: 280px;
+    max-height: 64px;
+    overflow: hidden;
+    color: #fff;
+    pointer-events: none;
+}
+
+.nitro-catalog-badge-product-name {
+    width: 165px;
+    min-height: 17px;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 17px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nitro-catalog-badge-product-description {
+    width: 165px;
+    max-height: 30px;
+    overflow: hidden;
+    font-size: 10px;
+    font-style: italic;
+    line-height: 15px;
+    text-overflow: ellipsis;
+}
+
+.nitro-catalog-badge-product-render {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 360px;
+    height: 240px;
+    overflow: hidden;
+}
+
+.nitro-catalog-badge-product-render .shadow-room-previewer {
+    width: 360px !important;
+    max-width: 360px !important;
+    height: 240px !important;
+    min-height: 240px !important;
+    max-height: 240px !important;
+    border-radius: 0 !important;
+}
+
+.nitro-catalog-badge-intro {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 360px;
+    min-height: 240px;
+    gap: 4px;
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 13px;
+    text-align: center;
+    color: #fff;
+}
+
+.nitro-catalog-badge-intro img {
+    width: auto;
+    height: auto;
+    max-width: 96px;
+    max-height: 54px;
+    object-fit: contain;
+}
+
+.nitro-catalog-badge-limited {
+    position: absolute;
+    top: 20px;
+    left: 180px;
+    width: 170px;
+    height: 30px;
+    overflow: hidden;
+}
+
+.nitro-catalog-badge-total-price {
+    position: absolute;
+    right: 6px;
+    bottom: 7px;
+    z-index: 4;
+    min-width: 90px;
+}
+
+.nitro-catalog-badge-purchase {
+    position: absolute;
+    top: 430px;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 360px;
+    height: 30px;
+    gap: 10px;
+    padding: 3px 5px;
+    overflow: hidden;
+}
+
+.nitro-catalog-badge-purchase .nitro-catalog-standard-gift-button,
+.nitro-catalog-badge-purchase .nitro-catalog-standard-buy-button {
+    width: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
+}
+
+.nitro-catalog-badge-product-copy .nitro-catalog-product-details-name,
+.nitro-catalog-badge-product-copy .nitro-catalog-product-details-description {
+    color: #fff !important;
+    opacity: 1 !important;
+}
+
+.nitro-catalog-badge-preview .nitro-catalog-preview-controls {
+    top: 8px;
+    right: 6px;
+}
+
+.nitro-catalog-badge-search {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 255px;
+    height: 26px;
+    border: 1px solid #aaa;
+    background: #fff;
+}
+
+.nitro-catalog-badge-search input {
+    position: absolute;
+    top: 3px;
+    left: 6px;
+    width: 171px;
+    height: 19px;
+    padding: 1px 0 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #333;
+    font-size: 10px;
+    line-height: 20px;
+}
+
+.nitro-catalog-badge-search input:focus {
+    outline: 0;
+}
+
+.nitro-catalog-badge-search-clear {
+    position: absolute;
+    top: 3px;
+    left: 232px;
+    width: 19px;
+    height: 19px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #555;
+    font-size: 16px;
+    line-height: 17px;
+    cursor: pointer;
+}
+
+.nitro-catalog-badge-preview .nitro-catalog-price-frame {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    min-width: 46px;
+    height: 29px;
+    padding: 0;
+    border: 8px solid transparent;
+    border-radius: 0;
+    border-image-source: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABrSURBVDhP7dSxEYBACETR7dJmbMEy7MROLATHQAb2cOTQMbrgE8ELgYjABuAc6Zp7hvZt7ophxXixtwsNwXWZUoVgFbtDHcjL2QY4wEL/gRXU3ipYRQMsBispyE+VF5+yt+59fZH72G9gaxwJZL9A0RMtPQAAAABJRU5ErkJggg==");
+    border-image-slice: 8 fill;
+    border-image-width: 8px;
+    border-image-repeat: stretch;
+    background: transparent;
+    box-shadow: none;
+}
+
+.nitro-catalog-badge-preview .nitro-catalog-price-frame .nitro-catalog-standard-price-display {
+    height: 13px;
+    min-height: 13px;
+    gap: 1px;
+}
+
+.nitro-catalog-badge-preview .nitro-catalog-price-frame .nitro-catalog-standard-price-pill {
+    min-width: 0;
+    height: 13px;
+    gap: 1px;
+    padding: 0;
+}
+
+.nitro-catalog-badge-preview .nitro-catalog-price-frame .nitro-catalog-standard-price-text {
+    color: #111 !important;
+    font-family: Ubuntu, Arial, sans-serif;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    line-height: 13px !important;
+    text-shadow: none !important;
+}
+
+.nitro-catalog-badge-preview .nitro-catalog-price-frame .nitro-currency-icon {
+    flex: 0 0 22px;
+    width: 22px !important;
+    height: 22px !important;
+    background-size: auto;
+    image-rendering: pixelated;
+}
+
+.nitro-catalog-badge-preview .nitro-catalog-price-frame .is-credits .nitro-currency-icon {
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAD/SURBVEhLtZSBDYMwDAQzTTtNR2GmrlBW6SBlhFSO9OFsnJRKraUngPH5ZSCl1lr+oXZ43i8HtWQpdhhqWhuTBNZtrlGDA1hQFa7LXGxATgvdIFSF2+pFt3bNBoQ7MKECqXC57mA7l9hAcAeObgnmqrwacGR03cEZNILlUhCtmevTYCq6jNdfgW2lToBvHSw3hBMc8wSz2WmwxDydfwRbIhZzLMpRbKAX68DRdSwcic8ZuEMF5g8i5ywcSUA1GoHdSASO89a5VgO/HgGqzw1gu+lczcAGTKApuMOzmVMAOuhhE3Jb3v4gizPRZYNmm1AMV3RCPiZgRQRE5SHwr/UG8Hq+iW3+jYQAAAAASUVORK5CYII=") !important;
+}
+
+.nitro-catalog-sound-layout {
+    position: relative;
+    width: 100%;
+    max-width: none;
+    height: 460px;
+    min-height: 460px;
+    overflow: hidden;
+    color: #222;
+    background: var(--catalog-standard-bg, #e4e3db);
+}
+
+.nitro-catalog-sound-product {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    background: var(--catalog-standard-bg, #e4e3db);
+}
+
+.nitro-catalog-sound-title,
+.nitro-catalog-sound-description,
+.nitro-catalog-sound-length {
+    position: absolute;
+    left: 10px;
+    z-index: 3;
+    max-width: 340px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nitro-catalog-sound-title {
+    top: 16px;
+    height: 17px;
+    font-size: 12px;
+    line-height: 17px;
+}
+
+.nitro-catalog-sound-description {
+    top: 34px;
+    height: 15px;
+    font-size: 10px;
+    line-height: 15px;
+}
+
+.nitro-catalog-sound-length {
+    top: 53px;
+    height: 15px;
+    font-size: 10px;
+    line-height: 15px;
+}
+
+.nitro-catalog-sound-product-render {
+    position: absolute;
+    top: 70px;
+    right: auto;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 108px;
+    overflow: hidden;
+}
+
+.nitro-catalog-sound-product-render .furni-image {
+    flex: 0 0 auto;
+    image-rendering: pixelated;
+}
+
+.nitro-catalog-sound-price {
+    position: absolute;
+    right: 7px;
+    bottom: 10px;
+    z-index: 4;
+}
+
+.nitro-catalog-sound-listen-panel {
+    position: absolute;
+    top: 195px;
+    left: 7px;
+    z-index: 4;
+    width: 175px;
+    height: 36px;
+    border: 1px solid rgba(204, 204, 204, 0.9);
+    background: rgba(204, 204, 204, 0.5);
+    font-size: 10px;
+}
+
+.nitro-catalog-sound-listen-panel > span {
+    position: absolute;
+    top: 11px;
+    left: 9px;
+    height: 15px;
+    line-height: 15px;
+    white-space: nowrap;
+}
+
+.nitro-catalog-sound-listen-button {
+    position: absolute !important;
+    top: 8px;
+    left: 102px;
+    width: 66px;
+    min-width: 66px;
+    height: 22px;
+    min-height: 22px;
+    padding: 0 4px !important;
+    border: 1px solid #111111 !important;
+    border-radius: 3px !important;
+    background: linear-gradient(180deg, #f7f7f7 0%, #dedede 100%) !important;
+    color: #111111 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 20px !important;
+    text-shadow: 0 1px 0 #ffffff !important;
+    box-shadow: inset 0 0 0 1px #ffffff, 0 1px 0 rgba(0, 0, 0, 0.16) !important;
+}
+
+.nitro-catalog-sound-listen-button:hover:not(:disabled) {
+    background: linear-gradient(180deg, #ffffff 0%, #e9e9e9 100%) !important;
+    filter: none;
+}
+
+.nitro-catalog-sound-listen-button:active:not(:disabled) {
+    background: linear-gradient(180deg, #cdcdcd 0%, #eeeeee 100%) !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.24) !important;
+}
+
+.nitro-catalog-sound-select-product {
+    position: absolute;
+    top: 130px;
+    left: 6px;
+    font-size: 10px;
+}
+
+.nitro-catalog-sound-grid {
+    position: absolute;
+    top: 245px;
+    left: 0;
+    width: 100%;
+    height: 180px;
+    min-height: 0;
+    padding: 3px 2px 3px 4px;
+    overflow: hidden;
+    border: 1px solid #777;
+    border-radius: 6px;
+    background: #c9c9c3;
+}
+
+.nitro-catalog-sound-grid .nitro-classic-scroll-area-viewport {
+    padding-right: 17px;
+}
+
+.nitro-catalog-sound-purchase {
+    position: absolute;
+    top: 430px;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    height: 30px;
+    gap: 6px;
+}
+
+.nitro-catalog-sound-purchase > button {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    height: 24px;
 }
 
 .nitro-catalog-marketplace-item-icon {
@@ -1388,7 +1950,7 @@
 }
 
 .nitro-catalog-grid {
-    grid-template-columns: repeat(6, 1fr) !important;
+    grid-template-columns: repeat(auto-fill, minmax(var(--nitro-grid-column-min-width, 53px), 1fr)) !important;
     grid-auto-rows: var(--nitro-grid-column-min-height, 70px);
     align-content: start;
     justify-content: start;
@@ -2276,7 +2838,7 @@
     }
 
     .nitro-catalog-grid {
-        grid-template-columns: repeat(auto-fill, minmax(47px, 47px)) !important;
+        grid-template-columns: repeat(auto-fill, minmax(var(--nitro-grid-column-min-width, 47px), 1fr)) !important;
     }
 }
 

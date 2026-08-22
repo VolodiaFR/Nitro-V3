@@ -23,7 +23,7 @@ import {
 import { FC, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SendMessageComposer } from '../../../../api';
 import { useConnectionState, useMessageEvent } from '../../../../hooks';
-import { CatalogStudioDocumentResult, CatalogStudioHistoryGroup, CatalogStudioLock, CatalogStudioMutationResult, CatalogStudioSession, CatalogStudioValidationState } from './CatalogStudioTypes';
+import { CatalogStudioDocumentResult, CatalogStudioHistoryGroup, CatalogStudioLock, CatalogStudioMutationResult, CatalogStudioPublishResult, CatalogStudioSession, CatalogStudioValidationState } from './CatalogStudioTypes';
 import { applyCatalogStudioMutation } from './CatalogStudioMutationState';
 import { nextCatalogStudioOperationId } from './CatalogStudioOperationId';
 import { CatalogStudioContext, CatalogStudioContextValue } from './useCatalogStudio';
@@ -46,6 +46,7 @@ export const CatalogStudioProvider: FC<{ active: boolean; children: ReactNode }>
     const [historyTotalCount, setHistoryTotalCount] = useState(0);
     const [validation, setValidation] = useState<CatalogStudioValidationState | null>(null);
     const [documentResult, setDocumentResult] = useState<CatalogStudioDocumentResult | null>(null);
+    const [publishResult, setPublishResult] = useState<CatalogStudioPublishResult | null>(null);
     const [locks, setLocks] = useState<Record<string, CatalogStudioLock>>({});
     const [loading, setLoading] = useState(false);
     const [lastError, setLastError] = useState<string | null>(null);
@@ -163,9 +164,28 @@ export const CatalogStudioProvider: FC<{ active: boolean; children: ReactNode }>
     }, [refresh, updateRevision]);
 
     const handleLifecycleOperation = useCallback((event: CatalogStudioPublishEvent) => {
-        if (event.getParser().success) {
+        const parser = event.getParser();
+        const reconciliation = parser as typeof parser & {
+            importedChanges?: number;
+            conflicts?: Array<{ catalogType: string; entityType: string; entityId: number; field: string }>;
+        };
+        setPublishResult({
+            operationId: parser.operationId,
+            success: parser.success,
+            code: parser.code,
+            message: parser.message,
+            revision: parser.revision,
+            importedChanges: reconciliation.importedChanges ?? 0,
+            conflicts: (reconciliation.conflicts ?? []).map(conflict => ({
+                ...conflict,
+                catalogType: conflict.catalogType === 'BUILDER' ? 'BUILDER' : 'NORMAL'
+            }))
+        });
+        if (parser.code === 'PUBLISHED') {
             locksRef.current = {};
             setLocks({});
+            window.dispatchEvent(new Event('catalog-admin-refresh-index'));
+            window.dispatchEvent(new Event('catalog-admin-refresh-current-page'));
         }
         handleOperation(event);
     }, [handleOperation]);
@@ -356,6 +376,7 @@ export const CatalogStudioProvider: FC<{ active: boolean; children: ReactNode }>
         historyTotalCount,
         validation,
         documentResult,
+        publishResult,
         locks,
         loading,
         lastError,
@@ -370,7 +391,7 @@ export const CatalogStudioProvider: FC<{ active: boolean; children: ReactNode }>
         dryRunDocument,
         applyDocument,
         applyMutation
-    }), [session, history, historyTotalCount, validation, documentResult, locks, loading, lastError, refresh, acquireLock, releaseLock, loadHistory, undo, revisionAction, exportDocument, dryRunDocument, applyDocument, applyMutation]);
+    }), [session, history, historyTotalCount, validation, documentResult, publishResult, locks, loading, lastError, refresh, acquireLock, releaseLock, loadHistory, undo, revisionAction, exportDocument, dryRunDocument, applyDocument, applyMutation]);
 
     return <CatalogStudioContext value={value}>{children}</CatalogStudioContext>;
 };

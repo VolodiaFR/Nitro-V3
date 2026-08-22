@@ -31,6 +31,9 @@ const Probe = () => {
             <span data-testid="error">{studio.lastError ?? ''}</span>
             <span data-testid="page-caption">{studio.session?.pages.find(page => page.pageId === 42)?.caption ?? ''}</span>
             <span data-testid="history-count">{studio.historyTotalCount}</span>
+            <span data-testid="publish-message">{studio.publishResult?.message ?? ''}</span>
+            <span data-testid="publish-imported">{studio.publishResult?.importedChanges ?? 0}</span>
+            <span data-testid="publish-conflicts">{studio.publishResult?.conflicts.length ?? 0}</span>
             <button onClick={() => studio.acquireLock('PAGE', 44)}>lock</button>
             <button onClick={() => studio.releaseLock('PAGE', 44)}>release</button>
             <button onClick={() => studio.publish()}>publish</button>
@@ -306,5 +309,45 @@ describe('CatalogStudioProvider', () => {
         });
 
         expect(screen.getByTestId('locks')).toHaveTextContent('0');
+    });
+    it('invalidates the live catalog cache after a successful publication', () => {
+        const refreshed: string[] = [];
+        const onIndexRefresh = () => refreshed.push('index');
+        const onPageRefresh = () => refreshed.push('page');
+        window.addEventListener('catalog-admin-refresh-index', onIndexRefresh);
+        window.addEventListener('catalog-admin-refresh-current-page', onPageRefresh);
+        render(<CatalogStudioProvider active><Probe /></CatalogStudioProvider>);
+
+        emit('CatalogStudioPublishEvent', {
+            operationId: 'publish-refresh', success: true, code: 'PUBLISHED', message: '',
+            revision: 8, changedEntities: []
+        });
+
+        expect(refreshed).toEqual(['index', 'page']);
+        window.removeEventListener('catalog-admin-refresh-index', onIndexRefresh);
+        window.removeEventListener('catalog-admin-refresh-current-page', onPageRefresh);
+    });
+
+    it('exposes automatic live imports and publish conflicts', () => {
+        render(<CatalogStudioProvider active><Probe /></CatalogStudioProvider>);
+
+        emit('CatalogStudioPublishEvent', {
+            operationId: 'publish-success', success: true, code: 'PUBLISHED',
+            message: 'Catalog published with 2 external database change(s)', revision: 8,
+            changedEntities: [], importedChanges: 2, conflicts: []
+        });
+
+        expect(screen.getByTestId('publish-message')).toHaveTextContent('Catalog published with 2 external database change(s)');
+        expect(screen.getByTestId('publish-imported')).toHaveTextContent('2');
+
+        emit('CatalogStudioPublishEvent', {
+            operationId: 'publish-conflict', success: false, code: 'LIVE_SYNC_CONFLICT',
+            message: '1 external database conflict(s) block publication', revision: 8,
+            changedEntities: [ { entityType: 'OFFER', entityId: 77 } ], importedChanges: 0,
+            conflicts: [ { catalogType: 'NORMAL', entityType: 'OFFER', entityId: 77, field: 'costCredits' } ]
+        });
+
+        expect(screen.getByTestId('publish-conflicts')).toHaveTextContent('1');
+        expect(screen.getByTestId('error')).toHaveTextContent('1 external database conflict(s) block publication');
     });
 });

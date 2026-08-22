@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { CatalogStudioDocumentResult, CatalogStudioHistoryGroup, CatalogStudioLock, CatalogStudioMutationResult, CatalogStudioSession, CatalogStudioValidationState } from './CatalogStudioTypes';
+import { CatalogStudioDocumentResult, CatalogStudioHistoryGroup, CatalogStudioLock, CatalogStudioMutationResult, CatalogStudioPublishResult, CatalogStudioSession, CatalogStudioValidationState } from './CatalogStudioTypes';
 
 export interface CatalogStudioContextValue {
     session: CatalogStudioSession | null;
@@ -9,6 +9,7 @@ export interface CatalogStudioContextValue {
     historyTotalCount: number;
     validation: CatalogStudioValidationState | null;
     documentResult: CatalogStudioDocumentResult | null;
+    publishResult: CatalogStudioPublishResult | null;
     locks: Readonly<Record<string, CatalogStudioLock>>;
     loading: boolean;
     lastError: string | null;

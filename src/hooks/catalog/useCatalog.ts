@@ -69,16 +69,19 @@ import {
     CatalogPurchaseSoldOutEvent,
     InventoryFurniAddedEvent
 } from '../../events';
-import { useMessageEvent, useNitroEvent, useUiEvent } from '../events';
+import { useConnectionState, useMessageEvent, useNitroEvent, useUiEvent } from '../events';
 import { useNotification } from '../notification';
 import {
     buildCatalogNodeTree,
+    createCatalogIndexPrewarmController,
+    createCatalogIndexRequestCoordinator,
     createCatalogPageRequestCorrelation,
     findNodeById,
     findNodeByName,
     getNodesByOfferIdFromMap,
     getOfferProductKeys,
     normalizeCatalogType,
+    restoreCatalogActivePath,
     RoomControllerLevel,
     RoomObjectCategory,
     RoomObjectType,
@@ -139,6 +142,19 @@ const useCatalogStore = () => {
     const pageRequestCorrelation = useRef(createCatalogPageRequestCorrelation());
     const { simpleAlert = null, showConfirm = null } = useNotification();
     const requestedPage = useRef(new RequestedPage());
+    const connectionState = useConnectionState();
+    const catalogIndexRequests = useRef<ReturnType<typeof createCatalogIndexRequestCoordinator>>(null);
+    const catalogIndexPrewarm = useRef<ReturnType<typeof createCatalogIndexPrewarmController>>(null);
+
+    if (!catalogIndexRequests.current) {
+        catalogIndexRequests.current = createCatalogIndexRequestCoordinator((catalogType) => {
+            SendMessageComposer(new GetCatalogIndexComposer(catalogType));
+        });
+    }
+
+    if (!catalogIndexPrewarm.current) {
+        catalogIndexPrewarm.current = createCatalogIndexPrewarmController((catalogType) => catalogIndexRequests.current.request(catalogType));
+    }
 
     const resetState = useCallback(() => {
         pageRequestCorrelation.current.reset();
@@ -631,12 +647,16 @@ const useCatalogStore = () => {
         const parser = event.getParser();
         const parserCatalogType = normalizeCatalogType(parser.catalogType);
 
+        catalogIndexRequests.current.complete(parserCatalogType);
+
         if (parserCatalogType !== currentType) return;
 
         const { rootNode: builtRoot, offersToNodes: builtOffers } = buildCatalogNodeTree(parser.root);
+        const activePageId = activeNodes[activeNodes.length - 1]?.pageId ?? -1;
 
         setRootNode(builtRoot);
         setOffersToNodes(builtOffers);
+        if (activePageId > -1) setActiveNodes(restoreCatalogActivePath(builtRoot, activePageId));
     });
 
     useMessageEvent<CatalogPageMessageEvent>(CatalogPageMessageEvent, (event) => {
@@ -835,7 +855,10 @@ const useCatalogStore = () => {
         const wasVisible = isVisible;
 
         importedFurnidataMerged.current = false;
+        catalogIndexRequests.current.reset();
         resetState();
+
+        if (connectionState.authenticated) catalogIndexRequests.current.request(currentType);
 
         if (wasVisible)
             simpleAlert(
@@ -1135,7 +1158,7 @@ const useCatalogStore = () => {
         };
 
         const refreshCatalogIndex = () => {
-            SendMessageComposer(new GetCatalogIndexComposer(currentType));
+            catalogIndexRequests.current.request(currentType);
         };
 
         window.addEventListener('catalog-admin-refresh-current-page', refreshCurrentPage);
@@ -1158,14 +1181,21 @@ const useCatalogStore = () => {
     }, [secondsLeft]);
 
     useEffect(() => {
-        if (!isVisible || rootNode) return;
+        if (!connectionState.authenticated) catalogIndexRequests.current.reset();
 
-        // Always fetch a fresh index — a persisted snapshot here kept serving
-        // a stale tree (e.g. one recorded while the server sent no offer ids)
-        // for the whole browser session and masked catalog updates.
-        SendMessageComposer(new GetCatalogIndexComposer(currentType));
+        catalogIndexPrewarm.current.update({
+            authenticated: connectionState.authenticated,
+            visible: isVisible,
+            hasIndex: !!rootNode,
+            catalogType: currentType
+        });
+    }, [connectionState.authenticated, isVisible, rootNode, currentType]);
+
+    useEffect(() => {
+        if (!isVisible) return;
+
         SendMessageComposer(new BuildersClubQueryFurniCountMessageComposer());
-    }, [isVisible, rootNode, currentType]);
+    }, [isVisible, currentType]);
 
     useEffect(() => {
         setRoomPreviewer(new RoomPreviewer(GetRoomEngine(), ++RoomPreviewer.PREVIEW_COUNTER));

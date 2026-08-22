@@ -59,6 +59,7 @@ describe('Catalog Studio essential panels', () => {
             validationCurrent
             issues={[]}
             history={[ historyGroup ]}
+            publishResult={null}
             loading={false}
             publish={vi.fn()}
             undo={undo}
@@ -72,7 +73,7 @@ describe('Catalog Studio essential panels', () => {
         expect(undo).toHaveBeenCalledWith(1);
     });
 
-    it('shows publish only for pending changes and confirms before publishing', () => {
+    it('can check and publish external-only changes and confirms before publishing', () => {
         const publish = vi.fn();
         const view = render(<CatalogStudioPublishReview
             phase="clean"
@@ -80,12 +81,16 @@ describe('Catalog Studio essential panels', () => {
             validationCurrent
             issues={[]}
             history={[]}
+            publishResult={null}
             loading={false}
             publish={publish}
             undo={vi.fn()}
         />);
 
-        expect(screen.queryByRole('button', { name: /Publish/ })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Check & publish' }));
+        expect(screen.getByText('Check live catalog and publish?')).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Publish now' }));
+        expect(publish).toHaveBeenCalledTimes(1);
 
         view.rerender(<CatalogStudioPublishReview
             phase="ready"
@@ -93,6 +98,7 @@ describe('Catalog Studio essential panels', () => {
             validationCurrent
             issues={[]}
             history={[ historyGroup ]}
+            publishResult={null}
             loading={false}
             publish={publish}
             undo={vi.fn()}
@@ -100,8 +106,45 @@ describe('Catalog Studio essential panels', () => {
 
         fireEvent.click(screen.getByRole('button', { name: 'Publish 3 changes' }));
         expect(screen.getByText('Publish 3 changes?')).toBeInTheDocument();
-        expect(publish).not.toHaveBeenCalled();
-        fireEvent.click(screen.getByRole('button', { name: 'Publish now' }));
         expect(publish).toHaveBeenCalledTimes(1);
+        fireEvent.click(screen.getByRole('button', { name: 'Publish now' }));
+        expect(publish).toHaveBeenCalledTimes(2);
+    });
+
+    it('shows automatically imported changes and field conflicts', () => {
+        const view = render(<CatalogStudioPublishReview
+            phase="clean"
+            pendingCount={0}
+            validationCurrent
+            issues={[]}
+            history={[]}
+            publishResult={{
+                operationId: 'publish-1', success: true, code: 'PUBLISHED', revision: 8,
+                message: 'Catalog published with 2 external database change(s)', importedChanges: 2, conflicts: []
+            }}
+            loading={false}
+            publish={vi.fn()}
+            undo={vi.fn()}
+        />);
+
+        expect(screen.getByText('2 external database changes imported automatically.')).toBeInTheDocument();
+
+        view.rerender(<CatalogStudioPublishReview
+            phase="clean"
+            pendingCount={0}
+            validationCurrent
+            issues={[]}
+            history={[]}
+            publishResult={{
+                operationId: 'publish-2', success: false, code: 'LIVE_SYNC_CONFLICT', revision: 8,
+                message: '1 external database conflict(s) block publication', importedChanges: 0,
+                conflicts: [ { catalogType: 'NORMAL', entityType: 'OFFER', entityId: 77, field: 'costCredits' } ]
+            }}
+            loading={false}
+            publish={vi.fn()}
+            undo={vi.fn()}
+        />);
+
+        expect(screen.getByText('OFFER #77 · costCredits')).toBeInTheDocument();
     });
 });
