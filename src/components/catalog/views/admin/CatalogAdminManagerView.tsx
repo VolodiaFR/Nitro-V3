@@ -16,6 +16,7 @@ import {
     FaSearch,
     FaSitemap,
     FaTrash,
+    FaWrench,
 } from 'react-icons/fa';
 import { GetConfigurationValue, ICatalogNode, IPurchasableOffer, LocalizeText, ProductTypeEnum } from '../../../../api';
 import { NitroCardContentView, NitroCardHeaderView, NitroCardView } from '../../../../common';
@@ -86,8 +87,8 @@ const getOfferIconUrl = (offer: IPurchasableOffer): string | null => {
 };
 
 export const CatalogAdminManagerView: FC<{}> = () => {
-    const { rootNode = null, currentPage = null } = useCatalogData();
-    const { setCurrentPage, currentType } = useCatalogUiState();
+    const { rootNode = null, currentPage = null, currentOffer = null } = useCatalogData();
+    const { setCurrentPage, setCurrentOffer, currentType } = useCatalogUiState();
     const { activateNode = null } = useCatalogActions();
     const catalogAdmin = useCatalogAdmin();
     const studio = useCatalogStudio();
@@ -132,7 +133,7 @@ export const CatalogAdminManagerView: FC<{}> = () => {
     }, [activeTab, commandState.canValidate, studio.validate]);
 
     useEffect(() => {
-        if (selectedPageId < 0 && currentPage?.pageId != null) setSelectedPageId(currentPage.pageId);
+        if (currentPage?.pageId != null && currentPage.pageId !== selectedPageId) setSelectedPageId(currentPage.pageId);
     }, [currentPage?.pageId, selectedPageId]);
 
     const handlePageDragStart = useCallback((event: React.DragEvent, node: ICatalogNode) => {
@@ -469,12 +470,27 @@ export const CatalogAdminManagerView: FC<{}> = () => {
                         {currentPage && offers.length === 0 && <div className="nitro-catalog-admin-placeholder is-small">No offers on this page</div>}
                         {offers.map((offer, index) => {
                             const iconUrl = getOfferIconUrl(offer);
+                            const isSelected = currentOffer?.offerId === offer.offerId;
+                            const editableProducts = (offer.products?.length ? offer.products : [ offer.product ]).filter(
+                                (product) =>
+                                    product?.productClassId > 0 &&
+                                    (product.productType === ProductTypeEnum.FLOOR || product.productType === ProductTypeEnum.WALL)
+                            );
 
                             return (
                                 <div
                                     key={offer.offerId}
-                                    className={`nitro-catalog-admin-offer-row ${dragOverOfferIndex === index ? 'is-drag-over' : ''}`}
+                                    className={`nitro-catalog-admin-offer-row ${isSelected ? 'is-selected' : ''} ${dragOverOfferIndex === index ? 'is-drag-over' : ''}`}
                                     draggable
+                                    role="option"
+                                    tabIndex={0}
+                                    aria-selected={isSelected}
+                                    onClick={() => setCurrentOffer(offer)}
+                                    onKeyDown={(event) => {
+                                        if (event.key !== 'Enter' && event.key !== ' ') return;
+                                        event.preventDefault();
+                                        setCurrentOffer(offer);
+                                    }}
                                     onDragLeave={handleOfferDragLeave}
                                     onDragOver={(event) => handleOfferDragOver(event, index)}
                                     onDragStart={(event) => handleOfferDragStart(event, index)}
@@ -516,6 +532,20 @@ export const CatalogAdminManagerView: FC<{}> = () => {
                                         pointsType={offer.activityPointType}
                                     />
                                     <div className="nitro-catalog-admin-manager-controls">
+                                        {editableProducts.map((product, productIndex) => {
+                                            const productLabel = product.furnitureData?.className || `#${product.productClassId}`;
+
+                                            return <button
+                                                key={`${product.productType}-${product.productClassId}-${productIndex}`}
+                                                aria-label={`Edit Furni ${productLabel}`}
+                                                title={`Edit Furni: ${productLabel}`}
+                                                onClick={() => window.dispatchEvent(new CustomEvent('furni-editor:open', {
+                                                    detail: { spriteId: product.productClassId }
+                                                }))}
+                                            >
+                                                <FaWrench />
+                                            </button>;
+                                        })}
                                         <button title="Edit offer" onClick={() => {
         studio.acquireLock('OFFER', offer.offerId, currentType === 'BUILDERS_CLUB' || currentType === 'BUILDER' ? 'BUILDER' : 'NORMAL');
                                             catalogAdmin.setEditingOffer(offer);
