@@ -72,17 +72,6 @@ export interface CatalogStudioSession {
     offers: CatalogStudioOfferSnapshot[];
 }
 
-export interface CatalogStudioLock {
-    draftVersionId: number;
-    entityType: string;
-    catalogType: CatalogStudioCatalogType;
-    entityId: number;
-    ownerId: number;
-    ownerName: string;
-    token: string;
-    expiresAt: string;
-}
-
 export interface CatalogStudioHistoryEntry {
     entityType: string;
     catalogType?: CatalogStudioCatalogType;
@@ -119,23 +108,6 @@ export interface CatalogStudioValidationState {
     issues: CatalogStudioValidationIssue[];
 }
 
-export interface CatalogStudioPublishConflict {
-    catalogType: CatalogStudioCatalogType;
-    entityType: string;
-    entityId: number;
-    field: string;
-}
-
-export interface CatalogStudioPublishResult {
-    operationId: string;
-    success: boolean;
-    code: string;
-    message: string;
-    revision: number;
-    importedChanges: number;
-    conflicts: CatalogStudioPublishConflict[];
-}
-
 export interface CatalogStudioDocumentResult {
     operationId: string;
     success: boolean;
@@ -146,6 +118,13 @@ export interface CatalogStudioDocumentResult {
     document: string;
     fingerprint: string;
     changedEntities: number;
+    changes: Array<{
+        entityType: string;
+        catalogType: string;
+        entityId: number;
+        operation: string;
+        fields: string[];
+    }>;
 }
 
 export interface CatalogStudioMutationResult {

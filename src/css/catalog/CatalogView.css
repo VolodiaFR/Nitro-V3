@@ -2844,7 +2844,7 @@
 
 /* ============================================================================
    Catalog Admin Editor window
-   Shared draft command center that lives in its own
+   Compact live catalog manager that lives in its own
    draggable window, so the main catalog chrome stays identical in browse and
    admin mode (the tab strip no longer carries admin controls).
    ============================================================================ */
@@ -3716,6 +3716,11 @@
     border-radius: 3px;
     background: #ffffff;
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.nitro-catalog-admin-offer-row.is-selected {
+    background: linear-gradient(180deg, #cdeafb 0%, #a9d6ef 100%);
+    box-shadow: inset 0 0 0 1px rgba(65, 141, 176, 0.5);
 }
 
 .nitro-catalog-admin-offer-row.is-drag-over {
