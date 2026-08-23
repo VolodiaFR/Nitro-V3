@@ -197,6 +197,12 @@ export const AvatarInfoWidgetOwnAvatarView: FC<AvatarInfoWidgetOwnAvatarViewProp
                     case 'inspect':
                         openInspectionForUser(avatarInfo.roomIndex);
                         break;
+                    case 'customize_nick':
+                        CreateLinkEvent('customize/show');
+                        break;
+                    case 'badge_leaderboard':
+                        CreateLinkEvent('badge-leaderboard/show');
+                        break;
                 }
             }
         }

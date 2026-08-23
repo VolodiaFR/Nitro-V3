@@ -20,28 +20,61 @@ describe('resolveFreeFlowLayout', () => {
         expect(result.pointerX).toBe(28);
     });
 
-    it('moves the older bubble upward in eight-pixel impulses when horizontal separation is too large', () => {
+    it('clears the older bubble completely when horizontal separation is too large', () => {
         const result = resolveFreeFlowLayout([
             { id: 1, left: 0, top: 100, width: 240, height: 26, anchorX: 120 },
             { id: 2, left: 0, top: 100, width: 240, height: 26, anchorX: 120 }
         ]);
 
         expect(result.map(({ id, top }) => ({ id, top }))).toEqual([
-            { id: 1, top: 84 },
+            { id: 1, top: 73 },
             { id: 2, top: 100 }
         ]);
     });
 
-    it('allows the ten-pixel visual overlap reserved by the bubble artwork', () => {
+    it('keeps the artwork painted outside the bubble box clear of the bubble below it', () => {
         const result = resolveFreeFlowLayout([
-            { id: 1, left: 0, top: 100, width: 240, height: 30, anchorX: 120 },
-            { id: 2, left: 0, top: 120, width: 240, height: 30, anchorX: 120 }
+            { id: 1, left: 0, top: 100, width: 240, height: 30, anchorX: 120, overflowTop: 2, overflowBottom: 5 },
+            { id: 2, left: 0, top: 136, width: 240, height: 30, anchorX: 120, overflowTop: 2, overflowBottom: 5 }
+        ]);
+
+        expect(result.map(({ id, top }) => ({ id, top }))).toEqual([
+            { id: 1, top: 98 },
+            { id: 2, top: 136 }
+        ]);
+    });
+
+    it('leaves bubbles alone once the painted artwork no longer overlaps', () => {
+        const result = resolveFreeFlowLayout([
+            { id: 1, left: 0, top: 100, width: 240, height: 30, anchorX: 120, overflowTop: 2, overflowBottom: 5 },
+            { id: 2, left: 0, top: 138, width: 240, height: 30, anchorX: 120, overflowTop: 2, overflowBottom: 5 }
         ]);
 
         expect(result.map(({ id, top }) => ({ id, top }))).toEqual([
             { id: 1, top: 100 },
-            { id: 2, top: 120 }
+            { id: 2, top: 138 }
         ]);
+    });
+
+    it('stacks a burst of bubbles from a single speaker without any of them overlapping', () => {
+        const bubbles = Array.from({ length: 8 }, (unused, index) => ({
+            id: index + 1,
+            left: 0,
+            top: 200,
+            width: 240,
+            height: 30,
+            anchorX: 120,
+            overflowTop: 2,
+            overflowBottom: 5
+        }));
+
+        const result = resolveFreeFlowLayout(bubbles).sort((first, second) => first.top - second.top);
+
+        result.forEach((bubble, index) => {
+            if (!index) return;
+
+            expect(bubble.top).toBeGreaterThanOrEqual(result[index - 1].top + 30 + 5 + 2);
+        });
     });
 });
 

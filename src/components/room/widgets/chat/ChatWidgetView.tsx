@@ -1,12 +1,13 @@
 import { GetRoomEngine, RoomChatSettings, RoomObjectCategory } from '@nitrots/nitro-renderer';
-import { FC, useCallback, useEffect, useRef } from 'react';
-import { ChatBubbleMessage, GetConfigurationValue, GetRoomObjectScreenLocation } from '../../../../api';
+import { FC, useCallback, useEffect, useMemo, useRef } from 'react';
+import { ChatBubbleMessage, GetConfigurationValue, GetOptionalConfigurationValue, GetRoomObjectScreenLocation } from '../../../../api';
 import { useChatWidget, useChatWindow } from '../../../../hooks';
 import IntervalWebWorker from '../../../../workers/IntervalWebWorker';
 import { WorkerBuilder } from '../../../../workers/WorkerBuilder';
 import { CHAT_TEXT_SIZE_EVENT } from '../chat-input/chatTextSize';
 import { ChatWidgetMessageView } from './ChatWidgetMessageView';
 import { ChatWidgetWindowView } from './ChatWidgetWindowView';
+import { DEFAULT_BUBBLE_STACK_OVERLAP, getBubbleStackOverflowBottom, getPointerChatIds, measureBubbleVisualOffsets } from './chatBubbleMetrics';
 import { followFreeFlowAnchor, getChatViewerHeight, resolveFreeFlowLayout } from './freeFlowChatLayout';
 
 const CHAT_MOVE_UP_PIXELS = 19;
@@ -15,15 +16,18 @@ const CHAT_COLLISION_MIN_WIDTH = 240;
 const CHAT_COLLISION_GAP = 1;
 const CHAT_REMOVE_TOP_MARGIN = -10;
 
+const getStackOverlap = () => Number(GetOptionalConfigurationValue<number>('chat.bubble.stack.overlap', DEFAULT_BUBBLE_STACK_OVERLAP));
+
 export const ChatWidgetView: FC<{}> = (props) => {
     const { chatMessages = [], setChatMessages = null, chatSettings = null, getScrollSpeed = 6000 } = useChatWidget();
     const [chatWindowEnabled] = useChatWindow();
     const elementRef = useRef<HTMLDivElement>(null);
+    const pointerChatIds = useMemo(() => getPointerChatIds(chatMessages), [chatMessages]);
 
     const removeHiddenChats = useCallback(() => {
         setChatMessages((prevValue) => {
             if (prevValue) {
-                const newMessages = prevValue.filter((chat) => chat.top + chat.height >= CHAT_REMOVE_TOP_MARGIN);
+                const newMessages = prevValue.filter((chat) => chat.top + chat.height + chat.visualOffsetBottom >= CHAT_REMOVE_TOP_MARGIN);
 
                 if (newMessages.length !== prevValue.length) return newMessages;
             }
@@ -36,8 +40,12 @@ export const ChatWidgetView: FC<{}> = (props) => {
         chatMessages.forEach((chat) => {
             if (!chat.elementRef) return;
 
+            const visualOffsets = measureBubbleVisualOffsets(chat.elementRef);
+
             chat.width = chat.elementRef.offsetWidth;
             chat.height = chat.elementRef.offsetHeight;
+            chat.visualOffsetTop = visualOffsets.top;
+            chat.visualOffsetBottom = visualOffsets.bottom;
         });
     }, [chatMessages]);
 
@@ -48,8 +56,8 @@ export const ChatWidgetView: FC<{}> = (props) => {
         return {
             left: chat.left - horizontalPadding,
             right: chat.left + chat.width + horizontalPadding,
-            top: chat.top,
-            bottom: chat.top + chat.height
+            top: chat.top - chat.visualOffsetTop,
+            bottom: chat.top + chat.height + getBubbleStackOverflowBottom(chat.visualOffsetBottom, getStackOverlap())
         };
     }, []);
 
@@ -57,13 +65,16 @@ export const ChatWidgetView: FC<{}> = (props) => {
         const visibleChats = chatMessages.filter((chat) => chat.elementRef && chat.width > 0 && chat.height > 0);
 
         if (chatSettings?.mode === RoomChatSettings.CHAT_MODE_FREE_FLOW) {
+            const stackOverlap = getStackOverlap();
             const positions = resolveFreeFlowLayout(visibleChats.map((chat) => ({
                 id: chat.id,
                 left: chat.left,
                 top: chat.top,
                 width: chat.width,
                 height: chat.height,
-                anchorX: chat.location?.x ?? (chat.left + (chat.width / 2))
+                anchorX: chat.location?.x ?? (chat.left + (chat.width / 2)),
+                overflowTop: chat.visualOffsetTop,
+                overflowBottom: getBubbleStackOverflowBottom(chat.visualOffsetBottom, stackOverlap)
             })));
             const positionsById = new Map(positions.map((position) => [position.id, position]));
 
@@ -145,7 +156,7 @@ export const ChatWidgetView: FC<{}> = (props) => {
 
                 removeHiddenChats();
             } else {
-                const lowestPoint = chat.top + chat.height;
+                const lowestPoint = chat.top + chat.height + chat.visualOffsetBottom;
                 const requiredSpace = chat.height;
                 const spaceAvailable = elementRef.current.offsetHeight - lowestPoint;
                 const amount = requiredSpace - spaceAvailable;
@@ -267,7 +278,15 @@ export const ChatWidgetView: FC<{}> = (props) => {
             className="absolute flex justify-center items-center w-full top-0 min-h-px z-(--chat-zindex) bg-transparent roundehidden shadow-none pointer-events-none"
         >
             {!chatWindowEnabled &&
-                chatMessages.map((chat) => <ChatWidgetMessageView key={chat.id} bubbleWidth={chatSettings.weight} chat={chat} makeRoom={makeRoom} />)}
+                chatMessages.map((chat) => (
+                    <ChatWidgetMessageView
+                        key={chat.id}
+                        bubbleWidth={chatSettings.weight}
+                        chat={chat}
+                        makeRoom={makeRoom}
+                        showPointer={pointerChatIds.has(chat.id)}
+                    />
+                ))}
             {chatWindowEnabled && <ChatWidgetWindowView />}
         </div>
     );
