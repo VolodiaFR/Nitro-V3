@@ -191,17 +191,20 @@
     position: absolute;
     top: 51px;
     left: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 60px;
     height: 149px;
     overflow: hidden;
 }
 
 .nitro-catalog-gift-avatar .nitro-catalog-gift-avatar-image {
-    position: absolute !important;
-    top: 0 !important;
-    right: auto !important;
-    bottom: auto !important;
-    left: 0 !important;
+    position: static !important;
+    inset: auto !important;
+    flex: 0 0 auto;
+    width: auto !important;
+    height: auto !important;
 }
 
 .nitro-catalog-gift-avatar .nitro-catalog-gift-avatar-image img {
@@ -213,9 +216,8 @@
 }
 
 .nitro-catalog-gift-incognito {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: static;
+    flex: 0 0 auto;
     width: 37px;
     height: 48px;
     image-rendering: pixelated;

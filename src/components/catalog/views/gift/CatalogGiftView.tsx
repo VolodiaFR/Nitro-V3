@@ -72,7 +72,7 @@ export const CatalogGiftView: FC = () => {
     const messageInputRef = useRef<HTMLTextAreaElement>(null);
     const shouldFocusMessageRef = useRef(false);
     const { friends } = useFriends();
-    const { data: giftConfiguration = null } = useGiftConfiguration();
+    const { data: giftConfiguration = null, refetch: refetchGiftConfiguration } = useGiftConfiguration();
     const { resetPlacedOfferData = null } = useCatalogActions();
     const { setGiftReceiver = null } = useCatalogUiState();
     const { showConfirm = null, simpleAlert = null } = useNotification();
@@ -391,6 +391,13 @@ export const CatalogGiftView: FC = () => {
                 shouldFocusMessageRef.current = initialReceiverName.length > 0;
                 setInitializationSequence((value) => value + 1);
                 setIsVisible(true);
+
+                // The server also pushes this during login, but AIR requests
+                // the wrapping configuration explicitly. Retry here when the
+                // cached request was missed or failed so gifting cannot end in
+                // an invisible second stage.
+                if (!giftConfiguration) void refetchGiftConfiguration();
+
                 return;
             }
 
@@ -435,7 +442,7 @@ export const CatalogGiftView: FC = () => {
                     return;
             }
         },
-        [isBuyingGift, isVisible, onClose, resetViewState, simpleAlert]
+        [giftConfiguration, isBuyingGift, isVisible, onClose, refetchGiftConfiguration, resetViewState, simpleAlert]
     );
 
     useUiEvent(
@@ -468,7 +475,10 @@ export const CatalogGiftView: FC = () => {
         [receiverName]
     );
 
-    if (!isVisible || !giftConfiguration?.isEnabled || !boxTypes.length) return null;
+    // AIR caches the wrapping configuration when the catalog starts, but
+    // showGiftDialog() never gates the customizer on isWrappingEnabled. Once
+    // usable wrapper data exists, the second stage of the gift flow opens.
+    if (!isVisible || !giftConfiguration || !boxTypes.length) return null;
 
     return (
         <NitroCardView classNames={['nitro-catalog-gift']} frameStyle={3} isResizable={false} theme="primary-slim">

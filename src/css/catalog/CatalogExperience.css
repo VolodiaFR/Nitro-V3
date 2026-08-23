@@ -869,17 +869,53 @@
     width: 325px !important;
     min-width: 325px !important;
     max-width: 325px !important;
+    height: 253px !important;
+    min-height: 253px !important;
+    max-height: 253px !important;
+    resize: none !important;
+    outline: none;
+}
+
+.nitro-card-shell.nitro-catalog-purchase-confirm:has(.nitro-catalog-purchase-confirm-content.has-disclaimer) {
+    height: 280px !important;
+    min-height: 280px !important;
+    max-height: 280px !important;
+}
+
+.nitro-card-shell.nitro-catalog-purchase-confirm:has(.nitro-catalog-purchase-confirm-content.has-limited) {
+    height: 312px !important;
+    min-height: 312px !important;
+    max-height: 312px !important;
+}
+
+.nitro-card-shell.nitro-catalog-purchase-confirm:has(.nitro-catalog-purchase-confirm-content.has-disclaimer.has-limited) {
     height: 339px !important;
     min-height: 339px !important;
     max-height: 339px !important;
-    resize: none !important;
-    outline: none;
 }
 
 .draggable-window:has(> .nitro-catalog-purchase-confirm) {
     width: 325px !important;
     min-width: 325px !important;
     max-width: 325px !important;
+    height: 253px !important;
+    min-height: 253px !important;
+    max-height: 253px !important;
+}
+
+.draggable-window:has(> .nitro-catalog-purchase-confirm .nitro-catalog-purchase-confirm-content.has-disclaimer) {
+    height: 280px !important;
+    min-height: 280px !important;
+    max-height: 280px !important;
+}
+
+.draggable-window:has(> .nitro-catalog-purchase-confirm .nitro-catalog-purchase-confirm-content.has-limited) {
+    height: 312px !important;
+    min-height: 312px !important;
+    max-height: 312px !important;
+}
+
+.draggable-window:has(> .nitro-catalog-purchase-confirm .nitro-catalog-purchase-confirm-content.has-disclaimer.has-limited) {
     height: 339px !important;
     min-height: 339px !important;
     max-height: 339px !important;
@@ -900,9 +936,9 @@
     width: 323px !important;
     min-width: 323px !important;
     max-width: 323px !important;
-    height: 294px !important;
-    min-height: 294px !important;
-    max-height: 294px !important;
+    height: 208px !important;
+    min-height: 208px !important;
+    max-height: 208px !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
@@ -910,6 +946,24 @@
     color: #000000;
     font-family: HabboAirUbuntu, UbuntuRegular, sans-serif;
     font-size: 12px;
+}
+
+.nitro-card-shell.nitro-catalog-purchase-confirm .nitro-catalog-purchase-confirm-content.has-disclaimer.container-fluid {
+    height: 235px !important;
+    min-height: 235px !important;
+    max-height: 235px !important;
+}
+
+.nitro-card-shell.nitro-catalog-purchase-confirm .nitro-catalog-purchase-confirm-content.has-limited.container-fluid {
+    height: 267px !important;
+    min-height: 267px !important;
+    max-height: 267px !important;
+}
+
+.nitro-card-shell.nitro-catalog-purchase-confirm .nitro-catalog-purchase-confirm-content.has-disclaimer.has-limited.container-fluid {
+    height: 294px !important;
+    min-height: 294px !important;
+    max-height: 294px !important;
 }
 
 .nitro-catalog-purchase-confirm-content :where(span, strong, label, input) {
@@ -969,7 +1023,8 @@
 }
 
 .nitro-catalog-purchase-confirm-product,
-.nitro-catalog-purchase-confirm-quantity {
+.nitro-catalog-purchase-confirm-quantity,
+.nitro-catalog-purchase-confirm-free-quantity {
     margin: 0;
     color: #000000;
     font-size: 14px;

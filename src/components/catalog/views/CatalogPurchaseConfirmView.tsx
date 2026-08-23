@@ -1,10 +1,12 @@
 import { FC, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { GetConfigurationValue, IPurchasableOffer, LocalizeText, ProductTypeEnum } from '../../../api';
+import { getCatalogBundlePrice, ICatalogBundleDiscountRuleset } from '../../../api/catalog/CatalogBundleDiscount';
 import { LayoutCurrencyIcon, LayoutFurniImageView, NitroCardContentView, NitroCardHeaderView, NitroCardView } from '../../../common';
 
 interface CatalogPurchaseConfirmViewProps {
     offer: IPurchasableOffer;
     quantity: number;
+    bundleDiscountRuleset?: ICatalogBundleDiscountRuleset;
     isGift?: boolean;
     isSubmitting?: boolean;
     onConfirm: () => void;
@@ -12,7 +14,7 @@ interface CatalogPurchaseConfirmViewProps {
 }
 
 export const CatalogPurchaseConfirmView: FC<CatalogPurchaseConfirmViewProps> = (props) => {
-    const { offer = null, quantity = 1, isGift = false, isSubmitting = false, onConfirm = null, onCancel = null } = props;
+    const { offer = null, quantity = 1, bundleDiscountRuleset = null, isGift = false, isSubmitting = false, onConfirm = null, onCancel = null } = props;
     const dialogRef = useRef<HTMLDivElement>(null);
     const spendingDisclaimerEnabled = GetConfigurationValue<boolean>('disclaimer.credit_spending.enabled', false) === true;
     const [spendingDisclaimerAccepted, setSpendingDisclaimerAccepted] = useState(!spendingDisclaimerEnabled);
@@ -63,8 +65,9 @@ export const CatalogPurchaseConfirmView: FC<CatalogPurchaseConfirmViewProps> = (
 
     if (!offer) return null;
 
-    const credits = offer.priceInCredits * quantity;
-    const activityPoints = offer.priceInActivityPoints * quantity;
+    const credits = getCatalogBundlePrice(offer.priceInCredits, quantity, offer.bundlePurchaseAllowed, bundleDiscountRuleset).price;
+    const activityPoints = getCatalogBundlePrice(offer.priceInActivityPoints, quantity, offer.bundlePurchaseAllowed, bundleDiscountRuleset).price;
+    const freeItemCount = offer.bundlePurchaseAllowed ? getCatalogBundlePrice(1, quantity, true, bundleDiscountRuleset).freeItemCount : 0;
     const hasCredits = credits > 0;
     const hasActivityPoints = activityPoints > 0;
     const title = LocalizeText(isGift ? 'catalog.purchase_confirmation.gift.title' : 'catalog.purchase_confirmation.title');
@@ -101,6 +104,7 @@ export const CatalogPurchaseConfirmView: FC<CatalogPurchaseConfirmViewProps> = (
                             productClassId={offer.product.productClassId}
                             productType={offer.product.productType}
                             role="img"
+                            scale={0.5}
                         />
                     ) : (
                         !!iconUrl && <img alt={offer.localizationName} src={iconUrl} />
@@ -109,6 +113,11 @@ export const CatalogPurchaseConfirmView: FC<CatalogPurchaseConfirmViewProps> = (
                 <div className="nitro-catalog-purchase-confirm-properties">
                     <strong className="nitro-catalog-purchase-confirm-product">{offer.localizationName}</strong>
                     {quantity > 1 && <strong className="nitro-catalog-purchase-confirm-quantity">X {quantity}</strong>}
+                    {freeItemCount > 0 && (
+                        <strong className="nitro-catalog-purchase-confirm-free-quantity">
+                            {LocalizeText('shop.bonus.items.count', ['amount'], [freeItemCount.toString()])}
+                        </strong>
+                    )}
                     <div className="nitro-catalog-purchase-confirm-summary">
                         <span>{LocalizeText('catalog.purchase.confirmation.dialog.cost')}</span>
                         <span className="nitro-catalog-purchase-confirm-cost">

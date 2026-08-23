@@ -14,6 +14,7 @@ import {
     ProductTypeEnum,
     SendMessageComposer
 } from '../../../../../api';
+import { getCatalogBundlePrice } from '../../../../../api/catalog/CatalogBundleDiscount';
 import { Button, LayoutLoadingSpinnerView, Text } from '../../../../../common';
 import {
     CatalogEvent,
@@ -25,10 +26,10 @@ import {
 } from '../../../../../events';
 import {
     useCatalogActions,
+    useCatalogBundleDiscountRuleset,
     useCatalogData,
     useCatalogSkipPurchaseConfirmation,
     useCatalogUiState,
-    useGiftConfiguration,
     useNotification,
     usePurse,
     useUiEvent
@@ -52,7 +53,7 @@ export const CatalogPurchaseWidgetView: FC<CatalogPurchaseWidgetViewProps> = (pr
     const confirmationOpenRef = useRef(false);
     const purchaseGuardTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
     const [catalogSkipPurchaseConfirmation] = useCatalogSkipPurchaseConfirmation();
-    const { data: giftConfiguration = null } = useGiftConfiguration();
+    const { data: bundleDiscountRuleset = null } = useCatalogBundleDiscountRuleset();
     const { currentOffer = null, currentPage = null } = useCatalogData();
     const {
         currentType = CatalogType.NORMAL,
@@ -79,8 +80,15 @@ export const CatalogPurchaseWidgetView: FC<CatalogPurchaseWidgetViewProps> = (pr
         if (!currentOffer || !purchaseOptions || !getCurrencyAmount) return false;
 
         const quantity = purchaseOptions.quantity;
+        const creditPrice = getCatalogBundlePrice(currentOffer.priceInCredits, quantity, currentOffer.bundlePurchaseAllowed, bundleDiscountRuleset).price;
+        const activityPointPrice = getCatalogBundlePrice(
+            currentOffer.priceInActivityPoints,
+            quantity,
+            currentOffer.bundlePurchaseAllowed,
+            bundleDiscountRuleset
+        ).price;
 
-        if (currentOffer.priceInCredits * quantity > getCurrencyAmount(-1)) {
+        if (creditPrice > getCurrencyAmount(-1)) {
             const description = LocalizeText('catalog.alert.notenough.credits.description');
             const title = LocalizeText('catalog.alert.notenough.title');
 
@@ -108,7 +116,7 @@ export const CatalogPurchaseWidgetView: FC<CatalogPurchaseWidgetViewProps> = (pr
             return true;
         }
 
-        if (currentOffer.priceInActivityPoints * quantity > getCurrencyAmount(currentOffer.activityPointType)) {
+        if (activityPointPrice > getCurrencyAmount(currentOffer.activityPointType)) {
             const currencyLocalization = GetConfigurationValue<string>(
                 `activitypoint.name.${currentOffer.activityPointType}`,
                 currentOffer.activityPointType === 0 ? 'tooltip.duckets' : ''
@@ -153,7 +161,7 @@ export const CatalogPurchaseWidgetView: FC<CatalogPurchaseWidgetViewProps> = (pr
         }
 
         return false;
-    }, [currentOffer, getCurrencyAmount, purchaseOptions, resetPlacedOfferData, showConfirm, simpleAlert]);
+    }, [bundleDiscountRuleset, currentOffer, getCurrencyAmount, purchaseOptions, resetPlacedOfferData, showConfirm, simpleAlert]);
 
     const onCatalogEvent = useCallback(
         (event: CatalogEvent) => {
@@ -440,7 +448,7 @@ export const CatalogPurchaseWidgetView: FC<CatalogPurchaseWidgetViewProps> = (pr
 
     return (
         <>
-            {!isBuildersClubOffer && !noGiftOption && !currentOffer.isRentOffer && giftConfiguration?.isEnabled && (
+            {!isBuildersClubOffer && !noGiftOption && !currentOffer.isRentOffer && (
                 <Button
                     variant="secondary"
                     classNames={['nitro-catalog-standard-button', 'nitro-catalog-standard-gift-button']}
@@ -467,6 +475,7 @@ export const CatalogPurchaseWidgetView: FC<CatalogPurchaseWidgetViewProps> = (pr
                 <CatalogPurchaseConfirmView
                     isGift={purchaseWillBeGift}
                     isSubmitting={purchaseState === CatalogPurchaseState.PURCHASE}
+                    bundleDiscountRuleset={bundleDiscountRuleset}
                     offer={currentOffer}
                     quantity={purchaseOptions.quantity}
                     onCancel={() => {

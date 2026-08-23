@@ -2109,16 +2109,14 @@
         border: 2px solid #62c4e8 !important;
         box-shadow: none !important;
     }
-}
 
-.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item:not(.has-highlight) {
-    border: 0 !important;
-    background-color: transparent !important;
-}
-
-.nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item.is-active {
-    border: 0 !important;
-    background-color: transparent !important;
+    .nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item:not(.has-highlight),
+    .nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item.is-active {
+        border: 0 !important;
+        border-radius: 0 !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
 }
 
 .nitro-catalog-window .nitro-catalog-grid-density-standard .layout-grid-item.is-active::before {
@@ -2130,9 +2128,10 @@
     width: 100%;
     height: 100%;
     box-sizing: border-box;
-    border: 2px solid #63c5e9;
+    border: 1px solid #a1a19b;
     border-radius: 4px;
     background: #ffffff;
+    box-shadow: inset 0 0 0 1px #63c5e9;
     pointer-events: none;
 }
 
@@ -2210,6 +2209,46 @@
     max-width: none !important;
     max-height: none !important;
     object-fit: none !important;
+}
+
+/* AIR gridItem_with_price: multiContainer is painted after the 36px image at
+   icon-local x=18/y=21, so the quantity badge sits above its lower-right edge. */
+.nitro-catalog-window
+    .nitro-catalog-grid-density-standard
+    .layout-grid-item:not(.uses-base-grid-template):not(.unique-item)
+    > .layout-item-count {
+    top: 23px !important;
+    right: auto !important;
+    left: 26px !important;
+    z-index: 6;
+    min-width: 17px;
+    height: 13px;
+    padding: 0 3px !important;
+    border: 1px solid #283f5d !important;
+    border-radius: 4px !important;
+    background: #ff3300 !important;
+    color: #cccc66 !important;
+    font-family: Volter, monospace;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    line-height: 11px !important;
+}
+
+.nitro-catalog-window
+    .nitro-catalog-grid-density-standard
+    .layout-grid-item:not(.uses-base-grid-template):not(.unique-item)
+    > .layout-item-count::before {
+    content: "x";
+}
+
+.nitro-catalog-window
+    .nitro-catalog-grid-density-standard
+    .layout-grid-item.uses-base-grid-template:not(.unique-item)
+    > .layout-item-count {
+    top: 21px !important;
+    right: auto !important;
+    left: 18px !important;
+    z-index: 6;
 }
 
 .nitro-catalog-window
@@ -2478,6 +2517,7 @@
     width: 180px;
     min-width: 180px;
     height: 25px;
+    z-index: 2;
     display: block;
     padding: 0;
 }
@@ -2637,7 +2677,7 @@
     position: absolute;
     left: 0;
     top: 3px;
-    width: 100px;
+    width: 53px;
     height: 17px;
     overflow: hidden;
     color: #666666;
@@ -2649,12 +2689,134 @@
     text-overflow: ellipsis;
 }
 
+/* The active AIR Ubuntu layout hides its legacy stacked spinner buttons.
+   Polaris intentionally keeps quantity controls visible, using the existing
+   Habbo +/- sprite family without increasing AIR's 25px purchase row. */
+.nitro-catalog-window button.nitro-catalog-standard-spinner-button {
+    appearance: none;
+    position: absolute;
+    top: 1px;
+    z-index: 3;
+    width: 22px !important;
+    min-width: 22px !important;
+    height: 22px !important;
+    min-height: 22px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    border-image: none !important;
+    outline: 0;
+    background-color: transparent !important;
+    background-position: 0 0 !important;
+    background-repeat: no-repeat !important;
+    background-size: 22px 22px !important;
+    box-shadow: none !important;
+    image-rendering: pixelated !important;
+    touch-action: none;
+}
+
+.nitro-catalog-window button.nitro-catalog-standard-spinner-button:focus-visible {
+    outline: 1px dotted #000000;
+    outline-offset: -2px;
+}
+
+.nitro-catalog-window button.nitro-catalog-standard-spinner-button-less {
+    left: 54px;
+    background-image: var(--habbo-stepper-minus) !important;
+}
+
+.nitro-catalog-window button.nitro-catalog-standard-spinner-button-less:hover {
+    background-image: var(--habbo-stepper-minus-hover) !important;
+}
+
+.nitro-catalog-window button.nitro-catalog-standard-spinner-button-less:active {
+    background-image: var(--habbo-stepper-minus-pressed) !important;
+}
+
+.nitro-catalog-window button.nitro-catalog-standard-spinner-button-less:disabled {
+    background-image: var(--habbo-stepper-minus-disabled) !important;
+}
+
+.nitro-catalog-window button.nitro-catalog-standard-spinner-button-more {
+    left: 110px;
+    background-image: var(--habbo-stepper-plus) !important;
+}
+
+.nitro-catalog-window button.nitro-catalog-standard-spinner-button-more:hover {
+    background-image: var(--habbo-stepper-plus-hover) !important;
+}
+
+.nitro-catalog-window button.nitro-catalog-standard-spinner-button-more:active {
+    background-image: var(--habbo-stepper-plus-pressed) !important;
+}
+
+.nitro-catalog-window button.nitro-catalog-standard-spinner-button-more:disabled {
+    background-image: var(--habbo-stepper-plus-disabled) !important;
+}
+
 .nitro-catalog-standard-spinner-input-frame {
     position: absolute;
     top: 0;
-    left: 65px;
+    left: 78px;
     width: 30px;
     height: 25px;
+    z-index: 2;
+}
+
+.nitro-catalog-standard-spinner-discount {
+    position: absolute;
+    top: 0;
+    left: 65px;
+    width: 135px;
+    height: 25px;
+    overflow: visible;
+    border: 0;
+    color: #000000;
+}
+
+/* AIR border style 3: the white border-slot alpha mask colorized to the
+   discount container's #92d27c window color. */
+.nitro-catalog-standard-spinner-discount::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: #92d27c;
+    -webkit-mask-box-image: url("../../assets/images/catalog/air/gift/border-slot-e9e9e9.png") 3 fill / 3px / 0 stretch;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+.nitro-catalog-standard-spinner-discount-copy {
+    /* Keep the localized "+ N free!" visible between the requested plus
+       control and AIR's fixed x=173 bonus star. */
+    position: absolute;
+    top: 5px;
+    left: 68px;
+    z-index: 2;
+    width: 67px;
+    height: 15px;
+    overflow: hidden;
+    color: #000000;
+    font-family: HabboAirUbuntu, UbuntuRegular, sans-serif;
+    font-size: 10px;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: normal;
+    line-height: 15px;
+    white-space: nowrap;
+}
+
+.nitro-catalog-standard-spinner-discount-star {
+    position: absolute;
+    top: -2px;
+    left: 108px;
+    z-index: 1;
+    width: 30px;
+    height: 30px;
+    background: url("../../assets/images/catalog/air/bundle-star.png") 0 0 / 29px 29px no-repeat;
+    image-rendering: pixelated;
 }
 
 .nitro-catalog-standard-spinner-input-frame::before {
@@ -2732,7 +2894,28 @@
     line-height: 17px !important;
 }
 
+.nitro-catalog-standard-price-original {
+    position: relative;
+    display: inline-block;
+    color: #999999 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    line-height: 17px !important;
+}
+
+.nitro-catalog-standard-price-original::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    right: 0;
+    left: 0;
+    height: 2px;
+    background: #ff0000;
+    pointer-events: none;
+}
+
 .nitro-catalog-total-price-value .nitro-catalog-standard-price-display {
+    align-items: flex-start;
     width: max-content;
     height: 24px;
     min-height: 24px;
@@ -2742,6 +2925,7 @@
 }
 
 .nitro-catalog-total-price-value .nitro-catalog-standard-price-pill {
+    align-items: flex-start;
     height: 24px;
     min-width: 0;
     gap: 0;
@@ -2750,12 +2934,29 @@
 
 .nitro-catalog-total-price-value .nitro-catalog-standard-price-text {
     font-size: 12px !important;
+    margin-top: 3px;
+}
+
+.nitro-catalog-total-price-value .nitro-catalog-standard-price-original {
+    font-size: 12px !important;
+    margin-top: 3px;
+}
+
+.nitro-catalog-total-price-value .nitro-catalog-standard-price-original::after {
+    top: 7px;
 }
 
 .nitro-catalog-total-price-value .nitro-catalog-standard-price-plus {
+    display: inline-block;
     width: 8px;
     height: 17px;
     margin-left: -2px;
+    margin-top: 3px;
+    color: #222222;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 17px;
+    text-align: left;
 }
 
 .nitro-catalog-total-price-value .nitro-currency-icon {
@@ -2763,6 +2964,7 @@
     height: 22px !important;
     min-width: 22px !important;
     min-height: 22px !important;
+    margin-top: 1px;
     background-position: center !important;
     background-repeat: no-repeat !important;
 }
@@ -2790,9 +2992,14 @@
 }
 
 .nitro-catalog-standard-price-plus {
+    display: inline-block;
     width: 7px;
-    height: 7px;
+    height: 17px;
     color: #666;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 17px;
+    text-align: center;
 }
 
 .nitro-catalog-preview-btn {

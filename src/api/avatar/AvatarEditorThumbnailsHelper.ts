@@ -280,10 +280,9 @@ export class AvatarEditorThumbnailsHelper {
                     if (avatarImage.isPlaceholder()) return;
 
                     // Use the avatar renderer's native cropped-head export.
-                    // This avoids the previous multi-stage render-texture,
-                    // pixel-scan, and image-export path that left the face
-                    // grid without usable image URLs.
-                    const imageUrl = avatarImage.processAsCroppedImageUrl(AvatarSetType.HEAD);
+                    // Keep the avatar editor's intentionally tight thumbnail;
+                    // AIR gift tags use the native body-part union padding.
+                    const imageUrl = avatarImage.processAsCroppedImageUrl(AvatarSetType.HEAD, true);
                     if (!imageUrl) {
                         completed = true;
                         resolve(null);
