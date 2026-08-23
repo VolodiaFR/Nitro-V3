@@ -40,7 +40,6 @@ vi.mock('../../../../hooks', () => ({
 }));
 
 vi.mock('../../CatalogAdminContext', () => ({
-    CATALOG_ROOT_LOCK_ID: -1,
     useCatalogAdmin: () => mocks.catalogAdmin
 }));
 
@@ -52,8 +51,8 @@ vi.mock('../../admin/studio/CatalogStudioTransferPanel', () => ({
     CatalogStudioTransferPanel: () => null
 }));
 
-vi.mock('../../admin/studio/CatalogStudioPublishReview', () => ({
-    CatalogStudioPublishReview: () => null
+vi.mock('../../admin/studio/CatalogStudioProblemsHistoryPanel', () => ({
+    CatalogStudioProblemsHistoryPanel: () => null
 }));
 
 vi.mock('../../useCatalogWindowWidth', () => ({
@@ -130,8 +129,7 @@ describe('CatalogAdminManagerView selection synchronization', () => {
             reorderOffers: vi.fn(),
             deletePage: vi.fn(),
             deleteOffer: vi.fn(),
-            togglePageVisible: vi.fn(),
-            publishCatalog: vi.fn()
+            togglePageVisible: vi.fn()
         };
         mocks.studio = {
             session: {
@@ -143,15 +141,11 @@ describe('CatalogAdminManagerView selection synchronization', () => {
             },
             revision: 3,
             pendingCount: 0,
-            locks: {},
             validation: null,
             history: [],
-            publishResult: null,
             loading: false,
             loadHistory: vi.fn(),
             validate: vi.fn(),
-            acquireLock: vi.fn(),
-            releaseLock: vi.fn(),
             undo: vi.fn()
         };
     });

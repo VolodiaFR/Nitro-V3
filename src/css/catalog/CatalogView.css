@@ -2844,7 +2844,7 @@
 
 /* ============================================================================
    Catalog Admin Editor window
-   Shared draft command center that lives in its own
+   Compact live catalog manager that lives in its own
    draggable window, so the main catalog chrome stays identical in browse and
    admin mode (the tab strip no longer carries admin controls).
    ============================================================================ */
