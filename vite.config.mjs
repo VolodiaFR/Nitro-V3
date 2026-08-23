@@ -59,9 +59,10 @@ if(!existsSync(rendererRoot))
     // report "Failed to resolve import @nitrots/nitro-renderer" deep
     // inside the bundle pass.
     throw new Error(
-        '\n  Nitro renderer SDK not found.\n\n' +
+        '\n  Octane Renderer SDK not found.\n\n' +
         '  vite.config.mjs expects one of these directories to exist as a sibling of this repo:\n' +
         `    - ${ currentRendererRoot } (preferred)\n` +
+        `    - ${ previousRendererRoot } (previous name)\n` +
         `    - ${ legacyRendererRoot } (legacy)\n\n` +
         '  Clone Octane Renderer next to Octane and rerun:\n' +
         '    git clone <renderer-repo> ../octane-renderer\n' +

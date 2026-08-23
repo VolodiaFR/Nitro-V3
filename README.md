@@ -173,7 +173,7 @@ Both styles work; you can migrate one gamedata file at a time.
 
 -   First you should open terminal and navigate to the folder where you want to clone Octane and Octane Renderer
 -   Clone Octane (Expl. C:\Github\)
-    -   `git clone https://github.com/duckietm/Octane.git` <== For now switch to Dev-RendererV2
+  -   `git clone https://github.com/duckietm/Octane.git` <== For now switch to Dev-RendererV2
 	-   `git clone https://github.com/duckietm/Octane-Renderer.git`
 	-   Install the dependencies for the renderer : cd C:\Github\octane-renderer
     	-   `yarn install`
