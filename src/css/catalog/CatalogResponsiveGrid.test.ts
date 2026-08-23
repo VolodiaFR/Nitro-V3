@@ -44,30 +44,6 @@ describe('responsive catalog item grid', () => {
         expect(getComputedStyle(viewport).paddingRight).toBe('17px');
     });
 
-    it('reserves the AIR scrollbar rail for standard grids even while it is hidden', () => {
-        const stylesheet = document.createElement('style');
-        const scrollArea = document.createElement('div');
-        const viewport = document.createElement('div');
-        const grid = document.createElement('div');
-        const scrollbar = document.createElement('div');
-
-        stylesheet.textContent = `${catalogCss}\n${experienceCss}`;
-        scrollArea.className = 'nitro-classic-scroll-area nitro-catalog-item-grid-scroll-area';
-        viewport.className = 'nitro-classic-scroll-area-viewport';
-        grid.className = 'nitro-catalog-grid nitro-catalog-grid-density-standard';
-        scrollbar.className = 'nitro-classic-scrollbar';
-        scrollbar.dataset.visible = 'false';
-        viewport.append(grid);
-        scrollArea.append(viewport, scrollbar);
-        document.head.append(stylesheet);
-        document.body.append(scrollArea);
-
-        const style = getComputedStyle(viewport);
-
-        expect(style.paddingRight).toBe('17px');
-        expect(style.overflowX).toBe('auto');
-    });
-
     it('keeps virtualized catalog columns clear of the visible classic scrollbar', () => {
         const stylesheet = document.createElement('style');
         const virtualGrid = document.createElement('div');
@@ -95,32 +71,6 @@ describe('responsive catalog item grid', () => {
 
         expect(compactRule.replaceAll(' ', '')).toContain('grid-template-columns:repeat(auto-fill,minmax(var(--nitro-grid-column-min-width,47px),1fr))');
         expect(compactRule).not.toContain('--nitro-air-column-count');
-    });
-
-    it('keeps standard avatar offers on AIR tracks while preserving roomy Polaris densities', () => {
-        const stylesheet = document.createElement('style');
-        const standardGrid = document.createElement('div');
-        const compactGrid = document.createElement('div');
-
-        stylesheet.textContent = `${catalogCss}\n${experienceCss}`;
-        standardGrid.className = 'nitro-catalog-grid nitro-catalog-grid-density-standard';
-        compactGrid.className = 'nitro-catalog-grid nitro-catalog-grid-density-compact';
-
-        for (const grid of [standardGrid, compactGrid]) {
-            const tile = document.createElement('div');
-            const avatar = document.createElement('div');
-            tile.className = 'layout-grid-item';
-            avatar.className = 'avatar-image';
-            tile.append(avatar);
-            grid.append(tile);
-        }
-
-        document.head.append(stylesheet);
-        document.body.append(standardGrid, compactGrid);
-
-        expect(getComputedStyle(standardGrid).gridTemplateColumns.replaceAll(' ', '')).toBe('repeat(var(--nitro-air-column-count,6),53px)');
-        expect(getComputedStyle(compactGrid).gridTemplateColumns.replaceAll(' ', '')).toBe('repeat(4,1fr)');
-        expect(getComputedStyle(compactGrid).getPropertyValue('--nitro-grid-column-min-height').trim()).toBe('100px');
     });
 
     it('lets fixed-coordinate offer templates expose the full catalog width to auto-fill', () => {

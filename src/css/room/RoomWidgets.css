@@ -890,19 +890,6 @@
     image-rendering: pixelated;
 }
 
-.nitro-avatar-action-menu--own::after {
-    position: absolute;
-    bottom: 0;
-    left: calc(50% - 6px);
-    z-index: -1;
-    width: 13px;
-    height: 9px;
-    content: '';
-    background: url('../../assets/images/avatar-menu/air/bubble-pointer-down.png') 0 0 / 13px 9px no-repeat;
-    pointer-events: none;
-    image-rendering: pixelated;
-}
-
 .nitro-avatar-action-menu--own .nitro-context-menu-header {
     position: relative;
     box-sizing: border-box;
@@ -1070,7 +1057,33 @@
 }
 
 .nitro-context-menu-item.disabled .air-avatar-menu-arrow {
-    filter: brightness(0.41);
+    background-color: #585553;
+    background-image: none;
+    filter: none;
+    mask-position: 0 0;
+    mask-repeat: no-repeat;
+    mask-size: 5px 10px;
+    -webkit-mask-position: 0 0;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 5px 10px;
+}
+
+.nitro-context-menu-item.disabled .air-avatar-menu-arrow--left {
+    mask-image: url('../../assets/images/avatar-menu/air/arrow-left.png');
+    -webkit-mask-image: url('../../assets/images/avatar-menu/air/arrow-left.png');
+}
+
+.nitro-context-menu-item.disabled .air-avatar-menu-arrow--right {
+    mask-image: url('../../assets/images/avatar-menu/air/arrow-right.png');
+    -webkit-mask-image: url('../../assets/images/avatar-menu/air/arrow-right.png');
+}
+
+.air-avatar-menu-extra-label {
+    display: block;
+    max-width: 97px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .air-avatar-menu-vip {

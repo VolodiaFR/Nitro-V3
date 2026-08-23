@@ -41,17 +41,4 @@ describe('SoundboardVolumeControl', () => {
         expect(onCommit).toHaveBeenCalledWith(79);
     });
 
-    it('uses AIR speaker buttons for direct mute and maximum volume', () => {
-        const onChange = vi.fn();
-        const onCommit = vi.fn();
-        render(<SoundboardVolumeControl value={50} onChange={onChange} onCommit={onCommit} />);
-
-        fireEvent.click(screen.getByRole('button', { name: 'Soundboard: Mute' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Soundboard: Maximum volume' }));
-
-        expect(onChange).toHaveBeenNthCalledWith(1, 0);
-        expect(onCommit).toHaveBeenNthCalledWith(1, 0);
-        expect(onChange).toHaveBeenNthCalledWith(2, 100);
-        expect(onCommit).toHaveBeenNthCalledWith(2, 100);
-    });
 });

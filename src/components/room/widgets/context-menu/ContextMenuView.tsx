@@ -14,6 +14,8 @@ interface ContextMenuViewProps extends BaseProps<HTMLDivElement> {
     tallAvatarOffset?: number;
     maximumVerticalLeadRatio?: number;
     freezePositionOnHover?: boolean;
+    repositionKey?: string | number;
+    showCaretIcon?: boolean;
 }
 
 const LOCATION_STACK_SIZE = 25;
@@ -35,6 +37,8 @@ export const ContextMenuView: FC<ContextMenuViewProps> = ({
     tallAvatarOffset = 15,
     maximumVerticalLeadRatio = null,
     freezePositionOnHover = false,
+    repositionKey = null,
+    showCaretIcon = true,
     onMouseEnter = null,
     onMouseLeave = null,
     ...rest
@@ -173,6 +177,11 @@ export const ContextMenuView: FC<ContextMenuViewProps> = ({
         return () => cancelAnimationFrame(frame);
     }, [isFading]);
 
+    useEffect(() =>
+    {
+        forcePositionUpdateRef.current = true;
+    }, [repositionKey]);
+
     return (
         <div
             ref={elementRef}
@@ -194,6 +203,7 @@ export const ContextMenuView: FC<ContextMenuViewProps> = ({
             {collapsable && (
                 <ContextMenuCaretView
                     collapsed={isCollapsed}
+                    showIcon={showCaretIcon}
                     onClick={() =>
                     {
                         // AIR swaps to a separate 45x35 minimized bubble and explicitly

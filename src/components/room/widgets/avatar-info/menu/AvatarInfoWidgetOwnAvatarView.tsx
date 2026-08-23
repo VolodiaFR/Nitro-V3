@@ -20,6 +20,7 @@ import {
     HasHabboVip,
     IsRidingHorse,
     LocalizeText,
+    localizeWithFallback,
     PostureTypeEnum,
     SendMessageComposer
 } from '../../../../../api';
@@ -223,6 +224,8 @@ export const AvatarInfoWidgetOwnAvatarView: FC<AvatarInfoWidgetOwnAvatarViewProp
             freezePositionOnHover={true}
             maximumVerticalLeadRatio={0.05}
             objectId={avatarInfo.roomIndex}
+            repositionKey={mode}
+            showCaretIcon={false}
             tallAvatarOffset={25}
             userType={avatarInfo.userType}
             onClose={onClose}
@@ -290,9 +293,15 @@ export const AvatarInfoWidgetOwnAvatarView: FC<AvatarInfoWidgetOwnAvatarViewProp
                         )}
 
                         {/* Polaris-only actions are appended after the official AIR rows. */}
-                        <ContextMenuListItemView onClick={() => processAction('customize_nick')}>Nick Custom</ContextMenuListItemView>
+                        <ContextMenuListItemView onClick={() => processAction('customize_nick')}>
+                            <span className="air-avatar-menu-extra-label">
+                                {localizeWithFallback('widget.memenu.customize_nick', 'Custom nickname')}
+                            </span>
+                        </ContextMenuListItemView>
                         <ContextMenuListItemView onClick={() => processAction('badge_leaderboard')}>
-                            {LocalizeText('badge_leaderboard.title.total_badges')}
+                            <span className="air-avatar-menu-extra-label">
+                                {localizeWithFallback('badge_leaderboard.title.total_badges', 'Badge leaderboard')}
+                            </span>
                         </ContextMenuListItemView>
                     </>
                 )}

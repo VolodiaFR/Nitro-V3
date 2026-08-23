@@ -53,7 +53,7 @@ describe('PurseView', () => {
         expect(screen.getByRole('tooltip')).toHaveTextContent('3 692');
     });
 
-    it('keeps official Help / Logout / Settings inside the 77px purse and Translate after it', () => {
+    it('keeps official Help / Logout / Settings inside the 77px purse and Translate in the settings menu', () => {
         const { container } = render(<PurseView />);
 
         const actionColumn = container.querySelector('.nitro-purse__col--actions');
@@ -66,10 +66,6 @@ describe('PurseView', () => {
             'widget.memenu.settings.title'
         ]);
 
-        const translate = container.querySelector('.nitro-purse__translate');
-        expect(translate).toBeTruthy();
-        expect(container.querySelector('.nitro-purse')?.contains(translate)).toBe(false);
-
         const settingsButton = container.querySelector('.nitro-purse__btn--settings');
         expect(settingsButton).toBeTruthy();
 
@@ -77,7 +73,6 @@ describe('PurseView', () => {
 
         const settingsMenu = container.querySelector('.nitro-purse-menu');
         expect(settingsMenu).toBeTruthy();
-        expect(within(settingsMenu as HTMLElement).queryByRole('button', { name: 'Translate' })).not.toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Translate' })).toBe(translate);
+        expect(within(settingsMenu as HTMLElement).getByRole('button', { name: 'Translate' })).toBeInTheDocument();
     });
 });

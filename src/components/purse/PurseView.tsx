@@ -1,12 +1,11 @@
 import { CreateLinkEvent, DisconnectMessageComposer, GetCommunication } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useMemo, useState } from 'react';
-import { ClearRememberLogin, FriendlyTime, GetConfigurationValue, GetRememberLogin, LocalizeText, SendMessageComposer, localizeWithFallback } from '../../api';
-import { Column } from '../../common';
+import { ClearRememberLogin, FriendlyTime, GetConfigurationValue, GetRememberLogin, LocalizeText, localizeWithFallback, SendMessageComposer } from '../../api';
 import earningsIcon from '../../assets/images/purse-swf/icons/1747_icon_earnings_png$5e39e03f65fbbb9a85bedd0d577dc12d307477063.png';
 import hcIcon from '../../assets/images/purse-swf/icons/1801_hc_icon_png$2f8b554609e9c5cbbdc46bcbe5764be5-210881771.png';
 import logoutIcon from '../../assets/images/purse-swf/icons/1936_logout_icon_png$6a29fdff1e5e3cdd3c6290cec5c962b4-234470554.png';
 import settingsIcon from '../../assets/images/purse-swf/icons/2291_settings_icon_png$c9dcf215bb7a7e35a3f128c7c60151bc1008066621.png';
-import { Column, LayoutCurrencyIcon } from '../../common';
+import { Column } from '../../common';
 import { ClearStoredChatHistory, usePurse } from '../../hooks';
 import { CurrencyView } from './views/CurrencyView';
 import { SeasonalView } from './views/SeasonalView';
@@ -66,11 +65,6 @@ export const PurseView: FC<{}> = (props) => {
     const openEarnings = useCallback((event: React.MouseEvent) => {
         event.stopPropagation();
         CreateLinkEvent('habboUI/open/vault');
-    }, []);
-
-    const openTranslate = useCallback((event: React.MouseEvent) => {
-        event.stopPropagation();
-        CreateLinkEvent('translation-settings/toggle');
     }, []);
 
     const handleLogout = useCallback(async (event: React.MouseEvent) => {
@@ -144,12 +138,22 @@ export const PurseView: FC<{}> = (props) => {
                     </div>
                     <div className="nitro-purse__col nitro-purse__col--primary subscription-container">
                         {!hcDisabled && (
-                            <button type="button" className="nitro-purse__btn nitro-purse__btn--join nitro-purse-subscription club-text" onClick={openClub} title={clubLabel}>
+                            <button
+                                type="button"
+                                className="nitro-purse__btn nitro-purse__btn--join nitro-purse-subscription club-text"
+                                onClick={openClub}
+                                title={clubLabel}
+                            >
                                 <img src={hcIcon} alt="" className="nitro-purse__btn-img" />
                                 <span>{clubLabel}</span>
                             </button>
                         )}
-                        <button type="button" className="nitro-purse__btn nitro-purse__btn--earnings nitro-purse-subscription club-text" onClick={openEarnings} title={earningsLabel}>
+                        <button
+                            type="button"
+                            className="nitro-purse__btn nitro-purse__btn--earnings nitro-purse-subscription club-text"
+                            onClick={openEarnings}
+                            title={earningsLabel}
+                        >
                             <img src={earningsIcon} alt="" className="nitro-purse__btn-img" />
                             <span>{earningsLabel}</span>
                         </button>
@@ -189,14 +193,6 @@ export const PurseView: FC<{}> = (props) => {
                     </div>
                 </div>
             </div>
-            <button
-                type="button"
-                className="nitro-purse__translate"
-                onClick={openTranslate}
-                title={translateLabel}
-            >
-                <span>{translateLabel}</span>
-            </button>
             {settingsMenuOpen && (
                 <div className="nitro-purse-menu">
                     <button type="button" className="nitro-purse-menu__item" onClick={() => openSettingsSection('')}>
@@ -213,7 +209,7 @@ export const PurseView: FC<{}> = (props) => {
                             setSettingsMenuOpen(false);
                         }}
                     >
-                        {localizeWithFallback('purse.settings.language', 'Language Settings')}
+                        {translateLabel}
                     </button>
                     <button
                         type="button"

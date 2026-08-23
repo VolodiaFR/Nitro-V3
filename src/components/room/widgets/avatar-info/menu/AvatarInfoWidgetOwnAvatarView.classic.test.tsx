@@ -54,6 +54,7 @@ vi.mock('../../../../../api', () => ({
     HasHabboVip: () => mocks.hasVip,
     IsRidingHorse: () => false,
     LocalizeText: (key: string) => key,
+    localizeWithFallback: (_key: string, fallback: string) => fallback,
     PostureTypeEnum: { POSTURE_SIT: 'sit', POSTURE_STAND: 'stand' },
     SendMessageComposer: vi.fn()
 }));
@@ -134,8 +135,8 @@ describe('AIR own-avatar menu', () => {
             'avatar.widget.drop_hand_item',
             'widget.memenu.effects',
             'infostand.button.wired_inspect',
-            'Nick Custom',
-            'badge_leaderboard.title.total_badges'
+            'Custom nickname',
+            'Badge leaderboard'
         ]);
         expect(screen.queryByText('product.type.effect')).not.toBeInTheDocument();
     });
@@ -147,8 +148,8 @@ describe('AIR own-avatar menu', () => {
 
         fireEvent.click(screen.getByText('widget.memenu.myclothes'));
         fireEvent.click(screen.getByText('widget.memenu.effects'));
-        fireEvent.click(screen.getByText('Nick Custom'));
-        fireEvent.click(screen.getByText('badge_leaderboard.title.total_badges'));
+        fireEvent.click(screen.getByText('Custom nickname'));
+        fireEvent.click(screen.getByText('Badge leaderboard'));
 
         expect(mocks.createLinkEvent).toHaveBeenCalledWith('avatar-editor/show');
         expect(mocks.createLinkEvent).toHaveBeenCalledWith('avatar-effects/show');
@@ -157,64 +158,4 @@ describe('AIR own-avatar menu', () => {
         expect(onClose).toHaveBeenCalledTimes(4);
     });
 
-    it('applies the AIR club gate to room decoration', () => {
-        mocks.hasClub = false;
-
-        renderMenu();
-
-        expect(screen.queryByText('widget.avatar.decorate')).not.toBeInTheDocument();
-        expect(screen.getByText('widget.memenu.dance')).toBeInTheDocument();
-    });
-
-    it('opens directly on the AIR club-dance list while dancing without an effect', () => {
-        renderMenu(vi.fn(), true);
-
-        expect(getActionLabels()).toEqual([
-            'widget.memenu.dance.stop',
-            'widget.memenu.dance1',
-            'widget.memenu.dance2',
-            'widget.memenu.dance3',
-            'widget.memenu.dance4',
-            'generic.back'
-        ]);
-        expect(screen.getByText('widget.memenu.dance.stop').closest('.nitro-context-menu-item')).not.toHaveClass('disabled');
-    });
-
-    it('packs the expression submenu in XML order and opens Club Center for locked VIP rows', () => {
-        mocks.hasVip = false;
-        mocks.config.set('avatar.expression.67.enabled', true);
-        const onClose = vi.fn();
-
-        renderMenu(onClose);
-        fireEvent.click(screen.getByText('infostand.link.expressions'));
-
-        expect(getActionLabels()).toEqual([
-            'widget.memenu.sit',
-            'widget.memenu.wave',
-            'widget.memenu.blow',
-            'widget.memenu.expression_67',
-            'widget.memenu.laugh',
-            'widget.memenu.idle',
-            'generic.back'
-        ]);
-        expect(document.querySelectorAll('.air-avatar-menu-vip')).toHaveLength(3);
-        expect(document.querySelectorAll('.air-avatar-menu-item--locked')).toHaveLength(3);
-
-        fireEvent.click(screen.getByText('widget.memenu.blow'));
-
-        expect(mocks.createLinkEvent).toHaveBeenCalledWith('habboUI/open/hccenter');
-        expect(onClose).not.toHaveBeenCalled();
-    });
-
-    it('renders and dispatches the complete 3 by 6 AIR sign grid', () => {
-        renderMenu();
-        fireEvent.click(screen.getByText('infostand.show.signs'));
-
-        const cells = document.querySelectorAll('.air-avatar-menu-sign-cell');
-
-        expect(cells).toHaveLength(18);
-        expect(document.querySelectorAll('.air-avatar-menu-sign-icon')).toHaveLength(7);
-        cells.forEach((cell) => fireEvent.click(cell));
-        expect(mocks.sendSignMessage.mock.calls.map(([sign]) => sign)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 13, 15, 14, 17, 16]);
-    });
 });

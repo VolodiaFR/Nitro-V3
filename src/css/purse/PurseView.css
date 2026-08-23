@@ -252,8 +252,7 @@
 
 .nitro-purse__btn--help,
 .nitro-purse__btn--logout,
-.nitro-purse__btn--settings,
-.nitro-purse__translate {
+.nitro-purse__btn--settings {
     display: inline-flex;
     width: 50px;
     height: 19px;
@@ -332,20 +331,6 @@
 .nitro-purse__btn--settings .nitro-purse__btn-img {
     max-width: 50px;
     max-height: 19px;
-}
-
-/* Polaris extra: default style-0 50x19 after the official 77px purse. */
-.nitro-purse__translate {
-    margin-left: auto;
-    border-image-source: var(--habbo-skin-button);
-}
-
-.nitro-purse__translate:hover {
-    border-image-source: var(--habbo-skin-button-hover);
-}
-
-.nitro-purse__translate:active {
-    border-image-source: var(--habbo-skin-button-pressed);
 }
 
 .nitro-purse-menu {

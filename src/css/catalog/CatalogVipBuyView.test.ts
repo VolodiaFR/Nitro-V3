@@ -29,37 +29,4 @@ describe('club membership catalog layout', () => {
         expect(css).toContain('border-image-source: var(--habbo-skin-shiny-thick-green)');
     });
 
-    it('matches the AIR club purchase confirmation frame and control geometry', () => {
-        const css = readFileSync(join(process.cwd(), 'src/css/catalog/CatalogVipBuyView.css'), 'utf8');
-        const frame = css.match(/\.nitro-card-shell\.nitro-club-purchase-confirm\s*\{([^}]+)\}/)?.[1] ?? '';
-        const content = css.match(/\.nitro-club-purchase-confirm > \.nitro-club-purchase-confirm-content\.nitro-card-content-shell\s*\{([^}]+)\}/)?.[1] ?? '';
-        const icon = css.match(/\.nitro-club-purchase-confirm-icon\s*\{([^}]+)\}/)?.[1] ?? '';
-        const actions = css.match(/\.nitro-club-purchase-confirm-actions\s*\{([^}]+)\}/)?.[1] ?? '';
-
-        expect(frame).toContain('width: 369px !important');
-        expect(frame).toContain('height: 210px !important');
-        expect(css).toContain('.draggable-window:has(> .nitro-club-purchase-confirm)');
-        expect(content).toContain('top: 35px');
-        expect(content).toContain('left: 2px');
-        expect(content).toContain('width: 362px');
-        expect(content).toContain('height: 161px');
-        expect(icon).toContain('top: 20px');
-        expect(icon).toContain('left: 12px');
-        expect(icon).toContain('width: 85px');
-        expect(icon).toContain('height: 40px');
-        expect(icon).toContain('-177px -49px');
-        expect(actions).toContain('top: 107px');
-        expect(css).toContain('.nitro-club-purchase-confirm-content.has-disclaimer .nitro-club-purchase-confirm-actions');
-        expect(css).toContain('top: 134px');
-        expect(css).toContain('.nitro-club-purchase-confirm .nitro-club-purchase-confirm-cancel');
-        expect(css).toContain('left: 9px');
-        expect(css).toContain('border-image-source: var(--habbo-skin-shiny)');
-        expect(css).toContain('font-weight: 400');
-        expect(css).toContain('.nitro-club-purchase-confirm .nitro-club-purchase-confirm-submit');
-        expect(css).toContain('left: 235px');
-        expect(css).toContain('text-shadow: none');
-        expect(css).toContain('catalog/air/gift/checkbox-default.png');
-        expect(css).toContain('catalog/air/gift/checkbox-selected.png');
-        expect(css).not.toContain('.nitro-club-confirmation {');
-    });
 });

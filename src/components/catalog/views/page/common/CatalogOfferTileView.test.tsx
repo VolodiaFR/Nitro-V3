@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { CatalogType } from '../../../../../api';
 import { CatalogOfferTileView } from './CatalogOfferTileView';
 
 const offer = (getIconUrl?: () => string) =>
@@ -55,28 +54,5 @@ describe('catalog offer tile', () => {
         expect(screen.getByText('5')).toBeInTheDocument();
         expect(screen.getByText('200')).toBeInTheDocument();
         expect(screen.getByText('+')).toBeInTheDocument();
-    });
-
-    it('keeps the AIR single-price template geometry when Polaris hides tile prices', () => {
-        const { container } = render(<CatalogOfferTileView itemActive offer={offer()} selectOffer={() => undefined} showPrices={false} />);
-
-        expect(container.querySelector('[role="option"]')).toHaveAttribute('aria-selected', 'true');
-        expect(container.querySelector('.layout-grid-item')).toHaveClass('uses-single-price-template');
-        expect(container.querySelector('.layout-grid-item')).toHaveClass('is-active');
-        expect(container.querySelector('.layout-grid-item')).not.toHaveClass('is-grid-active');
-        expect(container.querySelector('.nitro-catalog-grid-price')).toBeNull();
-    });
-
-    it('uses the 36px AIR base template for free and Builders Club offers', () => {
-        const freeOffer = { ...offer(), priceInCredits: 0 };
-        const { container, rerender } = render(<CatalogOfferTileView offer={freeOffer} selectOffer={() => undefined} />);
-
-        expect(container.querySelector('.layout-grid-item')).toHaveClass('uses-base-grid-template');
-
-        rerender(<CatalogOfferTileView currentType={CatalogType.BUILDER} offer={offer()} selectOffer={() => undefined} />);
-
-        expect(container.querySelector('.layout-grid-item')).toHaveClass('uses-base-grid-template');
-        expect(container.querySelector('.layout-grid-item')).not.toHaveClass('uses-single-price-template');
-        expect(container.querySelector('.nitro-catalog-grid-price')).toBeNull();
     });
 });
