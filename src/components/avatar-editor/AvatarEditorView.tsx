@@ -14,11 +14,12 @@ import { AvatarEditorAction, LocalizeText, SendMessageComposer } from '../../api
 import mainGenericSrc from '../../assets/images/avatareditor/air/main-generic.png';
 import mainHeadSrc from '../../assets/images/avatareditor/air/main-head.png';
 import mainLegsSrc from '../../assets/images/avatareditor/air/main-legs.png';
+import mainMiscSrc from '../../assets/images/avatareditor/air/main-misc.png';
 import mainTorsoSrc from '../../assets/images/avatareditor/air/main-torso.png';
-import mainMiscSrc from '../../assets/images/wardrobe/misc.png';
+import wardrobeHangerSrc from '../../assets/images/avatareditor/wardrobe-hanger.png';
 import mainNftSrc from '../../assets/images/wardrobe/nft.png';
 import mainPetsSrc from '../../assets/images/wardrobe/pets.png';
-import { Button, ButtonGroup, NitroCardContentView, NitroCardHeaderView, NitroCardTabsItemView, NitroCardTabsView, NitroCardView } from '../../common';
+import { NitroCardContentView, NitroCardHeaderView, NitroCardTabsItemView, NitroCardTabsView, NitroCardView } from '../../common';
 import { useAvatarEditor } from '../../hooks';
 import { AvatarEditorFigurePreviewView } from './AvatarEditorFigurePreviewView';
 import { AvatarEditorModelView } from './AvatarEditorModelView';
@@ -35,6 +36,18 @@ const MAIN_TAB_ICONS: Record<string, string> = {
     [AvatarEditorFigureCategory.MISC]: mainMiscSrc,
     [AvatarEditorFigureCategory.NFT]: mainNftSrc
 };
+
+// AIR removes unavailable tabs from this sequence without reordering the
+// survivors. Polaris-only categories are kept after the official tabs.
+const MAIN_TAB_ORDER: string[] = [
+    AvatarEditorFigureCategory.GENERIC,
+    AvatarEditorFigureCategory.HEAD,
+    AvatarEditorFigureCategory.TORSO,
+    AvatarEditorFigureCategory.LEGS,
+    AvatarEditorFigureCategory.MISC,
+    AvatarEditorFigureCategory.NFT,
+    AvatarEditorFigureCategory.PETS
+];
 
 export const AvatarEditorView: FC<{}> = (props) => {
     const [isVisible, setIsVisible] = useState(false);
@@ -56,6 +69,17 @@ export const AvatarEditorView: FC<{}> = (props) => {
     const isPetsOpen = activeModelKey === AvatarEditorFigureCategory.PETS;
     const isNftOpen = activeModelKey === AvatarEditorFigureCategory.NFT;
     const canUseWardrobe = !clothingChangeData && !isNftOpen;
+    const orderedModelKeys = Object.keys(avatarModels)
+        .filter((modelKey) => modelKey !== AvatarEditorFigureCategory.WARDROBE)
+        .sort((left, right) => {
+            const leftIndex = MAIN_TAB_ORDER.indexOf(left);
+            const rightIndex = MAIN_TAB_ORDER.indexOf(right);
+
+            if (leftIndex === -1) return rightIndex === -1 ? left.localeCompare(right) : 1;
+            if (rightIndex === -1) return -1;
+
+            return leftIndex - rightIndex;
+        });
 
     const processAction = (action: string) => {
         switch (action) {
@@ -135,7 +159,12 @@ export const AvatarEditorView: FC<{}> = (props) => {
     if (!isVisible) return null;
 
     return (
-        <NitroCardView className={`nitro-avatar-editor${isWardrobeOpen ? ' is-wardrobe-open' : ''}`} isResizable={false} uniqueKey="avatar-editor">
+        <NitroCardView
+            className={`nitro-avatar-editor${isWardrobeOpen ? ' is-wardrobe-open' : ''}`}
+            frameStyle={3}
+            isResizable={false}
+            uniqueKey="avatar-editor"
+        >
             <NitroCardHeaderView
                 headerText={LocalizeText(clothingChangeData ? 'widget.furni.clothingchange.editor.title' : 'avatareditor.title')}
                 onCloseClick={(event) => setIsVisible(false)}
@@ -147,18 +176,16 @@ export const AvatarEditorView: FC<{}> = (props) => {
                     </div>
                     <div className="nitro-avatar-editor-tab-row">
                         <NitroCardTabsView classNames={['avatar-editor-tabs']}>
-                            {Object.keys(avatarModels)
-                                .filter((modelKey) => modelKey !== AvatarEditorFigureCategory.WARDROBE)
-                                .map((modelKey) => (
-                                    <NitroCardTabsItemView
-                                        key={modelKey}
-                                        classNames={['nitro-avatar-editor-main-tab']}
-                                        isActive={activeModelKey === modelKey}
-                                        onClick={() => setActiveModelKey(modelKey)}
-                                    >
-                                        <img className="nitro-avatar-editor-main-tab-icon" src={MAIN_TAB_ICONS[modelKey]} alt="" draggable={false} />
-                                    </NitroCardTabsItemView>
-                                ))}
+                            {orderedModelKeys.map((modelKey) => (
+                                <NitroCardTabsItemView
+                                    key={modelKey}
+                                    classNames={['nitro-avatar-editor-main-tab', `is-${modelKey}`]}
+                                    isActive={activeModelKey === modelKey}
+                                    onClick={() => setActiveModelKey(modelKey)}
+                                >
+                                    <img className="nitro-avatar-editor-main-tab-icon" src={MAIN_TAB_ICONS[modelKey]} alt="" draggable={false} />
+                                </NitroCardTabsItemView>
+                            ))}
                         </NitroCardTabsView>
                     </div>
                     {canUseWardrobe && (
@@ -168,7 +195,9 @@ export const AvatarEditorView: FC<{}> = (props) => {
                             aria-pressed={isWardrobeOpen}
                             aria-label={LocalizeText('avatareditor.wardrobe.title')}
                             onClick={() => setIsWardrobeOpen((open) => !open)}
-                        />
+                        >
+                            <img alt="" draggable={false} src={wardrobeHangerSrc} />
+                        </button>
                     )}
                     <div className="nitro-avatar-editor-main">
                         {activeModelKey.length > 0 && !isPetsOpen && !isNftOpen && (
@@ -178,21 +207,36 @@ export const AvatarEditorView: FC<{}> = (props) => {
                         {isNftOpen && <AvatarEditorNftView categories={avatarModels[activeModelKey]} />}
                         <AvatarEditorFigurePreviewView />
                         {!clothingChangeData && (
-                            <ButtonGroup className="nitro-avatar-editor-secondary-actions">
-                                <Button variant="secondary" onClick={() => processAction(AvatarEditorAction.ACTION_RESET)}>
+                            <div className="nitro-avatar-editor-secondary-actions">
+                                <button
+                                    type="button"
+                                    aria-label="Reset avatar"
+                                    title="Reset avatar"
+                                    onClick={() => processAction(AvatarEditorAction.ACTION_RESET)}
+                                >
                                     <FaRedo className="fa-icon" />
-                                </Button>
-                                <Button variant="secondary" onClick={() => processAction(AvatarEditorAction.ACTION_CLEAR)}>
+                                </button>
+                                <button
+                                    type="button"
+                                    aria-label="Clear avatar"
+                                    title="Clear avatar"
+                                    onClick={() => processAction(AvatarEditorAction.ACTION_CLEAR)}
+                                >
                                     <FaTrash className="fa-icon" />
-                                </Button>
-                                <Button variant="secondary" onClick={() => processAction(AvatarEditorAction.ACTION_RANDOMIZE)}>
+                                </button>
+                                <button
+                                    type="button"
+                                    aria-label="Randomize avatar"
+                                    title="Randomize avatar"
+                                    onClick={() => processAction(AvatarEditorAction.ACTION_RANDOMIZE)}
+                                >
                                     <FaDice className="fa-icon" />
-                                </Button>
-                            </ButtonGroup>
+                                </button>
+                            </div>
                         )}
-                        <Button className="nitro-avatar-editor-save" variant="success" onClick={() => processAction(AvatarEditorAction.ACTION_SAVE)}>
+                        <button type="button" className="nitro-avatar-editor-save" onClick={() => processAction(AvatarEditorAction.ACTION_SAVE)}>
                             {LocalizeText('avatareditor.save')}
-                        </Button>
+                        </button>
                     </div>
                 </div>
                 {isWardrobeOpen && canUseWardrobe && <AvatarEditorWardrobeView />}
