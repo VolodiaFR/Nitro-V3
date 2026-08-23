@@ -1,8 +1,10 @@
+import { NitroEventType } from '@nitrots/nitro-renderer';
 import { FC, useEffect, useRef, useState } from 'react';
 import { AvatarEditorThumbnailsHelper, GetClubMemberLevel, GetConfigurationValue, IAvatarEditorCategoryPartItem } from '../../../api';
 import hcSmallSrc from '../../../assets/images/avatareditor/air/hc-small.png';
 import { LayoutCurrencyIcon, LayoutGridItemProps } from '../../../common';
 import { useAvatarEditor } from '../../../hooks';
+import { useNitroEvent } from '../../../hooks/events';
 import { InfiniteGrid } from '../../../layout';
 import { AvatarEditorIcon } from '../AvatarEditorIcon';
 
@@ -24,10 +26,35 @@ export const AvatarEditorFigureSetItemView: FC<
     const isHC = !GetConfigurationValue<boolean>('hc.disabled', false) && clubLevel > 0;
     const isSellableNotOwned = partItem.isSellableNotOwned ?? false;
     const isHead = setType === 'hd';
+    const isPartLocked = (isHC && GetClubMemberLevel() < clubLevel) || isSellableNotOwned;
     const faceFigureString = isHead && partItem ? getFigureStringWithFace?.(partItem.id) : null;
+    const [retryId, setRetryId] = useState(0);
     const requestIdRef = useRef(0);
     const assetUrl = thumbnail?.partKey === partKey ? thumbnail.url : '';
     const isLoading = loadingState?.partKey === partKey ? loadingState.isLoading : true;
+    const assetUrlRef = useRef(assetUrl);
+    const retryTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+    assetUrlRef.current = assetUrl;
+
+    useNitroEvent(NitroEventType.AVATAR_ASSET_LOADED, () => {
+        if (!isHead || assetUrlRef.current || retryTimeoutRef.current) return;
+
+        // Avatar libraries notify after their download callbacks. Give the
+        // renderer a tick to publish the aliases before making a fresh face.
+        retryTimeoutRef.current = setTimeout(() => {
+            retryTimeoutRef.current = null;
+
+            if (!assetUrlRef.current) setRetryId((previous) => previous + 1);
+        }, 250);
+    });
+
+    useEffect(
+        () => () => {
+            if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+        },
+        []
+    );
 
     useEffect(() => {
         const requestId = ++requestIdRef.current;
@@ -72,7 +99,7 @@ export const AvatarEditorFigureSetItemView: FC<
             disposed = true;
             clearTimeout(loadingTimeout);
         };
-    }, [setType, partItem, partKey, selectedColors, faceFigureString, isHead, isSellableNotOwned]);
+    }, [setType, partItem, partKey, selectedColors, faceFigureString, isHead, isSellableNotOwned, retryId]);
 
     if (!partItem) return null;
 
@@ -85,7 +112,14 @@ export const AvatarEditorFigureSetItemView: FC<
             {...rest}
         >
             {!partItem.isClear && assetUrl && (
-                <img src={assetUrl} alt="" className="max-w-full max-h-full pointer-events-none image-rendering-pixelated" draggable={false} />
+                <img
+                    src={assetUrl}
+                    alt=""
+                    className={`max-w-full max-h-full pointer-events-none image-rendering-pixelated${isHead ? ' avatar-editor-face-thumbnail' : ''}${
+                        isHead && isPartLocked ? ' is-disabled' : ''
+                    }`}
+                    draggable={false}
+                />
             )}
             {!partItem.isClear && isHC && <img className="avatar-editor-part-hc" src={hcSmallSrc} alt="" draggable={false} />}
             {partItem.isClear && <AvatarEditorIcon icon="clear" />}

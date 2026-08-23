@@ -30,6 +30,7 @@ const fileSha256 = (relativePath: string) =>
 describe('AIR avatar editor parity', () => {
     const css = readSource('src/css/avatar-editor/AvatarEditorView.css');
     const source = readSource('src/components/avatar-editor/AvatarEditorView.tsx');
+    const thumbnailHelper = readSource('src/api/avatar/AvatarEditorThumbnailsHelper.ts');
 
     it('uses the AIR style-3 frame and fixed 490px content plane', () => {
         expect(source).toContain('frameStyle={3}');
@@ -80,9 +81,13 @@ describe('AIR avatar editor parity', () => {
         expect(ruleBody(css, '.nitro-avatar-editor-tab-row')).toMatch(/left:\s*9px[;\s\S]*top:\s*79px/);
 
         const tab = ruleBody(css, '.nitro-avatar-editor .avatar-editor-tabs .nitro-avatar-editor-main-tab');
+        const iconHost = ruleBody(css, '.nitro-avatar-editor .avatar-editor-tabs .nitro-avatar-editor-main-tab > .flex');
 
         expect(tab).toMatch(/height:\s*46px/);
         expect(tab).toMatch(/tab-default\.png[^;]*52px 32px/);
+        expect(iconHost).toMatch(/position:\s*absolute/);
+        expect(iconHost).toMatch(/left:\s*0[;\s\S]*top:\s*0/);
+        expect(iconHost).toMatch(/width:\s*52px[;\s\S]*height:\s*42px/);
         expect(pngDimensions('src/assets/images/avatareditor/air/tab-default.png')).toEqual({ width: 52, height: 32 });
         expect(pngDimensions('src/assets/images/avatareditor/air/tab-hover.png')).toEqual({ width: 52, height: 32 });
         expect(pngDimensions('src/assets/images/avatareditor/air/tab-selected.png')).toEqual({ width: 52, height: 32 });
@@ -117,6 +122,18 @@ describe('AIR avatar editor parity', () => {
             /top:\s*5px[;\s\S]*margin-left:\s*1px/
         );
         expect(ruleBody(css, '.nitro-avatar-editor .nitro-avatar-editor-main-tab.is-misc .nitro-avatar-editor-main-tab-icon')).toMatch(/top:\s*13px/);
+    });
+
+    it('exports face choices through the renderer native cropped-head path', () => {
+        expect(thumbnailHelper).toContain('avatarImage.processAsCroppedImageUrl(AvatarSetType.HEAD)');
+        expect(thumbnailHelper).not.toContain('findOpaqueBoundsFrame');
+        const faceThumbnail = ruleBody(css, '.nitro-avatar-editor .avatar-parts > .avatar-editor-face-thumbnail');
+
+        expect(faceThumbnail).toMatch(/width:\s*auto/);
+        expect(faceThumbnail).toMatch(/max-width:\s*none/);
+        expect(faceThumbnail).toMatch(/height:\s*auto/);
+        expect(faceThumbnail).toMatch(/max-height:\s*none/);
+        expect(ruleBody(css, '.nitro-avatar-editor .avatar-parts > .avatar-editor-face-thumbnail.is-disabled')).toMatch(/opacity:\s*0\.2/);
     });
 
     it('keeps the AIR save anchor while using gray thick chrome and exact typography', () => {

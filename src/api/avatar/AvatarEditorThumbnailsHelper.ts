@@ -4,12 +4,12 @@ import {
     AvatarSetType,
     GetAssetManager,
     GetAvatarRenderManager,
+    IAvatarImage,
     IFigurePart,
     IGraphicAsset,
     IPartColor,
     NitroAlphaFilter,
     NitroContainer,
-    NitroRectangle,
     NitroSprite,
     TextureUtils
 } from '@nitrots/nitro-renderer';
@@ -253,39 +253,43 @@ export class AvatarEditorThumbnailsHelper {
 
         if (cached) return cached;
 
-        const pending = this.PENDING_THUMBNAILS.get(thumbnailKey);
-
-        if (pending) return pending;
-
         const promise = new Promise<string>((resolve) => {
             let completed = false;
 
             const resetFigure = async (figure: string) => {
                 if (completed) return;
 
-                const avatarImage = GetAvatarRenderManager().createAvatarImage(figure, AvatarScaleType.LARGE, null, {
-                    resetFigure,
-                    dispose: null,
-                    disposed: false
-                });
-
-                if (avatarImage.isPlaceholder()) {
-                    avatarImage.dispose();
-
-                    return;
-                }
-
-                let sprite: NitroSprite = null;
-
+                let avatarImage: IAvatarImage = null;
                 try {
-                    const texture = avatarImage.processAsTexture(AvatarSetType.HEAD, false);
-                    sprite = new NitroSprite(texture);
-                    if (isDisabled) sprite.filters = [AvatarEditorThumbnailsHelper.ALPHA_FILTER];
-                    const frame = AvatarEditorThumbnailsHelper.findOpaqueBoundsFrame(sprite, texture.width, texture.height);
-                    const imageUrl = await TextureUtils.generateImageUrl({
-                        target: sprite,
-                        frame
+                    avatarImage = GetAvatarRenderManager().createAvatarImage(figure, AvatarScaleType.LARGE, null, {
+                        resetFigure,
+                        dispose: null,
+                        disposed: false
                     });
+
+                    if (!avatarImage) {
+                        completed = true;
+                        resolve(null);
+
+                        return;
+                    }
+
+                    // The listener above will call us again once the requested
+                    // face libraries are available. Do not settle this attempt
+                    // with the shared placeholder image.
+                    if (avatarImage.isPlaceholder()) return;
+
+                    // Use the avatar renderer's native cropped-head export.
+                    // This avoids the previous multi-stage render-texture,
+                    // pixel-scan, and image-export path that left the face
+                    // grid without usable image URLs.
+                    const imageUrl = avatarImage.processAsCroppedImageUrl(AvatarSetType.HEAD);
+                    if (!imageUrl) {
+                        completed = true;
+                        resolve(null);
+
+                        return;
+                    }
 
                     if (completed) return;
 
@@ -300,56 +304,18 @@ export class AvatarEditorThumbnailsHelper {
                         resolve(null);
                     }
                 } finally {
-                    sprite?.destroy();
-                    avatarImage.dispose();
+                    avatarImage?.dispose();
                 }
             };
 
             resetFigure(figureString);
         });
 
-        this.PENDING_THUMBNAILS.set(thumbnailKey, promise);
-        void promise.finally(() => {
-            if (this.PENDING_THUMBNAILS.get(thumbnailKey) === promise) this.PENDING_THUMBNAILS.delete(thumbnailKey);
-        });
-
+        // Unlike clothing thumbnails, face attempts must remain retryable.
+        // The avatar loader can first return a placeholder and then publish an
+        // AVATAR_ASSET_LOADED event; caching that unresolved attempt prevents
+        // the fresh renderer call made in response to that event.
         return promise;
-    }
-
-    private static findOpaqueBoundsFrame(sprite: NitroSprite, fallbackWidth: number, fallbackHeight: number): NitroRectangle {
-        try {
-            const data = TextureUtils.getPixels(sprite);
-            if (!data) return new NitroRectangle(0, 0, fallbackWidth, fallbackHeight);
-
-            const pixels = data.pixels as Uint8ClampedArray | Uint8Array;
-            const width = data.width;
-            const height = data.height;
-            if (!pixels || width <= 0 || height <= 0) return new NitroRectangle(0, 0, fallbackWidth, fallbackHeight);
-            const ALPHA_THRESHOLD = 8;
-
-            let minX = width;
-            let minY = height;
-            let maxX = -1;
-            let maxY = -1;
-
-            for (let y = 0; y < height; y++) {
-                const rowStart = y * width * 4;
-                for (let x = 0; x < width; x++) {
-                    if (pixels[rowStart + x * 4 + 3] > ALPHA_THRESHOLD) {
-                        if (x < minX) minX = x;
-                        if (x > maxX) maxX = x;
-                        if (y < minY) minY = y;
-                        if (y > maxY) maxY = y;
-                    }
-                }
-            }
-
-            if (maxX < minX || maxY < minY) return new NitroRectangle(0, 0, fallbackWidth, fallbackHeight);
-
-            return new NitroRectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
-        } catch {
-            return new NitroRectangle(0, 0, fallbackWidth, fallbackHeight);
-        }
     }
 
     private static sortByDrawOrder(a: IFigurePart, b: IFigurePart): number {

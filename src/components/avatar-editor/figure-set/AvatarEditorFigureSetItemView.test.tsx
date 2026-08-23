@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
         selectedColorParts: { ch: [{ id: 1, rgb: 0x112233 }] },
         getFigureStringWithFace: vi.fn((partId: number) => `hd-${partId}-1`)
     },
+    avatarAssetLoaded: null as (() => void) | null,
     itemPaints: [] as { className: string; src: string | null }[]
 }));
 
@@ -28,6 +29,12 @@ vi.mock('../../../common', () => ({
 
 vi.mock('../../../hooks', () => ({
     useAvatarEditor: () => mocks.editor
+}));
+
+vi.mock('../../../hooks/events', () => ({
+    useNitroEvent: (_type: string, handler: () => void) => {
+        mocks.avatarAssetLoaded = handler;
+    }
 }));
 
 vi.mock('../../../layout', () => ({
@@ -72,13 +79,45 @@ const deferred = <T,>() => {
 };
 
 describe('AvatarEditorFigureSetItemView', () => {
-    afterEach(cleanup);
+    afterEach(() => {
+        cleanup();
+        vi.useRealTimers();
+    });
 
     beforeEach(() => {
         mocks.build.mockReset();
         mocks.buildForFace.mockReset();
         mocks.editor.selectedColorParts = { ch: [{ id: 1, rgb: 0x112233 }] };
+        mocks.avatarAssetLoaded = null;
         mocks.itemPaints.length = 0;
+    });
+
+    it('retries an unsettled face after its avatar library loads', async () => {
+        vi.useFakeTimers();
+        mocks.buildForFace.mockResolvedValueOnce(null).mockResolvedValueOnce('face.png');
+
+        render(<AvatarEditorFigureSetItemView setType="hd" partItem={partItem as never} isSelected={false} />);
+
+        await act(async () => undefined);
+        expect(mocks.buildForFace).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            mocks.avatarAssetLoaded?.();
+            await vi.advanceTimersByTimeAsync(250);
+        });
+
+        expect(mocks.buildForFace).toHaveBeenCalledTimes(2);
+        expect(document.querySelector('img')).toHaveAttribute('src', 'face.png');
+    });
+
+    it('dims a locked face without modifying its generated image', async () => {
+        mocks.buildForFace.mockResolvedValueOnce('face.png');
+        const lockedPart = { ...partItem, isSellableNotOwned: true };
+
+        render(<AvatarEditorFigureSetItemView setType="hd" partItem={lockedPart as never} isSelected={false} />);
+
+        await waitFor(() => expect(document.querySelector('img')).toHaveAttribute('src', 'face.png'));
+        expect(document.querySelector('img')).toHaveClass('avatar-editor-face-thumbnail', 'is-disabled');
     });
 
     it('keeps the settled thumbnail visible while a recolor is generated', async () => {

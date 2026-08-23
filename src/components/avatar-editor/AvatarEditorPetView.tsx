@@ -34,7 +34,7 @@ export const AvatarEditorPetView: FC<{
 
         return petCategory.partItems.find((item) => item.partSet?.id === selectedPetSetId) ?? null;
     }, [selectedPetSetId, petCategory]);
-    const slotThumbUrl = slotThumbnail?.partId === selectedPartItem?.id ? slotThumbnail.url : null;
+    const slotThumbUrl = slotThumbnail && selectedPartItem && slotThumbnail.partId === selectedPartItem.id ? slotThumbnail.url : null;
 
     // Ensure color is initialized when pet tab loads
     useEffect(() => {
