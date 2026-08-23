@@ -26,6 +26,9 @@ import { createCatalogAdminPageDetailsFromSnapshot } from './views/admin/Catalog
 const toStudioCatalogType = (catalogType: string): 'NORMAL' | 'BUILDER' =>
     catalogType === 'BUILDERS_CLUB' || catalogType === 'BUILDER' ? 'BUILDER' : 'NORMAL';
 
+const instantiateCompatibleComposer = <T,>(Composer: new (...args: never[]) => T, ...args: unknown[]): T =>
+    new (Composer as unknown as new (...args: unknown[]) => T)(...args);
+
 export interface IPageEditData {
     pageId?: number;
     caption: string;
@@ -671,7 +674,7 @@ export const CatalogAdminProvider: FC<{ children: ReactNode }> = ({ children }) 
             }
             const operationId = beginAdminAction('deleteOffer', effectiveSummary);
             if (!operationId) return;
-            SendMessageComposer(new CatalogAdminDeleteOfferComposer(
+            SendMessageComposer(instantiateCompatibleComposer(CatalogAdminDeleteOfferComposer,
                 offerId, currentType, studio.session.draftVersionId, studio.revision, '', effectiveSummary, operationId));
         },
         [currentType, beginAdminAction, studio]
@@ -687,7 +690,7 @@ export const CatalogAdminProvider: FC<{ children: ReactNode }> = ({ children }) 
             }
             const operationId = beginAdminAction('reorder', effectiveSummary);
             if (!operationId) return;
-            SendMessageComposer(new CatalogAdminReorderOffersComposer(
+            SendMessageComposer(instantiateCompatibleComposer(CatalogAdminReorderOffersComposer,
                 orders, currentType, studio.session.draftVersionId, studio.revision, '', effectiveSummary, operationId));
         },
         [currentType, beginAdminAction, studio]
@@ -712,22 +715,22 @@ export const CatalogAdminProvider: FC<{ children: ReactNode }> = ({ children }) 
 
             switch (mutation.kind) {
                 case 'delete':
-                    SendMessageComposer(new CatalogAdminDeletePageComposer(
+                    SendMessageComposer(instantiateCompatibleComposer(CatalogAdminDeletePageComposer,
                         mutation.pageId, mutation.catalogType, studio.session.draftVersionId,
                         studio.revision, '', mutation.summary, operationId));
                     break;
                 case 'move':
-                    SendMessageComposer(new CatalogAdminMovePageComposer(
+                    SendMessageComposer(instantiateCompatibleComposer(CatalogAdminMovePageComposer,
                         mutation.pageId, mutation.newParentId, mutation.newIndex, mutation.catalogType,
                         studio.session.draftVersionId, studio.revision, '', mutation.summary, operationId));
                     break;
                 case 'toggleEnabled':
-                    SendMessageComposer(new CatalogAdminSetPageEnabledComposer(
+                    SendMessageComposer(instantiateCompatibleComposer(CatalogAdminSetPageEnabledComposer,
                         mutation.pageId, mutation.enabled, mutation.catalogType, studio.session.draftVersionId,
                         studio.revision, '', mutation.summary, operationId));
                     break;
                 case 'toggleVisible':
-                    SendMessageComposer(new CatalogAdminSetPageVisibleComposer(
+                    SendMessageComposer(instantiateCompatibleComposer(CatalogAdminSetPageVisibleComposer,
                         mutation.pageId, mutation.visible, mutation.catalogType, studio.session.draftVersionId,
                         studio.revision, '', mutation.summary, operationId));
                     break;

@@ -126,6 +126,7 @@ export const CatalogStudioProvider: FC<{ active: boolean; children: ReactNode }>
 
     useMessageEvent<CatalogStudioDocumentResultEvent>(CatalogStudioDocumentResultEvent, (event) => {
         const parser = event.getParser();
+        const changes = (parser as typeof parser & { changes?: CatalogStudioDocumentResult['changes'] }).changes ?? [];
         const result: CatalogStudioDocumentResult = {
             operationId: parser.operationId,
             success: parser.success,
@@ -136,7 +137,7 @@ export const CatalogStudioProvider: FC<{ active: boolean; children: ReactNode }>
             document: parser.document,
             fingerprint: parser.fingerprint,
             changedEntities: parser.changedEntities,
-            changes: (parser.changes ?? []).map(change => ({ ...change, fields: [ ...change.fields ] }))
+            changes: changes.map(change => ({ ...change, fields: [ ...change.fields ] }))
         };
         setDocumentResult(result);
         setLoading(false);
