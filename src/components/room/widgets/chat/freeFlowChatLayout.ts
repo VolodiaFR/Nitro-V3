@@ -5,6 +5,8 @@ export interface FreeFlowLayoutBubble {
     width: number;
     height: number;
     anchorX: number;
+    overflowTop?: number;
+    overflowBottom?: number;
 }
 
 export interface FreeFlowLayoutPosition {
@@ -17,6 +19,7 @@ export interface FreeFlowLayoutPosition {
 const MINIMUM_COLLIDER_WIDTH = 240;
 const MAX_COLLISION_SIDEWAYS_IMPULSE = 15;
 const MAX_ITERATIONS = 20;
+const VERTICAL_GAP = 1;
 const POINTER_LEFT_MARGIN = 28;
 const POINTER_RIGHT_MARGIN = 15;
 const DEFAULT_VIEWPORT_HEIGHT_PERCENTAGE = 0.25;
@@ -35,26 +38,32 @@ export const followFreeFlowAnchor = (bubbleLeft: number, previousAnchorX: number
 interface LayoutBubble extends FreeFlowLayoutBubble {
     colliderHeight: number;
     colliderLeft: number;
+    colliderTop: number;
     colliderWidth: number;
 }
 
 const refreshCollider = (bubble: LayoutBubble) => {
+    const overflowTop = bubble.overflowTop || 0;
+    const overflowBottom = bubble.overflowBottom || 0;
+
     bubble.colliderWidth = Math.max(MINIMUM_COLLIDER_WIDTH, bubble.width);
-    bubble.colliderHeight = Math.max(1, bubble.height - 10);
+    bubble.colliderTop = bubble.top - overflowTop;
+    bubble.colliderHeight = Math.max(1, bubble.height + overflowTop + overflowBottom);
     bubble.colliderLeft = bubble.left - (bubble.colliderWidth - bubble.width) / 2;
 };
 
 const intersects = (first: LayoutBubble, second: LayoutBubble) => {
     const overlapsHorizontally =
         first.colliderLeft < second.colliderLeft + second.colliderWidth && first.colliderLeft + first.colliderWidth > second.colliderLeft;
-    const overlapsVertically = first.top < second.top + second.colliderHeight && first.top + first.colliderHeight > second.top;
+    const overlapsVertically =
+        first.colliderTop < second.colliderTop + second.colliderHeight && first.colliderTop + first.colliderHeight > second.colliderTop;
 
     return overlapsHorizontally && overlapsVertically;
 };
 
 export const resolveFreeFlowLayout = (bubbles: readonly FreeFlowLayoutBubble[]): FreeFlowLayoutPosition[] => {
     const resolved: LayoutBubble[] = bubbles.map((bubble) => {
-        const layoutBubble: LayoutBubble = { ...bubble, colliderHeight: 0, colliderLeft: 0, colliderWidth: 0 };
+        const layoutBubble: LayoutBubble = { ...bubble, colliderHeight: 0, colliderLeft: 0, colliderTop: 0, colliderWidth: 0 };
 
         refreshCollider(layoutBubble);
 
@@ -82,9 +91,16 @@ export const resolveFreeFlowLayout = (bubbles: readonly FreeFlowLayoutBubble[]):
                     refreshCollider(right);
                     moved = true;
                 } else {
-                    const older = first.id < second.id ? first : second;
+                    const upper =
+                        first.colliderTop < second.colliderTop ||
+                        (Math.abs(first.colliderTop - second.colliderTop) < 1 && first.id < second.id)
+                            ? first
+                            : second;
+                    const lower = upper === first ? second : first;
+                    const amount = Math.max(VERTICAL_GAP, upper.colliderTop + upper.colliderHeight - lower.colliderTop + VERTICAL_GAP);
 
-                    older.top -= Math.min(8, older.colliderHeight);
+                    upper.top -= amount;
+                    refreshCollider(upper);
                     moved = true;
                 }
             }
