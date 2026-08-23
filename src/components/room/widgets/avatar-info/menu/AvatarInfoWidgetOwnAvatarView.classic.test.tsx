@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -59,7 +57,7 @@ vi.mock('../../context-menu/ContextMenuView', () => ({
 }));
 
 describe('AvatarInfoWidgetOwnAvatarView classic menu', () => {
-    it('keeps the classic actions without the custom nickname and badge leaderboard entries', () => {
+    it('keeps the classic actions alongside the custom nickname and badge leaderboard entries', () => {
         render(
             <AvatarInfoWidgetOwnAvatarView
                 avatarInfo={
@@ -87,11 +85,11 @@ describe('AvatarInfoWidgetOwnAvatarView classic menu', () => {
         expect(screen.getByText('widget.memenu.dance')).toBeInTheDocument();
         expect(screen.getByText('infostand.link.expressions')).toBeInTheDocument();
         expect(screen.getByText('infostand.show.signs')).toBeInTheDocument();
-        expect(screen.queryByText('Nick Custom')).not.toBeInTheDocument();
-        expect(screen.queryByText('badge_leaderboard.title.total_badges')).not.toBeInTheDocument();
+        expect(screen.getByText('Nick Custom')).toBeInTheDocument();
+        expect(screen.getByText('badge_leaderboard.title.total_badges')).toBeInTheDocument();
     });
 
-    it('keeps retained actions wired and removes forbidden actions from the handler', () => {
+    it('keeps retained actions wired and opens the customize and leaderboard windows', () => {
         const setIsDecorating = vi.fn();
 
         render(
@@ -118,13 +116,13 @@ describe('AvatarInfoWidgetOwnAvatarView classic menu', () => {
         fireEvent.click(screen.getByText('widget.avatar.decorate'));
         fireEvent.click(screen.getByText('widget.memenu.myclothes'));
         fireEvent.click(screen.getByText('product.type.effect'));
+        fireEvent.click(screen.getByText('Nick Custom'));
+        fireEvent.click(screen.getByText('badge_leaderboard.title.total_badges'));
 
         expect(setIsDecorating).toHaveBeenCalledWith(true);
         expect(createLinkEventMock).toHaveBeenCalledWith('avatar-editor/show');
         expect(createLinkEventMock).toHaveBeenCalledWith('avatar-effects/show');
-
-        const source = readFileSync(resolve(process.cwd(), 'src/components/room/widgets/avatar-info/menu/AvatarInfoWidgetOwnAvatarView.tsx'), 'utf8');
-        expect(source).not.toContain('customize_nick');
-        expect(source).not.toContain('badge_leaderboard');
+        expect(createLinkEventMock).toHaveBeenCalledWith('customize/show');
+        expect(createLinkEventMock).toHaveBeenCalledWith('badge-leaderboard/show');
     });
 });

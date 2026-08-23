@@ -177,11 +177,9 @@ Both styles work; you can migrate one gamedata file at a time.
 	-   `git clone https://github.com/duckietm/Octane-Renderer.git`
 	-   Install the dependencies for the renderer : cd C:\Github\Octane-Renderer
     	-   `yarn install`
-	-	Now we will create a Link for the Octane Renderer : `yarn link` This will give you a link address `yarn link "@nitrots/nitro-renderer"`
     -   Install the dependencies for Octane : cd C:\Github\Octane
 	-   `yarn install`
-	-   `yarn link "@nitrots/nitro-renderer"` <== This will link the renderer in the project
--   Rename a few files
+ -  -   Rename a few files
     -   Copy `public/configuration/renderer-config.example` to `public/configuration/renderer-config.json`
     -   Copy `public/configuration/ui-config.example` to `public/configuration/ui-config.json`
     -   Copy `public/configuration/client-mode.example` to `public/configuration/client-mode.json`

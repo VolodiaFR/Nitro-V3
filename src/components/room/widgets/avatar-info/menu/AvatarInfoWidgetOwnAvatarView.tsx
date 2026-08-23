@@ -122,6 +122,12 @@ export const AvatarInfoWidgetOwnAvatarView: FC<AvatarInfoWidgetOwnAvatarViewProp
                     case 'inspect':
                         openInspectionForUser(avatarInfo.roomIndex);
                         break;
+                    case 'customize_nick':
+                        CreateLinkEvent('customize/show');
+                        break;
+                    case 'badge_leaderboard':
+                        CreateLinkEvent('badge-leaderboard/show');
+                        break;
                 }
             }
         }
@@ -189,6 +195,12 @@ export const AvatarInfoWidgetOwnAvatarView: FC<AvatarInfoWidgetOwnAvatarViewProp
                         </ContextMenuListItemView>
                     )}
                     {showInspectButton && <ContextMenuListItemView onClick={(event) => processAction('inspect')}>Inspect</ContextMenuListItemView>}
+
+                    {/* Polaris-only actions are appended after the official AIR rows. */}
+                    <ContextMenuListItemView onClick={(event) => processAction('customize_nick')}>Nick Custom</ContextMenuListItemView>
+                    <ContextMenuListItemView onClick={(event) => processAction('badge_leaderboard')}>
+                        {LocalizeText('badge_leaderboard.title.total_badges')}
+                    </ContextMenuListItemView>
                 </>
             )}
             {mode === MODE_CLUB_DANCES && (
