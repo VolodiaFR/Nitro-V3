@@ -4,7 +4,8 @@ import { useCatalogData, useCatalogDisplayPreferences } from '../../../../../hoo
 import { CatalogLayoutDefaultView } from './CatalogLayoutDefaultView';
 
 vi.mock('../../../../../api', () => ({
-    GetConfigurationValue: () => false,
+    CatalogType: { NORMAL: 'NORMAL', BUILDER: 'BUILDERS_CLUB' },
+    GetConfigurationValue: vi.fn((key: string) => key === 'catalog.multiple.purchase.enabled'),
     LocalizeText: (key: string) => key,
     ProductTypeEnum: { BADGE: 'b', FLOOR: 's' },
     SanitizeHtml: (value: string) => value
@@ -15,7 +16,8 @@ vi.mock('../../../../../common', () => ({ Text: () => null }));
 vi.mock('../../../../../hooks', () => ({
     getCatalogGridMetrics: () => ({}),
     useCatalogData: vi.fn(),
-    useCatalogDisplayPreferences: vi.fn()
+    useCatalogDisplayPreferences: vi.fn(),
+    useCatalogUiState: vi.fn(() => ({ currentType: 'NORMAL' }))
 }));
 
 vi.mock('../../catalog-header/CatalogHeaderView', () => ({ CatalogHeaderView: () => null }));
@@ -49,7 +51,7 @@ beforeEach(() => {
 });
 
 describe('default catalog layout', () => {
-    it('lets the product preview fill an expanded catalog panel', () => {
+    it('lets the product preview fill the exact 360px AIR region', () => {
         const view = render(<CatalogLayoutDefaultView hideNavigation={() => undefined} page={page as any} />);
         const preview = view.container.querySelector<HTMLElement>('.nitro-catalog-offer-preview');
 

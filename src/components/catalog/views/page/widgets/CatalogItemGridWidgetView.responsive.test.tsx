@@ -1,22 +1,20 @@
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CatalogItemGridWidgetView } from './CatalogItemGridWidgetView';
 
 const catalogState = vi.hoisted(() => ({
-    currentPage: { offers: [], pageId: 1 }
+    currentPage: { offers: [], pageId: 1 },
+    currentType: 'NORMAL'
 }));
 
 vi.mock('../../../../../hooks', () => ({
     useCatalogActions: () => ({ selectCatalogOffer: vi.fn() }),
     useCatalogData: () => ({ currentOffer: null, currentPage: catalogState.currentPage }),
-    useCatalogUiState: () => ({ setCurrentPage: vi.fn() })
+    useCatalogUiState: () => ({ currentType: catalogState.currentType, setCurrentPage: vi.fn() }),
+    useInventoryFurni: () => ({ isVisible: false })
 }));
 
 describe('CatalogItemGridWidgetView responsive grid ownership', () => {
-    beforeEach(() => {
-        catalogState.currentPage = { offers: [], pageId: 1 };
-    });
-
     afterEach(cleanup);
 
     it('applies the shared auto-fill grid class to every multi-column offer template', () => {

@@ -11,6 +11,7 @@ import searchFriendsIcon from '../../../../assets/images/friends/swf/search_frie
 import { LayoutAvatarImageView, LayoutBadgeImageView } from '../../../../common';
 import { useFriends } from '../../../../hooks';
 import { isStaffChatIdentity } from '../../staffChatIdentity';
+import { StaffChatFrankIconView } from '../../StaffChatFrankIconView';
 
 export const FriendBarItemView: FC<{ friend: MessengerFriend }> = (props) => {
     const { friend = null } = props;
@@ -79,8 +80,8 @@ export const FriendBarItemView: FC<{ friend: MessengerFriend }> = (props) => {
     return (
         <div ref={elementRef} className={`friend-bar-friend relative ${isVisible ? 'is-selected' : ''}`}>
             {isStaffChat ? (
-                <div className="friend-bar-item-head staff-chat absolute left-[-3px] bottom-[-1px] z-10 h-[35px] w-[40px] pointer-events-none">
-                    <img className="friend-bar-staff-chat-frank block h-[35px] w-[40px] max-w-none" src={staffChatFrankIcon} alt="" />
+                <div className="friend-bar-item-head avatar staff-chat absolute left-[-3px] bottom-[-2px] z-10 h-[40px] w-[40px] overflow-hidden pointer-events-none">
+                    <StaffChatFrankIconView size={40} className="friend-bar-staff-chat-frank" />
                 </div>
             ) : friend.id > 0 ? (
                 <div className="friend-bar-item-head avatar friend-bar-item-head-avatar absolute left-[-3px] bottom-[-2px] z-10 h-[40px] w-[40px] overflow-hidden pointer-events-none">

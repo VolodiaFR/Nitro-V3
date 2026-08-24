@@ -56,6 +56,18 @@ describe('resolveFreeFlowLayout', () => {
         ]);
     });
 
+    it('keeps a taller new message below the shorter older one it spawns behind', () => {
+
+        const result = resolveFreeFlowLayout([
+            { id: 1, left: 0, top: 180, width: 240, height: 20, anchorX: 120 },
+            { id: 2, left: 0, top: 160, width: 240, height: 40, anchorX: 120 }
+        ]);
+        const byId = new Map(result.map((bubble) => [bubble.id, bubble]));
+
+        expect(byId.get(2).top).toBe(160);
+        expect(byId.get(1).top + 20).toBeLessThanOrEqual(byId.get(2).top);
+    });
+
     it('stacks a burst of bubbles from a single speaker without any of them overlapping', () => {
         const bubbles = Array.from({ length: 8 }, (unused, index) => ({
             id: index + 1,
@@ -75,6 +87,9 @@ describe('resolveFreeFlowLayout', () => {
 
             expect(bubble.top).toBeGreaterThanOrEqual(result[index - 1].top + 30 + 5 + 2);
         });
+
+        // Top to bottom must read oldest to newest.
+        expect(result.map(({ id }) => id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     });
 });
 

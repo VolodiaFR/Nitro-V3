@@ -91,16 +91,12 @@ export const resolveFreeFlowLayout = (bubbles: readonly FreeFlowLayoutBubble[]):
                     refreshCollider(right);
                     moved = true;
                 } else {
-                    const upper =
-                        first.colliderTop < second.colliderTop ||
-                        (Math.abs(first.colliderTop - second.colliderTop) < 1 && first.id < second.id)
-                            ? first
-                            : second;
-                    const lower = upper === first ? second : first;
-                    const amount = Math.max(VERTICAL_GAP, upper.colliderTop + upper.colliderHeight - lower.colliderTop + VERTICAL_GAP);
+                    const older = first.id < second.id ? first : second;
+                    const newer = older === first ? second : first;
+                    const amount = Math.max(VERTICAL_GAP, older.colliderTop + older.colliderHeight - newer.colliderTop + VERTICAL_GAP);
 
-                    upper.top -= amount;
-                    refreshCollider(upper);
+                    older.top -= amount;
+                    refreshCollider(older);
                     moved = true;
                 }
             }
