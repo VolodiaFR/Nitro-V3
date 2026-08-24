@@ -6,7 +6,7 @@ import sirv from 'sirv';
 import { isValidJsonMode } from './scripts/json-mode.mjs';
 
 const legacyRendererRoot = resolve(import.meta.dirname, '..', 'renderer');
-const currentRendererRoot = resolve(import.meta.dirname, '..', 'octane-renderer');
+const currentRendererRoot = resolve(import.meta.dirname, '..', 'Octane-Renderer');
 const rendererRoot = existsSync(currentRendererRoot) ? currentRendererRoot : legacyRendererRoot;
 
 // Game assets live outside the repo, in a sibling directory next to Octane.
@@ -198,7 +198,7 @@ export default defineConfig({
                     if(norm.includes('@emoji-mart')) return 'vendor-emoji';
                     if(norm.includes('jodit') || norm.includes('@react-page')) return 'vendor-editor';
 
-                    if(id.includes('octane-renderer') || id.includes(`${ rendererRoot }`))
+                    if(id.includes('Octane-Renderer') || id.includes(`${ rendererRoot }`))
                     {
                         // Heaviest renderer packages get their own chunks so
                         // pages that don't touch them (login flow, very early

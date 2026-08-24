@@ -13,7 +13,7 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_RENDERER_REPO_URL = 'https://github.com/duckietm/Octane-Renderer.git';
 // Sibling folder names the client's vite.config / tsconfig already know how to resolve.
 // Auto-detection walks these in order; a fresh clone defaults to the first one.
-const RENDERER_DIR_CANDIDATES = ['octane-renderer', 'renderer'];
+const RENDERER_DIR_CANDIDATES = ['Octane-Renderer', 'renderer'];
 const DEFAULT_RENDERER_DIR_NAME = RENDERER_DIR_CANDIDATES[0];
 // Resolved in main() from --renderer-repo / --renderer-dir / NITRO_RENDERER_DIR / auto-detection.
 let RENDERER_REPO_URL = DEFAULT_RENDERER_REPO_URL;
