@@ -50,6 +50,10 @@ for(const file of walk(dist))
     if(file.endsWith('.css')) encryptFile(file);
 }
 
+const viteManifest = join(dist, '.vite', 'manifest.json');
+
+if(existsSync(viteManifest)) copyFileSync(viteManifest, join(dist, 'manifest.json'));
+
 const assetMirrorDir = join(dist, 'src', 'assets');
 mkdirSync(assetMirrorDir, { recursive: true });
 
