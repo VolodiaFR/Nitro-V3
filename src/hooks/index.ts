@@ -1,5 +1,6 @@
 export * from './achievements';
 export * from './avatar-editor';
+export * from './avatar-effects';
 export * from './buildheight/useBuildHeight';
 export * from './camera';
 export * from './catalog';
