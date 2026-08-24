@@ -35,6 +35,7 @@ import {
 import { FC, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     AvatarInfoUtilities,
+    createPacketCooldownGate,
     GetRoomObjectBounds,
     GetRoomObjectScreenLocation,
     LocalizeText,
@@ -204,6 +205,12 @@ export const WiredCreatorToolsView: FC<{}> = () => {
     const variableHighlightOverlays = useWiredCreatorToolsUiStore((s) => s.variableHighlightOverlays);
     const setVariableHighlightOverlays = useWiredCreatorToolsUiStore((s) => s.setVariableHighlightOverlays);
     const variableHighlightObjectsRef = useRef<Array<{ category: number; objectId: number }>>([]);
+    const monitorRequestGateRef = useRef<ReturnType<typeof createPacketCooldownGate> | null>(null);
+
+    if (!monitorRequestGateRef.current) {
+        monitorRequestGateRef.current = createPacketCooldownGate();
+    }
+
     const shouldPauseVariableSnapshotRefresh = !!editingVariable || !!editingManagedHolderVariableId || isInspectionGiveOpen || isManagedGiveOpen;
     const selectedVariableKeys = useWiredCreatorToolsUiStore((s) => s.selectedVariableKeys);
     const setSelectedVariableKeys = useWiredCreatorToolsUiStore((s) => s.setSelectedVariableKeys);
@@ -845,17 +852,21 @@ export const WiredCreatorToolsView: FC<{}> = () => {
         setSelectedMonitorLogDetails(null);
     }, [selectedMonitorErrorType]);
 
+    const requestMonitorSnapshot = useCallback(() => {
+        monitorRequestGateRef.current?.request(() => {
+            SendMessageComposer(new WiredMonitorRequestComposer(WIRED_MONITOR_ACTION_FETCH));
+        });
+    }, []);
+
     useEffect(() => {
         if (!isVisible || activeTab !== 'monitor' || !roomSession?.roomId) return;
 
-        const requestSnapshot = () => SendMessageComposer(new WiredMonitorRequestComposer(WIRED_MONITOR_ACTION_FETCH));
+        requestMonitorSnapshot();
 
-        requestSnapshot();
-
-        const interval = window.setInterval(requestSnapshot, WIRED_MONITOR_POLL_MS);
+        const interval = window.setInterval(requestMonitorSnapshot, WIRED_MONITOR_POLL_MS);
 
         return () => window.clearInterval(interval);
-    }, [isVisible, activeTab, roomSession?.roomId]);
+    }, [isVisible, activeTab, roomSession?.roomId, requestMonitorSnapshot]);
 
     useEffect(() => {
         if (!isVisible || !roomSession?.roomId || !roomSettings.canInspect || shouldPauseVariableSnapshotRefresh) return;
