@@ -99,6 +99,73 @@ export class AvatarEditorThumbnailsHelper {
         AvatarFigurePartType.RIGHT_HAND_ITEM
     ];
 
+    private static async trimTransparentPadding(imageUrl: string): Promise<string> {
+        try {
+            const image = new Image();
+
+            await new Promise<void>((resolve, reject) => {
+                image.onload = () => resolve();
+                image.onerror = () => reject(new Error('thumbnail load failed'));
+                image.src = imageUrl;
+            });
+
+            const width = image.naturalWidth;
+            const height = image.naturalHeight;
+
+            if (!width || !height) return imageUrl;
+
+            const canvas = document.createElement('canvas');
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const context = canvas.getContext('2d', { willReadFrequently: true });
+
+            if (!context) return imageUrl;
+
+            context.drawImage(image, 0, 0);
+
+            const { data } = context.getImageData(0, 0, width, height);
+            let minX = width;
+            let minY = height;
+            let maxX = -1;
+            let maxY = -1;
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    if (data[(y * width + x) * 4 + 3] > 0) {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+
+            if (maxX < 0) return imageUrl;
+
+            const trimmedWidth = maxX - minX + 1;
+            const trimmedHeight = maxY - minY + 1;
+
+            if (trimmedWidth === width && trimmedHeight === height) return imageUrl;
+
+            const trimmedCanvas = document.createElement('canvas');
+
+            trimmedCanvas.width = trimmedWidth;
+            trimmedCanvas.height = trimmedHeight;
+
+            const trimmedContext = trimmedCanvas.getContext('2d');
+
+            if (!trimmedContext) return imageUrl;
+
+            trimmedContext.drawImage(canvas, minX, minY, trimmedWidth, trimmedHeight, 0, 0, trimmedWidth, trimmedHeight);
+
+            return trimmedCanvas.toDataURL('image/png');
+        } catch {
+            return imageUrl;
+        }
+    }
+
     private static getThumbnailKey(setType: string, part: IAvatarEditorCategoryPartItem, partColors?: IPartColor[], isDisabled?: boolean): string {
         let key = `${setType}-${part.partSet.id}`;
 
@@ -274,21 +341,17 @@ export class AvatarEditorThumbnailsHelper {
                         return;
                     }
 
-                    // The listener above will call us again once the requested
-                    // face libraries are available. Do not settle this attempt
-                    // with the shared placeholder image.
                     if (avatarImage.isPlaceholder()) return;
 
-                    // Use the avatar renderer's native cropped-head export.
-                    // Keep the avatar editor's intentionally tight thumbnail;
-                    // AIR gift tags use the native body-part union padding.
-                    const imageUrl = avatarImage.processAsCroppedImageUrl(AvatarSetType.HEAD, true);
-                    if (!imageUrl) {
+                    const croppedImageUrl = avatarImage.processAsCroppedImageUrl(AvatarSetType.HEAD);
+                    if (!croppedImageUrl) {
                         completed = true;
                         resolve(null);
 
                         return;
                     }
+
+                    const imageUrl = await AvatarEditorThumbnailsHelper.trimTransparentPadding(croppedImageUrl);
 
                     if (completed) return;
 
@@ -310,10 +373,6 @@ export class AvatarEditorThumbnailsHelper {
             resetFigure(figureString);
         });
 
-        // Unlike clothing thumbnails, face attempts must remain retryable.
-        // The avatar loader can first return a placeholder and then publish an
-        // AVATAR_ASSET_LOADED event; caching that unresolved attempt prevents
-        // the fresh renderer call made in response to that event.
         return promise;
     }
 
