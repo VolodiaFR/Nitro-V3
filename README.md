@@ -40,7 +40,7 @@ The installer walks through these steps:
 
 ```
 [1/9] Check prerequisites (node >= 18, yarn, git)
-[2/9] Clone Octane-Renderer
+[2/9] Clone octane-renderer
 [3/9] Setup renderer (yarn install + yarn link)
 [4/9] Setup client (yarn install + yarn link "@nitrots/nitro-renderer")
 [5/9] Copy public/configuration/*.example -> *.json
@@ -173,11 +173,12 @@ Both styles work; you can migrate one gamedata file at a time.
 
 -   First you should open terminal and navigate to the folder where you want to clone Octane and Octane Renderer
 -   Clone Octane (Expl. C:\Github\)
-    -   `git clone https://github.com/duckietm/Octane.git`
+  -   `git clone https://github.com/duckietm/Octane.git` <== For now switch to Dev-RendererV2
 	-   `git clone https://github.com/duckietm/Octane-Renderer.git`
-	-   Install the dependencies for the renderer : cd C:\Github\Octane-Renderer
+	-   Install the dependencies for the renderer : cd C:\Github\octane-renderer
     	-   `yarn install`
-    -   Install the dependencies for Octane : cd C:\Github\Octane
+	-	Now we will create a Link for the Octane Renderer : `yarn link` This will give you a link address `yarn link "@nitrots/nitro-renderer"`
+    -   Install the dependencies for Cool UI : cd C:\Github\octane
 	-   `yarn install`
  -  -   Rename a few files
     -   Copy `public/configuration/renderer-config.example` to `public/configuration/renderer-config.json`

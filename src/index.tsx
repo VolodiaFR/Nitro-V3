@@ -18,6 +18,7 @@ const queryClient = new QueryClient({
 import './css/habbo/HabboTheme.css';
 import './css/index.css';
 
+import './css/avatar-editor/AvatarEditorView.css';
 import './css/backgrounds/BackgroundsView.css';
 import './css/badges/BadgeLeaderboardView.css';
 import './css/catalog/CatalogView.css';
@@ -57,7 +58,7 @@ import './css/inventory/InventoryView.css';
 import './css/layout/LayoutTrophy.css';
 
 import './css/nitrocard/NitroCardView.css';
-import './css/navigator/NavigatorView.css';
+import './css/achievements/AchievementsView.css';
 
 import './css/notification/NotificationCenterView.css';
 import './css/notification/HotelAlertToast.css';
@@ -79,7 +80,10 @@ import './css/user-settings/UserSettingsView.css';
 import './css/vault/VaultView.css';
 import './css/widgets/FurnitureWidgets.css';
 import './css/WiredView.css';
+import './css/camera/CameraWidget.css';
+import './css/catalog/CatalogGiftView.css';
 import './css/common/ClassicScrollbar.css';
+import './css/navigator/NavigatorView.css';
 
 document.documentElement.classList.add('has-classic-scrollbar');
 

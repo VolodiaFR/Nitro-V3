@@ -43,4 +43,5 @@ describe('InfiniteGrid responsive columns', () => {
             expect(firstRow?.style.gridTemplateColumns).toBe('repeat(auto-fill, minmax(53px, 1fr))');
         });
     });
+
 });

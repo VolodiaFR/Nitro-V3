@@ -17,10 +17,9 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
 
         if (!product) return;
 
-        roomPreviewer.reset(false);
+        roomPreviewer.addViewOffset.y = product.isUniqueLimitedItem ? -15 : 0;
         roomPreviewer.centerWallItems = true;
         roomPreviewer.setAutomaticStateChange(false);
-        roomPreviewer.updateObjectRoom('111', '217', '1.1');
         roomPreviewer.updateRoomWallsAndFloorVisibility(true, true);
 
         let animateFurnitureState = false;
@@ -28,7 +27,10 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
         const populate = () => {
             switch (product.productType) {
                 case ProductTypeEnum.FLOOR: {
-                    if (!product.furnitureData) return;
+                    if (!product.furnitureData) {
+                        roomPreviewer.reset(false);
+                        return;
+                    }
 
                     const furniData = GetSessionDataManager().getFloorItemData(product.furnitureData.id);
                     const isPurchasableClothing = product.furnitureData.specialType === FurniCategory.FIGURE_PURCHASABLE_SET;
@@ -55,21 +57,30 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
                         roomPreviewer.addAvatarIntoRoom(figureString || sessionDataManager.figure, 0);
                         roomPreviewer.zoomIn();
                     } else {
+                        // RoomPreviewer only keys its fast path by class/extra,
+                        // so force a transactional refresh when stuff data
+                        // changes for the same product.
+                        roomPreviewer.reset(true);
                         roomPreviewer.addFurnitureIntoRoom(product.productClassId, new Vector3d(90), previewStuffData, product.extraParam);
                         animateFurnitureState = true;
                     }
                     return;
                 }
                 case ProductTypeEnum.WALL: {
-                    if (!product.furnitureData) return;
+                    if (!product.furnitureData) {
+                        roomPreviewer.reset(false);
+                        return;
+                    }
 
                     roomPreviewer.updateRoomWallsAndFloorVisibility(true, true);
 
                     switch (product.furnitureData.specialType) {
                         case FurniCategory.FLOOR:
+                            roomPreviewer.reset(true);
                             roomPreviewer.updateObjectRoom(product.extraParam);
                             return;
                         case FurniCategory.WALL_PAPER:
+                            roomPreviewer.reset(true);
                             roomPreviewer.updateObjectRoom(null, product.extraParam);
                             return;
                         case FurniCategory.LANDSCAPE: {
@@ -78,6 +89,7 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
                             const furniData = GetSessionDataManager().getWallItemDataByName('window_double_default');
 
                             if (furniData) roomPreviewer.addWallItemIntoRoom(furniData.id, new Vector3d(90), furniData.customParams);
+                            else roomPreviewer.reset(false);
                             return;
                         }
                         default:
@@ -94,6 +106,9 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
                 case ProductTypeEnum.EFFECT:
                     roomPreviewer.addAvatarIntoRoom(GetSessionDataManager().figure, product.productClassId);
                     roomPreviewer.zoomIn();
+                    return;
+                default:
+                    roomPreviewer.reset(false);
                     return;
             }
         };
@@ -117,5 +132,5 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
         );
     }
 
-    return <LayoutRoomPreviewerView key={currentOffer?.offerId} height={height} roomPreviewer={roomPreviewer} />;
+    return <LayoutRoomPreviewerView height={height} roomPreviewer={roomPreviewer} />;
 };

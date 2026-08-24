@@ -23,9 +23,7 @@ describe('responsive catalog item grid', () => {
         const style = getComputedStyle(grid);
 
         expect(style.getPropertyValue('--nitro-grid-column-min-width').trim()).toBe('53px');
-        expect(style.gridTemplateColumns.replaceAll(' ', '')).toBe(
-            'repeat(auto-fill,minmax(var(--nitro-grid-column-min-width,53px),1fr))'
-        );
+        expect(style.gridTemplateColumns.replaceAll(' ', '')).toBe('repeat(var(--nitro-air-column-count,6),53px)');
     });
 
     it('keeps the last column clear of the visible classic scrollbar', () => {
@@ -68,11 +66,11 @@ describe('responsive catalog item grid', () => {
     });
 
     it('keeps auto-fill active at the compact catalog breakpoint', () => {
-        const compactRule = catalogCss.match(/@media \(max-width: 640px\)[\s\S]*?\.nitro-catalog-grid\s*\{([^}]*)\}/)?.[1] ?? '';
+        const compactRule =
+            catalogCss.match(/@media \(max-width: 640px\)[\s\S]*?\.nitro-catalog-grid:not\(\.nitro-catalog-grid-density-standard\)\s*\{([^}]*)\}/)?.[1] ?? '';
 
-        expect(compactRule.replaceAll(' ', '')).toContain(
-            'grid-template-columns:repeat(auto-fill,minmax(var(--nitro-grid-column-min-width,47px),1fr))'
-        );
+        expect(compactRule.replaceAll(' ', '')).toContain('grid-template-columns:repeat(auto-fill,minmax(var(--nitro-grid-column-min-width,47px),1fr))');
+        expect(compactRule).not.toContain('--nitro-air-column-count');
     });
 
     it('lets fixed-coordinate offer templates expose the full catalog width to auto-fill', () => {

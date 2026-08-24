@@ -7,7 +7,10 @@ vi.mock('../../../../../common', () => ({
     Text: ({ children, ...props }: any) => <span {...props}>{children}</span>
 }));
 
-vi.mock('../../../../../hooks', () => ({ useCatalogUiState: () => ({ purchaseOptions: { quantity: 1 } }) }));
+vi.mock('../../../../../hooks', () => ({
+    useCatalogBundleDiscountRuleset: () => ({ data: null }),
+    useCatalogUiState: () => ({ purchaseOptions: { quantity: 1 } })
+}));
 
 afterEach(cleanup);
 

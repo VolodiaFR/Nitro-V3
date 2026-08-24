@@ -3,37 +3,58 @@ import { type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AvatarInfoWidgetOwnAvatarView } from './AvatarInfoWidgetOwnAvatarView';
 
-const { createLinkEventMock } = vi.hoisted(() => ({ createLinkEventMock: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+    config: new Map<string, unknown>(),
+    createLinkEvent: vi.fn(),
+    effectId: 0,
+    hasClub: true,
+    hasVip: true,
+    posture: 'std',
+    sendDanceMessage: vi.fn(),
+    sendExpressionMessage: vi.fn(),
+    sendPostureMessage: vi.fn(),
+    sendSignMessage: vi.fn(),
+    showInspectButton: true
+}));
 
 afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    mocks.config.clear();
+    mocks.effectId = 0;
+    mocks.hasClub = true;
+    mocks.hasVip = true;
+    mocks.posture = 'std';
+    mocks.showInspectButton = true;
 });
 
 vi.mock('@nitrots/nitro-renderer', () => ({
-    AvatarAction: { POSTURE_STAND: 'std' },
+    AvatarAction: { POSTURE_STAND: 'std', POSTURE_SWIM: 'swim' },
     AvatarExpressionEnum: {
         BLOW: { ordinal: 2 },
         IDLE: { ordinal: 3 },
         LAUGH: { ordinal: 4 },
         WAVE: { ordinal: 1 }
     },
-    CreateLinkEvent: createLinkEventMock,
+    CreateLinkEvent: mocks.createLinkEvent,
     RoomControllerLevel: { GUEST: 0 },
     RoomObjectCategory: { UNIT: 100 },
+    RoomObjectVariable: { FIGURE_EFFECT: 'figure_effect' },
     RoomUnitDropHandItemComposer: class {}
 }));
 
 vi.mock('../../../../../api', () => ({
     DispatchUiEvent: vi.fn(),
     GetCanStandUp: () => false,
-    GetCanUseExpression: () => true,
-    GetOwnPosture: () => 'std',
+    GetConfigurationValue: (key: string, fallback: unknown) => (mocks.config.has(key) ? mocks.config.get(key) : fallback),
+    GetOwnPosture: () => mocks.posture,
+    GetOwnRoomObject: () => ({ model: { getValue: () => mocks.effectId } }),
     GetUserProfile: vi.fn(),
-    HasHabboClub: () => true,
-    HasHabboVip: () => true,
+    HasHabboClub: () => mocks.hasClub,
+    HasHabboVip: () => mocks.hasVip,
     IsRidingHorse: () => false,
     LocalizeText: (key: string) => key,
+    localizeWithFallback: (_key: string, fallback: string) => fallback,
     PostureTypeEnum: { POSTURE_SIT: 'sit', POSTURE_STAND: 'stand' },
     SendMessageComposer: vi.fn()
 }));
@@ -43,86 +64,98 @@ vi.mock('../../../../../events', () => ({ HelpNameChangeEvent: class {} }));
 vi.mock('../../../../../hooks', () => ({
     useRoom: () => ({
         roomSession: {
-            sendDanceMessage: vi.fn(),
-            sendExpressionMessage: vi.fn(),
-            sendPostureMessage: vi.fn(),
-            sendSignMessage: vi.fn()
+            sendDanceMessage: mocks.sendDanceMessage,
+            sendExpressionMessage: mocks.sendExpressionMessage,
+            sendPostureMessage: mocks.sendPostureMessage,
+            sendSignMessage: mocks.sendSignMessage
         }
     }),
-    useWiredTools: () => ({ openInspectionForUser: vi.fn(), showInspectButton: false })
+    useWiredTools: () => ({ openInspectionForUser: vi.fn(), showInspectButton: mocks.showInspectButton })
 }));
 
 vi.mock('../../context-menu/ContextMenuView', () => ({
-    ContextMenuView: ({ children, classNames = [] }: { children: ReactNode; classNames?: string[] }) => <div className={classNames.join(' ')}>{children}</div>
+    ContextMenuView: ({
+        children,
+        classNames = [],
+        freezePositionOnHover,
+        maximumVerticalLeadRatio,
+        tallAvatarOffset
+    }: {
+        children: ReactNode;
+        classNames?: string[];
+        freezePositionOnHover?: boolean;
+        maximumVerticalLeadRatio?: number;
+        tallAvatarOffset?: number;
+    }) => (
+        <div
+            className={classNames.join(' ')}
+            data-freeze-position-on-hover={String(freezePositionOnHover)}
+            data-maximum-vertical-lead-ratio={maximumVerticalLeadRatio}
+            data-tall-avatar-offset={tallAvatarOffset}
+        >
+            {children}
+        </div>
+    )
 }));
 
-describe('AvatarInfoWidgetOwnAvatarView classic menu', () => {
-    it('keeps the classic actions alongside the custom nickname and badge leaderboard entries', () => {
-        render(
-            <AvatarInfoWidgetOwnAvatarView
-                avatarInfo={
-                    {
-                        allowNameChange: false,
-                        amIAnyRoomController: false,
-                        amIOwner: true,
-                        carryItem: 0,
-                        name: 'tester',
-                        roomControllerLevel: 0,
-                        roomIndex: 7,
-                        userType: 1,
-                        webID: 42
-                    } as any
-                }
-                isDancing={false}
-                setIsDecorating={vi.fn()}
-                onClose={vi.fn()}
-            />
-        );
+const avatarInfo = {
+    allowNameChange: true,
+    amIAnyRoomController: false,
+    amIOwner: true,
+    carryItem: 7,
+    name: 'tester',
+    roomControllerLevel: 0,
+    roomIndex: 7,
+    userType: 1,
+    webID: 42
+} as any;
 
-        expect(screen.getByText('widget.avatar.decorate')).toBeInTheDocument();
-        expect(screen.getByText('widget.memenu.myclothes')).toBeInTheDocument();
-        expect(screen.getByText('product.type.effect')).toBeInTheDocument();
-        expect(screen.getByText('widget.memenu.dance')).toBeInTheDocument();
-        expect(screen.getByText('infostand.link.expressions')).toBeInTheDocument();
-        expect(screen.getByText('infostand.show.signs')).toBeInTheDocument();
-        expect(screen.getByText('Nick Custom')).toBeInTheDocument();
-        expect(screen.getByText('badge_leaderboard.title.total_badges')).toBeInTheDocument();
+const renderMenu = (onClose = vi.fn(), isDancing = false) =>
+    render(<AvatarInfoWidgetOwnAvatarView avatarInfo={avatarInfo} isDancing={isDancing} setIsDecorating={vi.fn()} onClose={onClose} />);
+
+const getActionLabels = () => Array.from(document.querySelector('.air-avatar-menu-buttons').children).map((element) => element.textContent);
+
+describe('AIR own-avatar menu', () => {
+    it('uses the own-menu variant, AIR anchor rules, XML row order, and then Polaris extras', () => {
+        renderMenu();
+
+        const menu = document.querySelector('.nitro-avatar-action-menu--own');
+
+        expect(menu).toHaveClass('nitro-avatar-action-menu');
+        expect(menu).toHaveAttribute('data-tall-avatar-offset', '25');
+        expect(menu).toHaveAttribute('data-maximum-vertical-lead-ratio', '0.05');
+        expect(menu).toHaveAttribute('data-freeze-position-on-hover', 'true');
+        expect(getActionLabels()).toEqual([
+            'widget.avatar.change_name',
+            'widget.avatar.decorate',
+            'widget.memenu.myclothes',
+            'infostand.link.expressions',
+            'widget.memenu.dance',
+            'infostand.show.signs',
+            'avatar.widget.drop_hand_item',
+            'widget.memenu.effects',
+            'infostand.button.wired_inspect',
+            'Custom nickname',
+            'Badge leaderboard'
+        ]);
+        expect(screen.queryByText('product.type.effect')).not.toBeInTheDocument();
     });
 
-    it('keeps retained actions wired and opens the customize and leaderboard windows', () => {
-        const setIsDecorating = vi.fn();
+    it('keeps the retained AIR and Polaris actions wired', () => {
+        const onClose = vi.fn();
 
-        render(
-            <AvatarInfoWidgetOwnAvatarView
-                avatarInfo={
-                    {
-                        allowNameChange: false,
-                        amIAnyRoomController: false,
-                        amIOwner: true,
-                        carryItem: 0,
-                        name: 'tester',
-                        roomControllerLevel: 0,
-                        roomIndex: 7,
-                        userType: 1,
-                        webID: 42
-                    } as any
-                }
-                isDancing={false}
-                setIsDecorating={setIsDecorating}
-                onClose={vi.fn()}
-            />
-        );
+        renderMenu(onClose);
 
-        fireEvent.click(screen.getByText('widget.avatar.decorate'));
         fireEvent.click(screen.getByText('widget.memenu.myclothes'));
-        fireEvent.click(screen.getByText('product.type.effect'));
-        fireEvent.click(screen.getByText('Nick Custom'));
-        fireEvent.click(screen.getByText('badge_leaderboard.title.total_badges'));
+        fireEvent.click(screen.getByText('widget.memenu.effects'));
+        fireEvent.click(screen.getByText('Custom nickname'));
+        fireEvent.click(screen.getByText('Badge leaderboard'));
 
-        expect(setIsDecorating).toHaveBeenCalledWith(true);
-        expect(createLinkEventMock).toHaveBeenCalledWith('avatar-editor/show');
-        expect(createLinkEventMock).toHaveBeenCalledWith('avatar-effects/show');
-        expect(createLinkEventMock).toHaveBeenCalledWith('customize/show');
-        expect(createLinkEventMock).toHaveBeenCalledWith('badge-leaderboard/show');
+        expect(mocks.createLinkEvent).toHaveBeenCalledWith('avatar-editor/show');
+        expect(mocks.createLinkEvent).toHaveBeenCalledWith('avatar-effects/show');
+        expect(mocks.createLinkEvent).toHaveBeenCalledWith('customize/show');
+        expect(mocks.createLinkEvent).toHaveBeenCalledWith('badge-leaderboard/show');
+        expect(onClose).toHaveBeenCalledTimes(4);
     });
+
 });

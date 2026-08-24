@@ -6,11 +6,8 @@ import sirv from 'sirv';
 import { isValidJsonMode } from './scripts/json-mode.mjs';
 
 const legacyRendererRoot = resolve(import.meta.dirname, '..', 'renderer');
-const previousRendererRoot = resolve(import.meta.dirname, '..', 'Nitro_Render_V3');
-const currentRendererRoot = resolve(import.meta.dirname, '..', 'Octane-Renderer');
-const rendererRoot = existsSync(currentRendererRoot)
-    ? currentRendererRoot
-    : (existsSync(previousRendererRoot) ? previousRendererRoot : legacyRendererRoot);
+const currentRendererRoot = resolve(import.meta.dirname, '..', 'octane-renderer');
+const rendererRoot = existsSync(currentRendererRoot) ? currentRendererRoot : legacyRendererRoot;
 
 // Game assets live outside the repo, in a sibling directory next to Octane.
 // They are NOT placed under public/ on purpose: with ~177k files a symlink
@@ -67,9 +64,9 @@ if(!existsSync(rendererRoot))
         `    - ${ currentRendererRoot } (preferred)\n` +
         `    - ${ previousRendererRoot } (previous name)\n` +
         `    - ${ legacyRendererRoot } (legacy)\n\n` +
-        '  Clone Octane-Renderer next to Octane and rerun:\n' +
-        '    git clone https://github.com/duckietm/Octane-Renderer.git ../Octane-Renderer\n' +
-        '    cd ../Octane-Renderer && yarn install\n\n' +
+        '  Clone Octane Renderer next to Octane and rerun:\n' +
+        '    git clone <renderer-repo> ../octane-renderer\n' +
+        '    cd ../octane-renderer && yarn install\n\n' +
         '  (See CLAUDE.md "Commands" section for the full setup walkthrough.)\n'
     );
 }
@@ -138,7 +135,7 @@ export default defineConfig({
             '~': resolve(import.meta.dirname, 'node_modules'),
             // Force the umbrella to the source index.ts. Without this,
             // node-module resolution (via the symlink at
-            // node_modules/@nitrots/nitro-renderer -> ../Octane-Renderer)
+            // node_modules/@nitrots/nitro-renderer -> ../octane-renderer)
             // can land on the stale `dist/index.js` when one exists in
             // the renderer working tree — leaving the bundle with
             // pre-snapshot-pattern stubs and producing runtime errors
@@ -159,10 +156,9 @@ export default defineConfig({
             '@nitrots/sound': resolve(rendererRoot, 'packages/sound/src/index.ts'),
             '@nitrots/utils/src': resolve(rendererRoot, 'packages/utils/src'),
             '@nitrots/utils': resolve(rendererRoot, 'packages/utils/src/index.ts'),
-            // Keep Pixi's exported registration entries ahead of the broad
-            // package-directory alias, which would otherwise swallow those
-            // subpaths and resolve them to directories that do not exist
-            // (the alias bypasses pixi's package.json `exports` map).
+            // Keep Pixi's exported registration entry ahead of the broad
+            // package-directory alias, which would otherwise swallow this
+            // subpath and resolve it to a directory that does not exist.
             'pixi.js/advanced-blend-modes': resolve(rendererRoot, 'node_modules/pixi.js/lib/advanced-blend-modes/init.mjs'),
             'pixi.js': resolve(rendererRoot, 'node_modules/pixi.js'),
             'pixi-filters': resolve(rendererRoot, 'node_modules/pixi-filters'),
@@ -191,8 +187,8 @@ export default defineConfig({
                 manualChunks: id =>
                 {
                     // Vendor checks first — pixi.js/howler are aliased to
-                    // ../Octane-Renderer/node_modules so they match the renderer
-                    // path too. Without this priority, they end
+                    // ../octane-renderer/node_modules so they match
+                    // `octane-renderer` too. Without this priority, they end
                     // up bundled into nitro-renderer instead of getting their
                     // own chunks (pixi alone is ~600KB). Use `/pixi.js/` to
                     // avoid matching path fragments like `assets/pixi.js/`.
@@ -202,7 +198,7 @@ export default defineConfig({
                     if(norm.includes('@emoji-mart')) return 'vendor-emoji';
                     if(norm.includes('jodit') || norm.includes('@react-page')) return 'vendor-editor';
 
-                    if(id.includes(`${ rendererRoot }`))
+                    if(id.includes('octane-renderer') || id.includes(`${ rendererRoot }`))
                     {
                         // Heaviest renderer packages get their own chunks so
                         // pages that don't touch them (login flow, very early
