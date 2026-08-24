@@ -106,10 +106,7 @@ export const ChatWidgetView: FC<{}> = (props) => {
 
                     if (!overlapsHorizontally || !overlapsVertically) continue;
 
-                    const topChat =
-                        firstChat.top < secondChat.top || (Math.abs(firstChat.top - secondChat.top) < 1 && firstChat.id < secondChat.id)
-                            ? firstChat
-                            : secondChat;
+                    const topChat = firstChat.id < secondChat.id ? firstChat : secondChat;
                     const bottomRect = topChat === firstChat ? secondRect : firstRect;
                     const topRect = topChat === firstChat ? firstRect : secondRect;
                     const amount = Math.max(CHAT_COLLISION_GAP, topRect.bottom - bottomRect.top + CHAT_COLLISION_GAP);
