@@ -415,8 +415,7 @@
     border: 0 !important;
     border-radius: 0 !important;
     background-color: transparent !important;
-    background-image: url('../../assets/images/habbo-skin/2249_habbo_skin_blue_png$87fbbf84559e7bad0222a9c697b1104d-1406111769.png') !important;
-    background-position: -410px 0 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15'%3E%3Crect x='0.5' y='0.5' width='14' height='14' fill='%23ffffff' stroke='%23000000' stroke-width='1'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     box-shadow: none !important;
     cursor: pointer;
@@ -424,7 +423,10 @@
 }
 
 .air-settings-checkbox:checked {
-    background-position: -410px -16px !important;
+    /* One SVG per state. The skin sheet has no clean ticked box — its
+       (410,16) region is a dark slab that vanishes on this panel — and
+       layering a tick over the sprite left the box unpainted in the client. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15'%3E%3Crect x='0.5' y='0.5' width='14' height='14' fill='%23ffffff' stroke='%23000000' stroke-width='1'/%3E%3Cpath d='M3.5 8 L6 10.5 L11.5 4.5' fill='none' stroke='%23111111' stroke-width='2' stroke-linecap='square'/%3E%3C/svg%3E") !important;
 }
 
 .air-settings-other__list {
