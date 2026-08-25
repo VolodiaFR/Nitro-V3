@@ -1,22 +1,25 @@
-import { GetRoomEngine, RoomChatSettings, RoomObjectCategory } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useEffect, useMemo, useRef } from 'react';
-import { ChatBubbleMessage, GetConfigurationValue, GetOptionalConfigurationValue, GetRoomObjectScreenLocation } from '../../../../api';
+import { ChatBubbleMessage, GetConfigurationValue, GetOptionalConfigurationValue } from '../../../../api';
 import { useChatWidget, useChatWindow } from '../../../../hooks';
 import IntervalWebWorker from '../../../../workers/IntervalWebWorker';
 import { WorkerBuilder } from '../../../../workers/WorkerBuilder';
 import { CHAT_TEXT_SIZE_EVENT } from '../chat-input/chatTextSize';
 import { ChatWidgetMessageView } from './ChatWidgetMessageView';
 import { ChatWidgetWindowView } from './ChatWidgetWindowView';
-import { DEFAULT_BUBBLE_STACK_OVERLAP, getBubbleStackOverflowBottom, getPointerChatIds, measureBubbleVisualOffsets } from './chatBubbleMetrics';
-import { followFreeFlowAnchor, getChatViewerHeight, resolveFreeFlowLayout } from './freeFlowChatLayout';
+import { getPointerChatIds, measureBubbleVisualOffsets } from './chatBubbleMetrics';
+import { getChatViewerHeight } from './freeFlowChatLayout';
 
 const CHAT_MOVE_UP_PIXELS = 19;
 const CHAT_COLLISION_ITERATIONS = 20;
 const CHAT_COLLISION_MIN_WIDTH = 240;
-const CHAT_COLLISION_GAP = 1;
 const CHAT_REMOVE_TOP_MARGIN = -10;
+const DEFAULT_CHAT_STACK_OVERLAP = 6;
 
-const getStackOverlap = () => Number(GetOptionalConfigurationValue<number>('chat.bubble.stack.overlap', DEFAULT_BUBBLE_STACK_OVERLAP));
+const getStackOverlap = () => {
+    const configured = Number(GetOptionalConfigurationValue<number>('chat.bubble.stack.overlap', DEFAULT_CHAT_STACK_OVERLAP));
+
+    return Number.isFinite(configured) ? Math.max(0, configured) : DEFAULT_CHAT_STACK_OVERLAP;
+};
 
 export const ChatWidgetView: FC<{}> = (props) => {
     const { chatMessages = [], setChatMessages = null, chatSettings = null, getScrollSpeed = 6000 } = useChatWidget();
@@ -56,40 +59,14 @@ export const ChatWidgetView: FC<{}> = (props) => {
         return {
             left: chat.left - horizontalPadding,
             right: chat.left + chat.width + horizontalPadding,
-            top: chat.top - chat.visualOffsetTop,
-            bottom: chat.top + chat.height + getBubbleStackOverflowBottom(chat.visualOffsetBottom, getStackOverlap())
+            top: chat.top,
+            bottom: chat.top + chat.height
         };
     }, []);
 
     const resolveOverlappingChats = useCallback(() => {
         const visibleChats = chatMessages.filter((chat) => chat.elementRef && chat.width > 0 && chat.height > 0);
-
-        if (chatSettings?.mode === RoomChatSettings.CHAT_MODE_FREE_FLOW) {
-            const stackOverlap = getStackOverlap();
-            const positions = resolveFreeFlowLayout(visibleChats.map((chat) => ({
-                id: chat.id,
-                left: chat.left,
-                top: chat.top,
-                width: chat.width,
-                height: chat.height,
-                anchorX: chat.location?.x ?? (chat.left + (chat.width / 2)),
-                overflowTop: chat.visualOffsetTop,
-                overflowBottom: getBubbleStackOverflowBottom(chat.visualOffsetBottom, stackOverlap)
-            })));
-            const positionsById = new Map(positions.map((position) => [position.id, position]));
-
-            visibleChats.forEach((chat) => {
-                const position = positionsById.get(chat.id);
-
-                if (!position) return;
-
-                chat.left = position.left;
-                chat.top = position.top;
-                chat.elementRef.style.setProperty('--chat-pointer-x', `${position.pointerX}px`);
-            });
-
-            return;
-        }
+        const stackOverlap = getStackOverlap();
 
         for (let iteration = 0; iteration < CHAT_COLLISION_ITERATIONS; iteration++) {
             let moved = false;
@@ -109,7 +86,10 @@ export const ChatWidgetView: FC<{}> = (props) => {
                     const topChat = firstChat.id < secondChat.id ? firstChat : secondChat;
                     const bottomRect = topChat === firstChat ? secondRect : firstRect;
                     const topRect = topChat === firstChat ? firstRect : secondRect;
-                    const amount = Math.max(CHAT_COLLISION_GAP, topRect.bottom - bottomRect.top + CHAT_COLLISION_GAP);
+
+                    const amount = topRect.bottom - bottomRect.top - stackOverlap;
+
+                    if (amount <= 0) continue;
 
                     topChat.top -= amount;
                     moved = true;
@@ -118,64 +98,34 @@ export const ChatWidgetView: FC<{}> = (props) => {
 
             if (!moved) break;
         }
-    }, [chatMessages, chatSettings?.mode, getChatCollisionRect]);
-
-    const syncChatAnchors = useCallback(() => {
-        if (chatSettings?.mode !== RoomChatSettings.CHAT_MODE_FREE_FLOW) return;
-
-        let moved = false;
-
-        chatMessages.forEach((chat) => {
-            if (!chat.elementRef || !chat.location || chat.senderId < 0) return;
-
-            const roomObject = GetRoomEngine().getRoomObject(chat.roomId, chat.senderId, RoomObjectCategory.UNIT);
-
-            if (!roomObject) return;
-
-            const nextLocation = GetRoomObjectScreenLocation(chat.roomId, chat.senderId, RoomObjectCategory.UNIT);
-
-            if (!nextLocation || !Number.isFinite(nextLocation.x) || Math.abs(nextLocation.x - chat.location.x) < 0.5) return;
-
-            chat.left = followFreeFlowAnchor(chat.left, chat.location.x, nextLocation.x);
-            chat.location = { x: nextLocation.x, y: nextLocation.y };
-            moved = true;
-        });
-
-        if (moved) resolveOverlappingChats();
-    }, [chatMessages, chatSettings?.mode, resolveOverlappingChats]);
+    }, [chatMessages, getChatCollisionRect]);
 
     const makeRoom = useCallback(
         (chat: ChatBubbleMessage) => {
             refreshChatMeasurements();
 
-            if (chatSettings.mode === RoomChatSettings.CHAT_MODE_FREE_FLOW) {
-                resolveOverlappingChats();
+            const lowestPoint = chat.top + chat.height;
+            const requiredSpace = Math.max(0, chat.height - getStackOverlap());
+            const spaceAvailable = elementRef.current.offsetHeight - lowestPoint;
+            const amount = requiredSpace - spaceAvailable;
 
-                removeHiddenChats();
-            } else {
-                const lowestPoint = chat.top + chat.height + chat.visualOffsetBottom;
-                const requiredSpace = chat.height;
-                const spaceAvailable = elementRef.current.offsetHeight - lowestPoint;
-                const amount = requiredSpace - spaceAvailable;
+            if (amount > 0) {
+                setChatMessages((prevValue) => {
+                    prevValue.forEach((prevChat) => {
+                        if (prevChat === chat) return;
 
-                if (spaceAvailable < requiredSpace) {
-                    setChatMessages((prevValue) => {
-                        prevValue.forEach((prevChat) => {
-                            if (prevChat === chat) return;
-
-                            prevChat.top -= amount;
-                        });
-
-                        return prevValue;
+                        prevChat.top -= amount;
                     });
 
-                    removeHiddenChats();
-                }
+                    return prevValue;
+                });
 
-                resolveOverlappingChats();
+                removeHiddenChats();
             }
+
+            resolveOverlappingChats();
         },
-        [chatSettings, refreshChatMeasurements, removeHiddenChats, resolveOverlappingChats, setChatMessages]
+        [refreshChatMeasurements, removeHiddenChats, resolveOverlappingChats, setChatMessages]
     );
 
     useEffect(() => {
@@ -211,19 +161,6 @@ export const ChatWidgetView: FC<{}> = (props) => {
             window.removeEventListener('resize', resize);
         };
     }, [refreshChatMeasurements, removeHiddenChats, resolveOverlappingChats, setChatMessages]);
-
-    useEffect(() => {
-        let animationFrame = 0;
-
-        const updateAnchors = () => {
-            syncChatAnchors();
-            animationFrame = window.requestAnimationFrame(updateAnchors);
-        };
-
-        animationFrame = window.requestAnimationFrame(updateAnchors);
-
-        return () => window.cancelAnimationFrame(animationFrame);
-    }, [syncChatAnchors]);
 
     useEffect(() => {
         const moveAllChatsUp = (amount: number) => {
