@@ -79,12 +79,27 @@ export const createCatalogIndexPrewarmController = (request: (catalogType: strin
                 const openedNow = state.visible && !previous.visible;
                 const switchedVisibleCatalog = state.visible && state.catalogType !== previous.catalogType;
 
-                if (authenticatedNow || openedNow || switchedVisibleCatalog) request(state.catalogType);
+                // Opening the catalog is a request the user is waiting on, so it
+                // goes out immediately. The login prewarm is not: it lands in the
+                // middle of authentication and room entry, and the index packet is
+                // large enough — 1700 pages and ~49k offer ids on a full hotel —
+                // that parsing it there is felt as a freeze. Wait for an idle
+                // moment instead; the catalog is still warm by the time it opens.
+                if (openedNow || switchedVisibleCatalog) request(state.catalogType);
+                else if (authenticatedNow) scheduleWhenIdle(() => request(state.catalogType));
             }
 
             previous = state;
         }
     };
+};
+
+/** requestIdleCallback where available, a short timeout everywhere else. */
+const scheduleWhenIdle = (run: () => void): void => {
+    const idle = (globalThis as { requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number }).requestIdleCallback;
+
+    if (typeof idle === 'function') idle(run, { timeout: 5000 });
+    else setTimeout(run, 1000);
 };
 
 export const restoreCatalogActivePath = (rootNode: ICatalogNode, activePageId: number): ICatalogNode[] => {
