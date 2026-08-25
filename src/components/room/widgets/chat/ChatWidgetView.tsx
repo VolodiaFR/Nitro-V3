@@ -1,31 +1,24 @@
-import { FC, useCallback, useEffect, useMemo, useRef } from 'react';
-import { ChatBubbleMessage, GetConfigurationValue, GetOptionalConfigurationValue } from '../../../../api';
+import { FC, useCallback, useEffect, useRef } from 'react';
+import { ChatBubbleMessage, GetConfigurationValue } from '../../../../api';
 import { useChatWidget, useChatWindow } from '../../../../hooks';
 import IntervalWebWorker from '../../../../workers/IntervalWebWorker';
 import { WorkerBuilder } from '../../../../workers/WorkerBuilder';
 import { CHAT_TEXT_SIZE_EVENT } from '../chat-input/chatTextSize';
 import { ChatWidgetMessageView } from './ChatWidgetMessageView';
 import { ChatWidgetWindowView } from './ChatWidgetWindowView';
-import { getPointerChatIds, measureBubbleVisualOffsets } from './chatBubbleMetrics';
+import { measureBubbleVisualOffsets } from './chatBubbleMetrics';
 import { getChatViewerHeight } from './freeFlowChatLayout';
 
 const CHAT_MOVE_UP_PIXELS = 19;
 const CHAT_COLLISION_ITERATIONS = 20;
 const CHAT_COLLISION_MIN_WIDTH = 240;
 const CHAT_REMOVE_TOP_MARGIN = -10;
-const DEFAULT_CHAT_STACK_OVERLAP = 6;
-
-const getStackOverlap = () => {
-    const configured = Number(GetOptionalConfigurationValue<number>('chat.bubble.stack.overlap', DEFAULT_CHAT_STACK_OVERLAP));
-
-    return Number.isFinite(configured) ? Math.max(0, configured) : DEFAULT_CHAT_STACK_OVERLAP;
-};
+const STACK_OVERLAP = 0;
 
 export const ChatWidgetView: FC<{}> = (props) => {
     const { chatMessages = [], setChatMessages = null, chatSettings = null, getScrollSpeed = 6000 } = useChatWidget();
     const [chatWindowEnabled] = useChatWindow();
     const elementRef = useRef<HTMLDivElement>(null);
-    const pointerChatIds = useMemo(() => getPointerChatIds(chatMessages), [chatMessages]);
 
     const removeHiddenChats = useCallback(() => {
         setChatMessages((prevValue) => {
@@ -66,7 +59,6 @@ export const ChatWidgetView: FC<{}> = (props) => {
 
     const resolveOverlappingChats = useCallback(() => {
         const visibleChats = chatMessages.filter((chat) => chat.elementRef && chat.width > 0 && chat.height > 0);
-        const stackOverlap = getStackOverlap();
 
         for (let iteration = 0; iteration < CHAT_COLLISION_ITERATIONS; iteration++) {
             let moved = false;
@@ -87,7 +79,7 @@ export const ChatWidgetView: FC<{}> = (props) => {
                     const bottomRect = topChat === firstChat ? secondRect : firstRect;
                     const topRect = topChat === firstChat ? firstRect : secondRect;
 
-                    const amount = topRect.bottom - bottomRect.top - stackOverlap;
+                    const amount = topRect.bottom - bottomRect.top - STACK_OVERLAP;
 
                     if (amount <= 0) continue;
 
@@ -101,31 +93,12 @@ export const ChatWidgetView: FC<{}> = (props) => {
     }, [chatMessages, getChatCollisionRect]);
 
     const makeRoom = useCallback(
-        (chat: ChatBubbleMessage) => {
+        (_chat: ChatBubbleMessage) => {
             refreshChatMeasurements();
-
-            const lowestPoint = chat.top + chat.height;
-            const requiredSpace = Math.max(0, chat.height - getStackOverlap());
-            const spaceAvailable = elementRef.current.offsetHeight - lowestPoint;
-            const amount = requiredSpace - spaceAvailable;
-
-            if (amount > 0) {
-                setChatMessages((prevValue) => {
-                    prevValue.forEach((prevChat) => {
-                        if (prevChat === chat) return;
-
-                        prevChat.top -= amount;
-                    });
-
-                    return prevValue;
-                });
-
-                removeHiddenChats();
-            }
-
             resolveOverlappingChats();
+            removeHiddenChats();
         },
-        [refreshChatMeasurements, removeHiddenChats, resolveOverlappingChats, setChatMessages]
+        [refreshChatMeasurements, removeHiddenChats, resolveOverlappingChats]
     );
 
     useEffect(() => {
@@ -218,7 +191,7 @@ export const ChatWidgetView: FC<{}> = (props) => {
                         bubbleWidth={chatSettings.weight}
                         chat={chat}
                         makeRoom={makeRoom}
-                        showPointer={pointerChatIds.has(chat.id)}
+                        showPointer={false}
                     />
                 ))}
             {chatWindowEnabled && <ChatWidgetWindowView />}
