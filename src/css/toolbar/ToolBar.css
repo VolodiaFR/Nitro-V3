@@ -55,12 +55,24 @@
     filter: brightness(0.7) drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.28));
 }
 
-.tb-avatar-head {
+.tb-avatar-head,
+.tb-memenu-face,
+.tb-memenu-face-img {
     width: 50px !important;
     height: 50px !important;
-    background-size: 50px 50px !important;
-    background-position: 0 0 !important;
     image-rendering: pixelated !important;
+}
+
+.tb-memenu-face {
+    position: relative !important;
+    display: block;
+    overflow: hidden;
+    background: none !important;
+}
+
+.tb-memenu-face-img {
+    display: block;
+    pointer-events: none;
 }
 
 .tb-slot {
@@ -124,33 +136,33 @@
     z-index: 0;
 }
 
-/* bottom_bar_left_xml icon_me_menu: x=1 y=-1 44x41 pivot_point=center */
+/*
+ * bottom_bar_left_xml icon_me_menu: x=1 y=-1 44x41 pivot_point=center,
+ * stretched_x/y false. BitmapDataRenderer places a centered pivot at
+ * int((window - bitmap) / 2), truncating toward zero, so the 50x50 face lands
+ * at -3/-4 and the window clips the overflow. Flex centering would put it on
+ * a half pixel vertically and blur the pixel art.
+ */
 .tb-memenu-avatar {
     position: absolute;
     left: 1px;
     top: -1px;
     z-index: 1;
-    display: flex;
+    display: block;
     width: 44px;
     height: 41px;
-    align-items: center;
-    justify-content: center;
     overflow: hidden;
     cursor: pointer;
 }
 
-.tb-memenu-avatar .tb-avatar-head {
-    position: relative !important;
+.tb-memenu-avatar .tb-avatar-head,
+.tb-memenu-avatar .tb-memenu-face {
+    position: absolute !important;
     inset: auto !important;
-    top: auto !important;
+    top: -4px !important;
     right: auto !important;
     bottom: auto !important;
-    left: auto !important;
-    flex: 0 0 50px;
-    width: 50px !important;
-    height: 50px !important;
-    background-size: 50px 50px !important;
-    background-position: 0 0 !important;
+    left: -3px !important;
 }
 
 .tb-memenu-circle {

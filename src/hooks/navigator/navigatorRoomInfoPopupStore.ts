@@ -4,7 +4,6 @@ import { createNitroStore } from '../../state/createNitroStore';
 export type NavigatorRoomInfoAnchorKind = 'info' | 'row' | 'tile';
 
 const POPUP_HIDE_DELAY_MS = 4000;
-const POPUP_HEIGHT = 350;
 
 export type NavigatorRoomInfoPopupState = {
     room: RoomDataParser | null;
@@ -44,6 +43,16 @@ const armHideTimer = () => {
     }, 250);
 };
 
+/**
+ * AIR RoomEntryElementFactory anchors the bubble on the element's right edge and vertical centre:
+ * onMouseClicked / onRoomRoomInfoMouseOver use `(rect.right, mid)`, onTileGoToRoomMouseOver uses
+ * `(rect.right - 6, mid + 56)` and onGoToRoomMouseOver uses `(rect.right + 20, mid)`.
+ *
+ * The stored point is that raw anchor. RoomInfoPopup.showAt then does
+ * `new Point(x, y - _window.height / 2)` using the height the window actually has AFTER populate(),
+ * so the bubble - and the pointer tail pinned to its 50% mark - lands on the anchor. The view
+ * reproduces that with `translateY(-50%)`; a hardcoded height guess put the bubble ~40px too high.
+ */
 const anchorPoint = (kind: NavigatorRoomInfoAnchorKind, rect: DOMRect) => {
     const midY = rect.top + rect.height / 2;
 
@@ -84,7 +93,7 @@ export const useNavigatorRoomInfoPopupStore = createNitroStore<NavigatorRoomInfo
             visible: true,
             hovered: false,
             x: point.x,
-            y: point.y - POPUP_HEIGHT / 2
+            y: point.y
         });
     },
 
@@ -97,7 +106,7 @@ export const useNavigatorRoomInfoPopupStore = createNitroStore<NavigatorRoomInfo
             room,
             visible: true,
             x: point.x,
-            y: point.y - POPUP_HEIGHT / 2
+            y: point.y
         });
     }
 }));

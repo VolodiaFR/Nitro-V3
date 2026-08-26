@@ -41,12 +41,20 @@ export const NavigatorRoomInfoPopupView: FC<{}> = () => {
         closePopup();
     };
 
+    /*
+     * AIR RoomInfoPopup.showAt positions with `y - _window.height / 2` AFTER populate(), i.e.
+     * against the height the bubble really has. `top` stays the raw anchor and translateY(-50%)
+     * does that division on the measured height, keeping the pointer tail (pinned at the bubble's
+     * 50% mark) level with the info icon it was opened from.
+     */
+    const bubbleStyle = { left: x, top: y, width: 374, transform: 'translateY(-50%)' };
+
     return (
         <div
             role="dialog"
             aria-label={LocalizeText('navigator.room.info.popup.title')}
             className="nitro-navigator-air__room-bubble"
-            style={{ left: x, top: y, width: 374 }}
+            style={bubbleStyle}
             onMouseEnter={() => useNavigatorRoomInfoPopupStore.getState().setHovered(true)}
             onMouseLeave={() => useNavigatorRoomInfoPopupStore.getState().setHovered(false)}
             onClick={(event) => event.stopPropagation()}

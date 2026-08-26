@@ -18,6 +18,7 @@ import { registerSharedHook, useSharedHook } from '@/state/useSharedHook';
 import {
     AvatarEditorColorSorter,
     AvatarEditorPartSorter,
+    CreateLinkEvent,
     GetClubMemberLevel,
     GetConfigurationValue,
     IAvatarEditorCategory,
@@ -100,7 +101,11 @@ const useAvatarEditorState = () => {
                 return;
             }
 
-            if (GetClubMemberLevel() < partItem.partSet.clubLevel) return;
+            if (GetClubMemberLevel() < partItem.partSet.clubLevel) {
+                CreateLinkEvent('habboUI/open/hccenter');
+
+                return;
+            }
 
             if (partItem.isSellableNotOwned) return;
 

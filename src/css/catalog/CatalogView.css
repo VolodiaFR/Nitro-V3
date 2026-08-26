@@ -45,8 +45,12 @@
     max-width: var(--nitro-catalog-window-width, 570px) !important;
 }
 
-.nitro-catalog-window,
-.nitro-catalog-window * {
+.nitro-catalog-window img,
+.nitro-catalog-window canvas,
+.nitro-catalog-window .nitro-icon,
+.nitro-catalog-window [class*='nitro-catalog-standard-button'],
+.nitro-catalog-window [class*='nitro-catalog-standard-buy-button'],
+.nitro-catalog-window [class*='nitro-catalog-standard-gift-button'] {
     image-rendering: pixelated;
 }
 
@@ -2576,11 +2580,14 @@
 }
 
 .nitro-catalog-window .nitro-catalog-standard-button {
+    appearance: none;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    box-sizing: border-box;
     min-height: 24px;
     height: 24px;
+    margin: 0;
     padding: 0 8px !important;
     border: 3px solid transparent !important;
     border-radius: 0 !important;
@@ -2590,10 +2597,13 @@
     border-image-repeat: stretch !important;
     background: transparent !important;
     color: #111111 !important;
+    font-family: HabboAirUbuntu, UbuntuRegular, Ubuntu, sans-serif !important;
     font-size: 11px !important;
     font-weight: 700 !important;
+    line-height: 17px !important;
     text-shadow: none !important;
     box-shadow: none !important;
+    cursor: pointer;
     image-rendering: pixelated !important;
 }
 
