@@ -182,13 +182,14 @@
     pointer-events: none;
 }
 
-/* The ribbon is centred at x 54.5 of the tile, so the counter is centred too:
-   left-aligning it in a 30px box parked "1/10" 5px left of centre and let
-   "0/234" spill out on the right. Vertical placement is unchanged - 70..84
-   already matches the ribbon body at 70..85. */
+/* Centred on the banner the art draws, which sits at x 22..87 / y 77..92 of
+   the tile: left-aligning in a 30px box parked "1/10" 5px left of centre, and
+   top: 70px straddled the banner's upper edge so the digits half overlapped
+   the badge. The banner's raised end caps reach higher than its middle - the
+   middle is what the text has to line up with. */
 .air-achievements-category-completion {
     position: absolute;
-    top: 70px;
+    top: 78px;
     left: 25px;
     z-index: 2;
     width: 60px;
