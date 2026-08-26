@@ -18,7 +18,9 @@ const COMMAND_LINE_PATTERN = /^\s*:[\w.-]+(?:\s.*)?$/;
 
 interface CommandTemplateEntry {
     command: string;
+    args: string;
     description: string;
+    raw: string;
 }
 
 export const NotificationDefaultAlertView: FC<NotificationDefaultAlertViewProps> = (props) => {
@@ -41,7 +43,14 @@ export const NotificationDefaultAlertView: FC<NotificationDefaultAlertViewProps>
             if (!text.length) continue;
 
             if (COMMAND_LINE_PATTERN.test(text)) {
-                commands.push({ command: text, description: '' });
+                const separatorIndex = text.search(/\s/);
+
+                commands.push({
+                    command: separatorIndex === -1 ? text : text.substring(0, separatorIndex),
+                    args: separatorIndex === -1 ? '' : text.substring(separatorIndex + 1).trim(),
+                    description: '',
+                    raw: text
+                });
                 continue;
             }
 
@@ -106,10 +115,13 @@ export const NotificationDefaultAlertView: FC<NotificationDefaultAlertViewProps>
                                     key={`${entry.command}-${index}`}
                                     className="notification-command-row"
                                     type="button"
-                                    onClick={() => copyCommandToChatInput(entry.command)}
+                                    onClick={() => copyCommandToChatInput(entry.raw)}
                                 >
                                     <span className="notification-command-name">{entry.command}</span>
-                                    {entry.description && <span className="notification-command-description">{entry.description}</span>}
+                                    <span className="notification-command-detail">
+                                        {entry.args && <span className="notification-command-args">{entry.args}</span>}
+                                        {entry.description && <span className="notification-command-description">{entry.description}</span>}
+                                    </span>
                                 </button>
                             ))}
                         </div>
