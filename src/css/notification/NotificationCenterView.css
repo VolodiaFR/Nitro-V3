@@ -716,3 +716,103 @@
     background-position: center 34% !important;
     background-repeat: no-repeat !important;
 }
+
+/* Command list produced by ":commands". NotificationDefaultAlertView tags the alert
+   with .nitro-alert-command-list and renders one button per command; without these
+   rules the buttons stay inline and several commands share a visual line. */
+.nitro-alert.nitro-alert-command-list {
+    width: 430px;
+    max-height: 470px;
+}
+
+.notification-command-template {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 370px;
+    padding-right: 4px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.notification-command-heading {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin-bottom: 4px;
+    padding: 5px 8px;
+    background: linear-gradient(180deg, #4a72b8 0%, #2d4a82 100%);
+    border-bottom: 2px solid #1c2a4a;
+    border-radius: 4px 4px 0 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.notification-command-copy {
+    padding: 0 8px 4px 8px;
+    color: #4b5563;
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.notification-command-row {
+    display: grid;
+    grid-template-columns: minmax(0, 150px) minmax(0, 1fr);
+    align-items: baseline;
+    gap: 2px 10px;
+    width: 100%;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.notification-command-row:nth-child(even) {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.notification-command-row:hover {
+    background: #fff6d6;
+    border-color: #d8a72a;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.notification-command-row:active {
+    background: #ffe9a8;
+}
+
+.notification-command-name {
+    min-width: 0;
+    color: #2d4a82;
+    font-weight: 700;
+    font-size: 12px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    overflow-wrap: anywhere;
+}
+
+.notification-command-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.notification-command-args {
+    color: #7a6a35;
+    font-size: 11px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    overflow-wrap: anywhere;
+}
+
+.notification-command-description {
+    color: #6b7280;
+    font-size: 11px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
