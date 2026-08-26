@@ -299,11 +299,17 @@ const CatalogViewInner: FC<{}> = () => {
 
 export const CatalogView: FC<{}> = () => {
     const { catalogLocalizationVersion = 0 } = useCatalogData();
+    const { isVisible = false } = useCatalogUiState();
 
     const isCatalogAdmin = useHasPermission('acc_catalogfurni');
 
+    // Opening a studio session is expensive on the server: it loads every
+    // catalog item with FOR UPDATE and every items_base id, on the thread
+    // serving this client. Tying it to authentication meant every staff login
+    // stalled the hotel view — no room list, no catalog — until it finished.
+    // The session is only needed once the catalog is actually open.
     return (
-        <CatalogStudioProvider active={isCatalogAdmin}>
+        <CatalogStudioProvider active={isCatalogAdmin && isVisible}>
             <CatalogAdminProvider>
                 <div className="hidden" data-catalog-localization-version={catalogLocalizationVersion} />
                 <CatalogViewInner />
