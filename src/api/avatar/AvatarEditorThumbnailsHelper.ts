@@ -61,15 +61,6 @@ class LRUImageCache {
 
 export type AvatarEditorThumbRect = { x: number; y: number; width: number; height: number };
 
-/**
- * AIR AvatarEditorGridPartItem.analyzePartLayers unions `new Rectangle(-offset.x, -offset.y, w, h)`
- * over every layer, where `offset` is the raw SWF BitmapDataAsset offset.
- *
- * The renderer already stores the negated offset: GraphicAssetCollection does
- * `const x = (-(asset.x) || 0)` when it builds each IGraphicAsset, so nitro's `asset.x/y`
- * ARE AIR's `-offset.x/-offset.y`. Callers therefore pass `asset.x/asset.y` straight through -
- * negating again is what pulled the layers apart inside the 50x50 cell.
- */
 export const unionAvatarEditorThumbRect = (left: AvatarEditorThumbRect, right: AvatarEditorThumbRect): AvatarEditorThumbRect => {
     const x = Math.min(left.x, right.x);
     const y = Math.min(left.y, right.y);
@@ -82,7 +73,6 @@ export const unionAvatarEditorThumbRect = (left: AvatarEditorThumbRect, right: A
     };
 };
 
-/** AIR AvatarEditorGridPartItem.renderThumb dest: (-offset) - union origin, i.e. `asset.x - union.x`. */
 export const avatarEditorThumbDest = (assetX: number, assetY: number, union: AvatarEditorThumbRect) => ({
     x: assetX - union.x,
     y: assetY - union.y
@@ -92,7 +82,6 @@ export class AvatarEditorThumbnailsHelper {
     private static THUMBNAIL_CACHE: LRUImageCache = new LRUImageCache();
     private static PENDING_THUMBNAILS: Map<string, Promise<string>> = new Map();
     private static THUMB_DIRECTIONS: number[] = [2, 6, 0, 4, 3, 1];
-    /** AIR avatarEditorContent thumb_template / its BITMAP child are both 50x50. */
     private static THUMB_BOX: number = 50;
     private static ALPHA_FILTER: NitroAlphaFilter = new NitroAlphaFilter({ alpha: 0.2 });
     private static DRAW_ORDER: string[] = [
@@ -196,12 +185,6 @@ export class AvatarEditorThumbnailsHelper {
         }
     }
 
-    /**
-     * AIR AvatarEditorGridPartItem.updateThumbVisualization blits the rendered thumb into the
-     * template's 50x50 BITMAP window with `int((box - size) / 2)` offsets and lets copyPixels clip
-     * whatever overflows - it never scales the thumb down to fit. `int()` truncates toward zero in
-     * AS3, so Math.trunc (not Math.floor) reproduces the negative case for oversized parts.
-     */
     private static async centerIntoThumbBox(imageUrl: string): Promise<string> {
         try {
             const image = new Image();

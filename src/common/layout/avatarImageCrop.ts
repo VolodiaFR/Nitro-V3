@@ -117,19 +117,6 @@ export const cropTransparentImageUrl = (imageUrl: string, targetSize: number = 2
     image.src = imageUrl;
 });
 
-/**
- * AIR HabboFaceFocuser: the 50x50 window it cuts out of the avatar canvas.
- *
- * MeMenuNewIconLoader builds the icon from createAvatarImage(figure, "h", ...)
- * and AvatarImage.getImage returns the canvas AvatarStructure.getCanvas
- * reports, which HabboAvatarGeometry defines as 90x130 for scale "h"
- * geometry "vertical" — the same numbers octane-renderer ships. So the
- * window below is in canvas pixels, not in some smaller cropped raster.
- *
- * const_42/const_44 in HabboFaceFocuser only fill directions 2 and 3
- * (x is 21 for both, y is 28 for direction 2 and 30 for direction 3); the
- * me-menu always asks for direction 3.
- */
 export const AIR_ME_MENU_FACE = {
     canvasWidth: 90,
     canvasHeight: 130,
@@ -139,11 +126,6 @@ export const AIR_ME_MENU_FACE = {
     circleRadius: 20
 };
 
-/**
- * The window is expressed in canvas pixels, so a raster that came back
- * larger than the canvas (a higher device pixel ratio) has to be scaled by a
- * single uniform factor. Scaling the axes independently shears the face.
- */
 export const airMeMenuFaceScale = (naturalWidth: number, naturalHeight: number): number =>
 {
     const horizontal = naturalWidth / AIR_ME_MENU_FACE.canvasWidth;
@@ -167,7 +149,6 @@ export const scaledAirMeMenuFaceCrop = (naturalWidth: number, naturalHeight: num
     };
 };
 
-/** AIR MeMenuNewIconLoader: HabboFaceFocuser.focusUserFace full dir 3 then cutCircle r=20. */
 export const cropAirMeMenuFaceImageUrl = (imageUrl: string): Promise<string> => new Promise(resolve =>
 {
     const image = new Image();

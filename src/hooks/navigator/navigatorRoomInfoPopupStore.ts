@@ -43,16 +43,6 @@ const armHideTimer = () => {
     }, 250);
 };
 
-/**
- * AIR RoomEntryElementFactory anchors the bubble on the element's right edge and vertical centre:
- * onMouseClicked / onRoomRoomInfoMouseOver use `(rect.right, mid)`, onTileGoToRoomMouseOver uses
- * `(rect.right - 6, mid + 56)` and onGoToRoomMouseOver uses `(rect.right + 20, mid)`.
- *
- * The stored point is that raw anchor. RoomInfoPopup.showAt then does
- * `new Point(x, y - _window.height / 2)` using the height the window actually has AFTER populate(),
- * so the bubble - and the pointer tail pinned to its 50% mark - lands on the anchor. The view
- * reproduces that with `translateY(-50%)`; a hardcoded height guess put the bubble ~40px too high.
- */
 const anchorPoint = (kind: NavigatorRoomInfoAnchorKind, rect: DOMRect) => {
     const midY = rect.top + rect.height / 2;
 

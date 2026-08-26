@@ -73,7 +73,6 @@
     background: #ffffff;
 }
 
-/* AIR draws talent_task_progress_bg (585x1, h-stretched) directly under the tab band. */
 .nitro-navigator-air__tab-shelf::after {
     content: "";
     position: absolute;
@@ -338,11 +337,6 @@
     background: #fff;
 }
 
-/*
- * AIR `left_pane_hide` > border style 2 tinted 0xfba800: 141x27 at the pane origin. border_colorless
- * has no anti-aliasing - its 6x6 corner cuts 5/3/2/1/1/0 px per row, which is exactly the polygon
- * below, so the shape is reproduced without landing a bitmap.
- */
 .nitro-navigator-search-saves-result__header {
     position: relative;
     box-sizing: border-box;
@@ -390,7 +384,6 @@
     background: var(--navigator-air-orange);
 }
 
-/* `left_hide_container` > static_bitmap x=3 y=3 18x18, asset newnavigator_button_quicklink_add. */
 .nitro-navigator-search-saves-result__header-icon {
     position: absolute;
     top: 3px;
@@ -401,7 +394,6 @@
     image-rendering: pixelated;
 }
 
-/* `left_hide_container` > text x=20 y=2 h=17, text_style id_heading_2 (Ubuntu 12 bold #ffffff). */
 .nitro-navigator-search-saves-result__header-label {
     position: absolute;
     top: 2px;
@@ -417,11 +409,6 @@
     white-space: nowrap;
 }
 
-/*
- * `quicklinks_list` x=5 y=25 136x509. The rows are cloned from a `quick_link` region declared at
- * x=-2 inside that list, so their painted origin is pane-x 3 - the margin folds those two offsets
- * together and the -2px top reproduces y=25 sitting 2px above the 27px header edge.
- */
 .nitro-navigator-search-saves-result__list {
     box-sizing: border-box;
     width: 136px;
@@ -446,7 +433,6 @@
     image-rendering: pixelated;
 }
 
-/* `quick_link` region 132x17; the item list carries spacing="2" between clones. */
 .saved-search-row {
     position: relative;
     box-sizing: border-box;
@@ -460,10 +446,6 @@
     margin-bottom: 0;
 }
 
-/*
- * `quick_link_text` x=0 y=0 h=17 spans the whole row: AIR only overlays the remove button on hover,
- * so the caption is never permanently shortened by 16px the way a reserved flex track would.
- */
 .saved-search-row__open {
     position: absolute;
     inset: 0;
@@ -478,11 +460,6 @@
     text-align: left;
 }
 
-/*
- * text style 3 falls in ThemeManager's "Ubuntu" theme (styles 3-5), whose text_style default is
- * u_regular - Ubuntu 12, no colour override, i.e. black. `quick_link_text` sets neither text_style
- * nor font_size, so 11px was a size AIR never uses here.
- */
 .saved-search-row__label {
     display: block;
     overflow: hidden;
@@ -495,12 +472,6 @@
     white-space: nowrap;
 }
 
-/*
- * `remove_quick_link` container_button x=115 y=1 16x16, visible="false" until QuickLinksView's
- * listItemProcedure flips it on WME_OVER. Its child bitmap is declared 10x10 with
- * fit_size_to_contents, and newnavigator_icon_ql_remove really is 10x10 - drawing it at 16x16
- * scaled the glyph 1.6x.
- */
 .saved-search-row__delete {
     position: absolute;
     top: 1px;
@@ -515,7 +486,6 @@
     pointer-events: none;
 }
 
-/* AIR only routes WME_CLICK to the button once WME_OVER made it visible. */
 .saved-search-row:hover .saved-search-row__delete,
 .saved-search-row:focus-within .saved-search-row__delete {
     opacity: 1;
@@ -1625,10 +1595,6 @@
     background-image: url("@/assets/images/habbo-skin/slices/close-3-pressed.png") !important;
 }
 
-/*
- * Every offset below is the `roc_create_room` child coordinate plus the frame content origin (6,25):
- * room_settings_container (10,15) -> (16,40), room_layout_container (270,15) -> (276,40).
- */
 .nitro-room-creator-air__label {
     position: absolute;
     z-index: 2;
@@ -1701,7 +1667,6 @@
     height: 60px;
 }
 
-/* TextFieldManager.displayError(): textBackground = true, textBackgroundColor = 0xFFF18F9B. */
 .nitro-room-creator-air__field.is-invalid .nitro-room-creator-air__input {
     background: #f18f9b !important;
 }
@@ -1732,7 +1697,6 @@
     word-break: break-word;
 }
 
-/* nav_error_popup (184x33): border 184x23 + popup_arrow_down 11x11 at y=22, centred on the input. */
 .nitro-room-creator-air__error {
     position: absolute;
     top: 30px;
@@ -1893,7 +1857,6 @@
     background: #d6eeff !important;
 }
 
-/* create_button is a button_thick style 0, back_button a button style 0 - both 100x21 at y=290. */
 .nitro-room-creator-air__button {
     position: absolute;
     top: 330px;
@@ -1951,12 +1914,6 @@
     border-image-source: url("@/assets/images/habbo-skin/slices/button-pressed.png") !important;
 }
 
-/*
- * layout_item_list is 290x295 at (0,20) with scrollbar_vertical 17px wide at x=278, i.e. the
- * scrollbar floats over the list's right edge rather than reserving a track. Rows are 274 wide
- * (two 137px roc_room_thumbnail regions), so the classic 17px scrollbar clips only the second
- * thumbnail's transparent 2px gutter.
- */
 .nitro-room-creator-air__layouts {
     position: absolute;
     top: 60px;
@@ -1995,7 +1952,6 @@
     cursor: pointer;
 }
 
-/* bg_sel / bg_unsel are border style 0 (border_white) colorized 0x6f8285 and 0xcccccc. */
 .nitro-room-creator-air__thumbnail-bg {
     position: absolute;
     top: 0;
@@ -2018,7 +1974,6 @@
     border-image-source: url("@/assets/images/habbo-skin/slices/border-white-6f8285.png");
 }
 
-/* bg_pic: pivot_point center, stretched_x / stretched_y false - the model art is centred, never scaled. */
 .nitro-room-creator-air__thumbnail-pic {
     position: absolute;
     top: 0;
@@ -2064,7 +2019,6 @@
     color: #ffffff;
 }
 
-/* club_icon: icon style 12 at (109,5) 20x10 - the AIR VIP badge, not the generic HC currency icon. */
 .nitro-room-creator-air__thumbnail-club {
     position: absolute;
     top: 5px;
@@ -2076,7 +2030,6 @@
     image-rendering: pixelated;
 }
 
-/* roc_vip_promo: border style 2 (border_colorless) colorized 0xd48612, 272x52, appended as a list item. */
 .nitro-room-creator-air__vip-promo {
     position: relative;
     box-sizing: border-box;

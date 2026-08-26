@@ -1,9 +1,3 @@
-/*
- * Habbo AIR WIN63 avatar editor geometry.
- * Sources: AvatarEditorContent (3117_class_70.bin) and
- * avatareditor_wardrobe_base (3121_class_193.bin).
- */
-
 .nitro-avatar-editor {
     width: 490px;
     min-width: 490px;
@@ -52,7 +46,6 @@
     background: #e9e9e1;
 }
 
-/* habbo_skin_tab_content_3, rendered at the tab context's internal y=30. */
 .nitro-avatar-editor-stage::before {
     content: '';
     position: absolute;
@@ -158,13 +151,6 @@
     padding: 0;
 }
 
-/*
- * AIR draws each tab icon through BitmapDataRenderer with pivot_point="center":
- * tx = int((window.width - bitmap.width) / 2), ty = int((window.height - bitmap.height) / 2),
- * added to the bitmap window's own x/y. int() truncates, so these are whole pixels - the old
- * left:50%/translateX(-50%) landed the 41px icons on x=5.5 and blurred them.
- * Windows are 52x42; generic sits at (1,-5), head/torso/legs at (0,-6), misc at (0,-4), nfts at (0,-5).
- */
 .nitro-avatar-editor .nitro-avatar-editor-main-tab-icon {
     position: absolute;
     left: 5px;
@@ -179,25 +165,21 @@
     pointer-events: none;
 }
 
-/* AvatarEditorFigureCategory.GENERIC === 'hd': ae_tabs_generic 41x22 at (1,-5). */
 .nitro-avatar-editor .nitro-avatar-editor-main-tab.is-hd .nitro-avatar-editor-main-tab-icon {
     left: 6px;
     top: 5px;
 }
 
-/* ae_tabs_misc 24x9 at (0,-4): -4 + int((42 - 9) / 2) = 12. */
 .nitro-avatar-editor .nitro-avatar-editor-main-tab.is-misc .nitro-avatar-editor-main-tab-icon {
     left: 14px;
     top: 12px;
 }
 
-/* nft_icon_24x24 at (0,-5). */
 .nitro-avatar-editor .nitro-avatar-editor-main-tab.is-nft .nitro-avatar-editor-main-tab-icon {
     left: 14px;
     top: 4px;
 }
 
-/* Polaris-only pets tab, 25x24, placed with the same pivot maths. */
 .nitro-avatar-editor .nitro-avatar-editor-main-tab.is-pets .nitro-avatar-editor-main-tab-icon {
     left: 13px;
     top: 4px;
@@ -484,11 +466,6 @@
     z-index: 1;
 }
 
-/*
- * AvatarEditorThumbnailsHelper already blits the thumb into a 50x50 box the way AIR's
- * updateThumbVisualization does (integer centre, clipped, never scaled), so the image is painted
- * 1:1 here. object-fit: contain used to rescale it and drag it off the 50x50 hilite plate.
- */
 .nitro-avatar-editor .avatar-parts > img {
     display: block;
     width: auto;

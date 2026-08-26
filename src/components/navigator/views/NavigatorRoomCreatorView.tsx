@@ -11,23 +11,12 @@ import { DraggableWindow } from '../../../common';
 import { useNavigatorData, useNavigatorUiStore, useUserDataSnapshot } from '../../../hooks';
 import { useRoomCreatorStore } from './navigatorRoomCreatorStore';
 
-/**
- * AIR `roc_create_room` (binaryData/3035_class_1349.bin) is a standalone frame style 3 window,
- * 585x367, centred by `Util.getLocationRelativeTo` in `RoomCreateViewCtrl.prepare()` - it is NOT a
- * navigator tab page. Its frame declares margin_left/top/right/bottom = 6/25/6/7, which
- * `FrameController.properties` turns into `content.rectangle = (6, 25, 573, 335)`, so every child
- * coordinate below is the layout coordinate plus that origin.
- *
- * Left `room_settings_container` (10,15 255x315) and right `room_layout_container` (270,15 300x315)
- * therefore start at window (16,40) and (276,40).
- */
 const AIR_TRADE_KEYS = [
     'navigator.roomsettings.trade_not_allowed',
     'navigator.roomsettings.trade_not_with_Controller',
     'navigator.roomsettings.trade_allowed'
 ];
 
-/** RoomCreateViewCtrl.ROOM_LIMIT_HC / ROOM_LIMIT_NON_SUBSCRIBER, stepped by 5 from 10. */
 const ROOM_LIMIT_HC = 75;
 const ROOM_LIMIT_NON_SUBSCRIBER = 50;
 
@@ -47,11 +36,6 @@ interface RoomCreatorDropmenuProps {
     onChange: (index: number) => void;
 }
 
-/**
- * `habbo_skin_dropmenu_xml` (dropmenu style 0) is not embedded in this AIR build, so the widget
- * falls back to the active theme's dropmenu - the same skin the navigator's own search filter
- * already renders (border-4 closed, dropmenu-3 open).
- */
 const RoomCreatorDropmenu: FC<RoomCreatorDropmenuProps> = (props) => {
     const { className, label, options, value, onChange } = props;
     const [open, setOpen] = useState(false);
@@ -136,10 +120,8 @@ export const NavigatorRoomCreatorView: FC = () => {
         return models && models.length ? models[0].name : '';
     });
 
-    /** `refreshRoomThumbnails` filters with `isAllowed(layout, false)`: only requiredClubLevel < 0 (the snowwar models) is gated, on hasSecurity(4). */
     const visibleModels = useMemo(() => roomModels.filter((model) => model.clubLevel >= 0 || securityLevel >= 4), [roomModels, securityLevel]);
 
-    /** `prepareCategorySelection` walks data.visibleCategories (visible == true) and drops automatic / staff-only nodes. */
     const selectableCategories = useMemo(
         () => (categories ?? []).filter((category) => category.visible && !category.automatic && (!category.staffOnly || securityLevel >= 7)),
         [categories, securityLevel]
@@ -161,7 +143,6 @@ export const NavigatorRoomCreatorView: FC = () => {
 
     const closeCreator = () => useNavigatorUiStore.getState().closeCreator();
 
-    /** `isAllowed(layout, true)`: club level 1 needs hasClub, 2 needs hasVip, otherwise the catalog club page opens. */
     const selectModel = (model: IRoomModel) => {
         if (model.clubLevel > 0 && effectiveClubLevel < model.clubLevel) {
             CreateLinkEvent('habboUI/open/hccenter');
@@ -174,10 +155,6 @@ export const NavigatorRoomCreatorView: FC = () => {
         setSelectedModelName(model.name);
     };
 
-    /**
-     * AIR never disables `create_button`; `TextFieldManager.checkMandatory` runs on click and, when the
-     * trimmed name is 2 characters or shorter, paints the field #f18f9b and raises `nav_error_popup`.
-     */
     const createRoom = () => {
         const roomName = nameTouched ? name : '';
 
