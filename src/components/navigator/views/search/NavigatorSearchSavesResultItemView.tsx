@@ -18,6 +18,11 @@ const savedSearchLabel = (search: NavigatorSavedSearch) => {
     return search.filter ? `${title} - ${search.filter}` : title;
 };
 
+/**
+ * AIR QuickLinksView clones the `quick_link` region (132x17) per saved search and hides
+ * `remove_quick_link` until listItemProcedure sees WME_OVER, so the caption owns the full row width
+ * at rest and the button is an overlay at x=115 rather than a reserved track.
+ */
 export const NavigatorSearchSavesResultItemView: FC<NavigatorSearchSavesResultItemViewProps> = (props) => {
     const { search = null } = props;
     const title = savedSearchLabel(search);

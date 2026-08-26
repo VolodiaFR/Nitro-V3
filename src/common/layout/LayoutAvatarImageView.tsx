@@ -45,11 +45,13 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
     const getClassNames = useMemo(() => {
         let newClassNames: string[];
 
-        if (nativeCroppedHead) {
+        if (airMeMenu) {
+            newClassNames = ['tb-memenu-face pointer-events-none'];
+        } else if (nativeCroppedHead) {
             newClassNames = ['avatar-image relative pointer-events-none'];
         } else if (fit) {
             newClassNames = ['avatar-image avatar-image-fit absolute inset-0 pointer-events-none'];
-        } else if (headOnly || airMeMenu) {
+        } else if (headOnly) {
             newClassNames = ['avatar-image absolute inset-0 bg-no-repeat pointer-events-none'];
         } else {
             newClassNames = ['avatar-image relative w-[90px] h-[130px] bg-no-repeat left-[-2px] pointer-events-none'];
@@ -64,13 +66,9 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
     const getStyle = useMemo(() => {
         let newStyle: CSSProperties = {};
 
-        if (!fit && !nativeCroppedHead && avatarUrl && avatarUrl.length) newStyle.backgroundImage = `url('${avatarUrl}')`;
+        if (!fit && !nativeCroppedHead && !airMeMenu && avatarUrl && avatarUrl.length) newStyle.backgroundImage = `url('${avatarUrl}')`;
 
-        if (airMeMenu && !fit) {
-            newStyle.backgroundSize = '50px 50px';
-            newStyle.backgroundPosition = '0 0';
-            newStyle.imageRendering = 'pixelated';
-        } else if (headOnly && !fit && !nativeCroppedHead) {
+        if (headOnly && !fit && !nativeCroppedHead && !airMeMenu) {
             newStyle.backgroundSize = compactHead ? `${compactHeadSize}px ${compactHeadSize}px` : '130px auto';
             newStyle.backgroundPosition = compactHead ? 'center' : '51% 40%';
             newStyle.imageRendering = compactHead ? 'auto' : 'pixelated';
@@ -157,6 +155,9 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
 
     return (
         <Base classNames={getClassNames} style={getStyle} {...rest}>
+            {airMeMenu && avatarUrl && avatarUrl.length > 0 && (
+                <img src={avatarUrl} alt="" draggable={false} className="tb-memenu-face-img" />
+            )}
             {nativeCroppedHead && avatarUrl && avatarUrl.length > 0 && (
                 <img
                     src={avatarUrl}
@@ -165,7 +166,7 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
                     style={{ display: 'block', width: 'auto', maxWidth: 'none', height: 'auto', imageRendering: 'pixelated' }}
                 />
             )}
-            {fit && !nativeCroppedHead && avatarUrl && avatarUrl.length > 0 && (
+            {fit && !nativeCroppedHead && !airMeMenu && avatarUrl && avatarUrl.length > 0 && (
                 <img
                     src={avatarUrl}
                     alt=""

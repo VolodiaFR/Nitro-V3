@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import { LocalizeText, SearchFilterOptions } from '../../../../api';
-import dropmenuChevron from '../../../../assets/images/habbo-skin/slices/dropmenu-chevron.png';
+import dropmenuArrow from '../../../../assets/images/habbo-skin/slices/dropmenu-arrow.png';
 
 interface NavigatorFilterChipsViewProps {
     value: number;
@@ -43,7 +43,7 @@ export const NavigatorFilterChipsView: FC<NavigatorFilterChipsViewProps> = (prop
                 onClick={() => setOpen((currentOpen) => !currentOpen)}
             >
                 <span>{LocalizeText('navigator.filter.' + current.name)}</span>
-                <img src={dropmenuChevron} alt="" width={11} height={7} />
+                <img src={dropmenuArrow} alt="" width={22} height={20} />
             </button>
             {open && (
                 <ul className="nitro-navigator-air__filter-list" role="listbox">
