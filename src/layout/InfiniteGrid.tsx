@@ -18,6 +18,10 @@ type Props<T> = {
     airColumnAdmission?: boolean;
     onColumnCountChange?: (columnCount: number) => void;
     itemRender?: (item: T, index?: number) => ReactElement;
+    // Optional stable React key per item. Defaults to the grid position (index), which is fine
+    // for static lists but lets a cell's local state bleed to a different item when the list
+    // reorders - pass this for lists whose items are added/removed/reordered.
+    itemKey?: (item: T, index: number) => string | number;
 };
 
 const GRID_GAP_PX = 4;
@@ -73,6 +77,7 @@ const InfiniteGridSquare = <T,>(props: Props<T>) => {
         airColumnAdmission = false,
         onColumnCountChange,
         itemRender = null,
+        itemKey = null,
         classicScrollbar = false
     } = props;
     const { parentRef } = useColumnMeasure(itemMinWidth, columnCountProp, columnGap, airColumnAdmission, onColumnCountChange);
@@ -86,7 +91,7 @@ const InfiniteGridSquare = <T,>(props: Props<T>) => {
             {items.map((item, index) => {
                 if (!item) return <Fragment key={`${index}-empty`} />;
 
-                return <Fragment key={`${index}-item`}>{itemRender(item, index)}</Fragment>;
+                return <Fragment key={itemKey ? itemKey(item, index) : `${index}-item`}>{itemRender(item, index)}</Fragment>;
             })}
         </div>
     );
@@ -118,6 +123,7 @@ const InfiniteGridVirtualized = <T,>(props: Props<T>) => {
         airColumnAdmission = false,
         onColumnCountChange,
         itemRender = null,
+        itemKey = null,
         classicScrollbar = false
     } = props;
     const { parentRef, columnCount } = useColumnMeasure(itemMinWidth, columnCountProp, columnGap, airColumnAdmission, onColumnCountChange);
@@ -188,7 +194,7 @@ const InfiniteGridVirtualized = <T,>(props: Props<T>) => {
 
                 if (!item) return <Fragment key={virtualRow.index + i + 'b'} />;
 
-                return <Fragment key={i}>{itemRender(item, index)}</Fragment>;
+                return <Fragment key={itemKey ? itemKey(item, index) : i}>{itemRender(item, index)}</Fragment>;
             })}
         </div>
     ));

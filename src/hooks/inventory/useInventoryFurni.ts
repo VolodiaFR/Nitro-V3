@@ -8,14 +8,14 @@ import {
 } from '@nitrots/nitro-renderer';
 import { useEffect, useRef, useState } from 'react';
 import { registerSharedHook, useSharedHook } from '@/state/useSharedHook';
-import { DispatchUiEvent, GroupItem, SendMessageComposer, UnseenItemCategory } from '../../api';
+import { DispatchUiEvent, getGroupItemKey, GroupItem, mergeFurniFragments, SendMessageComposer, UnseenItemCategory } from '../../api';
 import { InventoryFurniAddedEvent } from '../../events';
 import { useMessageEvent } from '../events';
 import { useSharedVisibility } from '../useSharedVisibility';
 import {
-    applyFurnitureList,
     applyFurnitureListAddOrUpdate,
     applyFurnitureListRemoved,
+    applyMergedFurnitureList,
     clearUnseenFlags,
     FurniReducerContext,
     refreshGroupItemsLocalization
@@ -62,8 +62,7 @@ const useInventoryFurniState = () => {
 
     const buildContext = (): FurniReducerContext => ({
         isUnseen,
-        dispatchAdded: (id, type, category) => queueMicrotask(() => DispatchUiEvent(new InventoryFurniAddedEvent(id, type, category))),
-        fragments: fragmentsRef
+        dispatchAdded: (id, type, category) => queueMicrotask(() => DispatchUiEvent(new InventoryFurniAddedEvent(id, type, category)))
     });
 
     useMessageEvent<FurnitureListAddOrUpdateEvent>(FurnitureListAddOrUpdateEvent, (event) => {
@@ -71,7 +70,19 @@ const useInventoryFurniState = () => {
     });
 
     useMessageEvent<FurnitureListEvent>(FurnitureListEvent, (event) => {
-        setGroupItems((prev) => applyFurnitureList(prev, event, buildContext()));
+        const parser = event.getParser();
+
+        if (!fragmentsRef.current) fragmentsRef.current = new Array(parser.totalFragments);
+
+        const merged = mergeFurniFragments(parser.fragment, parser.totalFragments, parser.fragmentNumber, fragmentsRef.current);
+
+        if (!merged) return;
+
+        fragmentsRef.current = null;
+
+        const context = buildContext();
+
+        setGroupItems((prev) => applyMergedFurnitureList(prev, merged, context));
     });
 
     useMessageEvent<FurnitureListInvalidateEvent>(FurnitureListInvalidateEvent, () => {
@@ -86,13 +97,14 @@ const useInventoryFurniState = () => {
         if (!groupItems || !groupItems.length) return;
 
         setSelectedItem((prevValue) => {
-            let newValue = prevValue;
+            if (!prevValue) return groupItems[0];
 
-            if (newValue && groupItems.indexOf(newValue) === -1) newValue = null;
+            if (groupItems.indexOf(prevValue) !== -1) return prevValue;
 
-            if (!newValue) newValue = groupItems[0];
+            const key = getGroupItemKey(prevValue);
+            const match = groupItems.find((group) => getGroupItemKey(group) === key);
 
-            return newValue;
+            return match ?? groupItems[0];
         });
     }, [groupItems]);
 

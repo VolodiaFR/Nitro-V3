@@ -1,7 +1,6 @@
 import {
     CreateLinkEvent,
     FurnitureListAddOrUpdateEvent,
-    FurnitureListEvent,
     FurnitureListItemParser,
     FurnitureListRemovedEvent
 } from '@nitrots/nitro-renderer';
@@ -14,14 +13,12 @@ import {
     GroupItem,
     getAllItemIds,
     getPlacingItemId,
-    mergeFurniFragments,
     UnseenItemCategory
 } from '../../api';
 
 export interface FurniReducerContext {
     isUnseen: (category: number, id: number) => boolean;
     dispatchAdded: (id: number, type: number, category: number) => void;
-    fragments: { current: Map<number, FurnitureListItemParser>[] | null };
 }
 
 export const applyFurnitureListAddOrUpdate = (state: GroupItem[], event: FurnitureListAddOrUpdateEvent, ctx: FurniReducerContext): GroupItem[] => {
@@ -30,7 +27,7 @@ export const applyFurnitureListAddOrUpdate = (state: GroupItem[], event: Furnitu
 
     for (const item of parser.items) {
         let i = 0;
-        let groupItem: GroupItem = null;
+        let matched = false;
 
         while (i < newValue.length) {
             const group = newValue[i];
@@ -41,15 +38,21 @@ export const applyFurnitureListAddOrUpdate = (state: GroupItem[], event: Furnitu
                 const furniture = group.items[j];
 
                 if (furniture.id === item.itemId) {
-                    furniture.update(item);
+                    const clonedGroup = group.clone();
+                    const clonedFurniture = furniture.clone();
 
-                    const newFurniture = [...group.items];
+                    clonedFurniture.update(item);
 
-                    newFurniture[j] = furniture;
+                    const newFurniture = [...clonedGroup.items];
 
-                    group.items = newFurniture;
+                    newFurniture[j] = clonedFurniture;
 
-                    groupItem = group;
+                    clonedGroup.items = newFurniture;
+                    clonedGroup.hasUnseenItems = true;
+
+                    newValue[i] = clonedGroup;
+
+                    matched = true;
 
                     break;
                 }
@@ -57,16 +60,12 @@ export const applyFurnitureListAddOrUpdate = (state: GroupItem[], event: Furnitu
                 j++;
             }
 
-            if (groupItem) break;
+            if (matched) break;
 
             i++;
         }
 
-        if (groupItem) {
-            groupItem.hasUnseenItems = true;
-
-            newValue[i] = CloneObject(groupItem);
-        } else {
+        if (!matched) {
             const furniture = new FurnitureItem(item);
 
             addFurnitureItem(newValue, furniture, ctx.isUnseen(UnseenItemCategory.FURNI, item.itemId));
@@ -78,17 +77,10 @@ export const applyFurnitureListAddOrUpdate = (state: GroupItem[], event: Furnitu
     return newValue;
 };
 
-export const applyFurnitureList = (state: GroupItem[], event: FurnitureListEvent, ctx: FurniReducerContext): GroupItem[] => {
-    const parser = event.getParser();
-
-    if (!ctx.fragments.current) ctx.fragments.current = new Array(parser.totalFragments);
-
-    const fragment = mergeFurniFragments(parser.fragment, parser.totalFragments, parser.fragmentNumber, ctx.fragments.current);
-
-    if (!fragment) return state;
-
+export const applyMergedFurnitureList = (state: GroupItem[], fragment: Map<number, FurnitureListItemParser>, ctx: FurniReducerContext): GroupItem[] => {
     const newValue = [...state];
     const existingIds = getAllItemIds(newValue);
+    const existingIdSet = new Set(existingIds);
 
     for (const existingId of existingIds) {
         if (fragment.get(existingId)) continue;
@@ -96,16 +88,18 @@ export const applyFurnitureList = (state: GroupItem[], event: FurnitureListEvent
         let index = 0;
 
         while (index < newValue.length) {
-            const group = newValue[index];
-            const item = group.remove(existingId);
+            const originalGroup = newValue[index];
 
-            if (!item) {
+            if (!originalGroup.getItemById(existingId)) {
                 index++;
 
                 continue;
             }
 
-            if (getPlacingItemId() === item.ref) {
+            const group = originalGroup.clone();
+            const item = group.remove(existingId);
+
+            if (item && getPlacingItemId() === item.ref) {
                 queueMicrotask(() => {
                     cancelRoomObjectPlacement();
 
@@ -117,8 +111,8 @@ export const applyFurnitureList = (state: GroupItem[], event: FurnitureListEvent
 
             if (group.getTotalCount() <= 0) {
                 newValue.splice(index, 1);
-
-                group.dispose();
+            } else {
+                newValue[index] = group;
             }
 
             break;
@@ -126,7 +120,7 @@ export const applyFurnitureList = (state: GroupItem[], event: FurnitureListEvent
     }
 
     for (const itemId of fragment.keys()) {
-        if (existingIds.indexOf(itemId) >= 0) continue;
+        if (existingIdSet.has(itemId)) continue;
 
         const parserItem = fragment.get(itemId);
 
@@ -138,8 +132,6 @@ export const applyFurnitureList = (state: GroupItem[], event: FurnitureListEvent
 
         ctx.dispatchAdded(item.id, item.type, item.category);
     }
-
-    ctx.fragments.current = null;
 
     return newValue;
 };
@@ -183,11 +175,15 @@ export const applyFurnitureListRemoved = (state: GroupItem[], event: FurnitureLi
 };
 
 export const clearUnseenFlags = (state: GroupItem[]): GroupItem[] => {
-    const newValue = [...state];
+    if (!state?.length) return state;
 
-    for (const newGroup of newValue) newGroup.hasUnseenItems = false;
+    return state.map((groupItem) => {
+        const nextGroupItem = groupItem.clone();
 
-    return newValue;
+        nextGroupItem.hasUnseenItems = false;
+
+        return nextGroupItem;
+    });
 };
 
 export const refreshGroupItemsLocalization = (state: GroupItem[]): GroupItem[] => {
