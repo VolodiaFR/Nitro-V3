@@ -151,16 +151,18 @@ export const applyFurnitureListRemoved = (state: GroupItem[], event: FurnitureLi
     let index = 0;
 
     while (index < newValue.length) {
-        const group = newValue[index];
-        const item = group.remove(parser.itemId);
+        const originalGroup = newValue[index];
 
-        if (!item) {
+        if (!originalGroup.getItemById(parser.itemId)) {
             index++;
 
             continue;
         }
 
-        if (getPlacingItemId() === item.ref) {
+        const group = CloneObject(originalGroup);
+        const item = group.remove(parser.itemId);
+
+        if (item && getPlacingItemId() === item.ref) {
             queueMicrotask(() => {
                 cancelRoomObjectPlacement();
 
@@ -170,8 +172,8 @@ export const applyFurnitureListRemoved = (state: GroupItem[], event: FurnitureLi
 
         if (group.getTotalCount() <= 0) {
             newValue.splice(index, 1);
-
-            group.dispose();
+        } else {
+            newValue[index] = group;
         }
 
         break;
