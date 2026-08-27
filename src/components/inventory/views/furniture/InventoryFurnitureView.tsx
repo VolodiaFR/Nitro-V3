@@ -2,7 +2,7 @@ import { InfiniteGrid } from '@layout/InfiniteGrid';
 import { GetSessionDataManager, IRoomSession, RoomPreviewer, Vector3d } from '@nitrots/nitro-renderer';
 import { FC, useEffect, useState } from 'react';
 import { FaPowerOff, FaSyncAlt, FaTrashAlt } from 'react-icons/fa';
-import { attemptItemPlacement, DispatchUiEvent, FurniCategory, GroupItem, LocalizeText, UnseenItemCategory } from '../../../../api';
+import { attemptItemPlacement, DispatchUiEvent, FurniCategory, getGroupItemKey, GroupItem, LocalizeText, UnseenItemCategory } from '../../../../api';
 import { LayoutLimitedEditionCompactPlateView, LayoutRarityLevelView, LayoutRoomPreviewerView } from '../../../../common';
 import { CatalogPostMarketplaceOfferEvent, DeleteItemConfirmEvent } from '../../../../events';
 import { useInventoryFurni, useInventoryUnseenTracker } from '../../../../hooks';
@@ -35,7 +35,7 @@ export const InventoryFurnitureView: FC<{
 }> = (props) => {
     const { roomSession = null, roomPreviewer = null, filteredGroupItems = [] } = props;
     const [isVisible, setIsVisible] = useState(false);
-    const { groupItems = [], selectedItem = null, activate = null, deactivate = null } = useInventoryFurni();
+    const { groupItems = [], selectedItem = null, setSelectedItem = null, activate = null, deactivate = null } = useInventoryFurni();
     const { resetItems = null } = useInventoryUnseenTracker();
 
     useEffect(() => {
@@ -114,7 +114,12 @@ export const InventoryFurnitureView: FC<{
     return (
         <div className="grid h-full grid-cols-12 gap-2">
             <div className="flex flex-col col-span-7 gap-1 overflow-hidden">
-                <InfiniteGrid<GroupItem> columnCount={6} itemRender={(item) => <InventoryFurnitureItemView groupItem={item} />} items={filteredGroupItems} />
+                <InfiniteGrid<GroupItem>
+                    columnCount={6}
+                    itemKey={getGroupItemKey}
+                    itemRender={(item) => <InventoryFurnitureItemView groupItem={item} isActive={item === selectedItem} onSelect={setSelectedItem} />}
+                    items={filteredGroupItems}
+                />
             </div>
             <div className="flex flex-col col-span-5">
                 <div className="relative flex flex-col">

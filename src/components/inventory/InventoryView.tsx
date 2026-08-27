@@ -11,8 +11,8 @@ import {
     RoomPreviewer,
     RoomSessionEvent
 } from '@nitrots/nitro-renderer';
-import { FC, useEffect, useState } from 'react';
-import { GroupItem, isObjectMoverRequested, LocalizeText, setObjectMoverRequested, UnseenItemCategory } from '../../api';
+import { FC, useEffect, useMemo, useState } from 'react';
+import { isObjectMoverRequested, LocalizeBadgeName, LocalizeText, setObjectMoverRequested, UnseenItemCategory } from '../../api';
 import { NitroCardHeaderView, NitroCardTabsItemView, NitroCardTabsView, NitroCardView } from '../../common';
 import {
     useInventoryBadges,
@@ -28,7 +28,7 @@ import { InventoryBotView } from './views/bot/InventoryBotView';
 import { InventoryFurnitureDeleteView } from './views/furniture/InventoryFurnitureDeleteView';
 import { InventoryFurnitureView } from './views/furniture/InventoryFurnitureView';
 import { InventoryTradeView } from './views/furniture/InventoryTradeView';
-import { InventoryCategoryFilterView } from './views/InventoryCategoryFilterView';
+import { FILTER_EVERYTHING, FILTER_FLOOR, FILTER_WALL, InventoryCategoryFilterView } from './views/InventoryCategoryFilterView';
 import { InventoryPetView } from './views/pet/InventoryPetView';
 import { InventoryPrefixView } from './views/prefix/InventoryPrefixView';
 
@@ -38,8 +38,7 @@ const TAB_PETS: string = 'inventory.furni.tab.pets';
 const TAB_BADGES: string = 'inventory.badges';
 const TAB_PREFIXES: string = 'inventory.prefixes';
 const TABS = [TAB_FURNITURE, TAB_PETS, TAB_BADGES, TAB_PREFIXES, TAB_BOTS];
-// Maps an optional link code (inventory/show/<code>) to a tab so other views
-// (e.g. the profile "Change Badges" button) can deep-link to a specific tab.
+
 const TAB_BY_CODE: Record<string, string> = {
     furni: TAB_FURNITURE,
     furniture: TAB_FURNITURE,
@@ -55,12 +54,53 @@ export const InventoryView: FC<{}> = (props) => {
     const [currentTab, setCurrentTab] = useState<string>(TABS[0]);
     const [roomSession, setRoomSession] = useState<IRoomSession>(null);
     const [roomPreviewer, setRoomPreviewer] = useState<RoomPreviewer>(null);
-    const [filteredGroupItems, setFilteredGroupItems] = useState<GroupItem[]>([]);
-    const [filteredBadgeCodes, setFilteredBadgeCodes] = useState<string[]>([]);
+    const [searchValue, setSearchValue] = useState('');
+    const [filterType, setFilterType] = useState<string>(FILTER_EVERYTHING);
     const { isTrading = false, stopTrading = null } = useInventoryTrade();
     const { getCount = null } = useInventoryUnseenTracker();
     const { groupItems = [] } = useInventoryFurni();
     const { badgeCodes = [] } = useInventoryBadges();
+
+    useEffect(() => {
+        setSearchValue('');
+        setFilterType(FILTER_EVERYTHING);
+    }, [currentTab]);
+
+    const filteredGroupItems = useMemo(() => {
+        const comparison = searchValue.toLocaleLowerCase();
+
+        if (filterType === FILTER_EVERYTHING) {
+            return groupItems.filter((item) => item.name.toLocaleLowerCase().includes(comparison));
+        }
+
+        return groupItems.filter((item) => {
+            const isWall = filterType === FILTER_WALL ? item.isWallItem : false;
+            const isFloor = filterType === FILTER_FLOOR ? !item.isWallItem : false;
+            const matchesSearch = item.name.toLocaleLowerCase().includes(comparison);
+
+            return comparison.length ? matchesSearch && (isWall || isFloor) : isWall || isFloor;
+        });
+    }, [groupItems, searchValue, filterType]);
+
+    const filteredBadgeCodes = useMemo(() => {
+        const comparison = searchValue.toLocaleLowerCase().replace(' ', '');
+
+        const achievementBadges = badgeCodes.filter((badge) => badge.startsWith('ACH_'));
+        const numberMap: { [key: string]: number } = {};
+
+        achievementBadges.forEach((badge) => {
+            const name = badge.split(/[\d]+/)[0];
+            const number = Number(badge.replace(name, ''));
+
+            if (numberMap[name] === undefined || number > numberMap[name]) numberMap[name] = number;
+        });
+
+        const deduped = Object.keys(numberMap)
+            .map((name) => `${name}${numberMap[name]}`)
+            .concat(badgeCodes.filter((badge) => !badge.startsWith('ACH_')));
+
+        return deduped.filter((badgeCode) => LocalizeBadgeName(badgeCode).toLocaleLowerCase().includes(comparison));
+    }, [badgeCodes, searchValue]);
 
     const onClose = () => {
         if (isTrading) stopTrading();
@@ -169,11 +209,11 @@ export const InventoryView: FC<{}> = (props) => {
                         <div className="nitro-inventory-body flex flex-col overflow-hidden p-2 h-full gap-2">
                             {showFilter && (
                                 <InventoryCategoryFilterView
-                                    badgeCodes={badgeCodes}
                                     currentTab={currentTab}
-                                    groupItems={groupItems}
-                                    setBadgeCodes={setFilteredBadgeCodes}
-                                    setGroupItems={setFilteredGroupItems}
+                                    filterType={filterType}
+                                    searchValue={searchValue}
+                                    onFilterTypeChange={setFilterType}
+                                    onSearchChange={setSearchValue}
                                 />
                             )}
                             <div className="flex-1 overflow-hidden">

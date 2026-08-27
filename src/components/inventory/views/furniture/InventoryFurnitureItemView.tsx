@@ -1,27 +1,27 @@
 import { MouseEventType } from '@nitrots/nitro-renderer';
 import { FC, MouseEvent, useState } from 'react';
 import { attemptItemPlacement, GroupItem } from '../../../../api';
-import { useInventoryFurni } from '../../../../hooks';
 import { classNames, InfiniteGrid } from '../../../../layout';
 
 export const InventoryFurnitureItemView: FC<{
     groupItem: GroupItem;
+    isActive: boolean;
+    onSelect: (groupItem: GroupItem) => void;
 }> = (props) => {
-    const { groupItem = null, ...rest } = props;
+    const { groupItem = null, isActive = false, onSelect = null } = props;
     const [isMouseDown, setMouseDown] = useState(false);
-    const { selectedItem = null, setSelectedItem = null } = useInventoryFurni();
 
     const onMouseEvent = (event: MouseEvent) => {
         switch (event.type) {
             case MouseEventType.MOUSE_DOWN:
-                setSelectedItem(groupItem);
+                onSelect?.(groupItem);
                 setMouseDown(true);
                 return;
             case MouseEventType.MOUSE_UP:
                 setMouseDown(false);
                 return;
             case MouseEventType.ROLL_OUT:
-                if (!isMouseDown || !(groupItem === selectedItem)) return;
+                if (!isMouseDown || !isActive) return;
 
                 attemptItemPlacement(groupItem);
                 return;
@@ -36,8 +36,8 @@ export const InventoryFurnitureItemView: FC<{
     return (
         <InfiniteGrid.Item
             className={classNames(!count && 'opacity-50')}
-            itemActive={groupItem === selectedItem}
-            itemCount={groupItem.getUnlockedCount()}
+            itemActive={isActive}
+            itemCount={count}
             itemImage={groupItem.iconUrl}
             itemUniqueNumber={groupItem.stuffData.uniqueNumber}
             itemUnseen={groupItem.hasUnseenItems}
