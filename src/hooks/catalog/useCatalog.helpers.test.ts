@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BuilderFurniPlaceableStatus } from '../../api/catalog/BuilderFurniPlaceableStatus';
 import { CatalogType } from '../../api/catalog/CatalogType';
 import * as catalogHelpers from './useCatalog.helpers';
@@ -58,7 +58,31 @@ describe('catalog index request coordinator', () => {
 });
 
 describe('catalog index prewarm controller', () => {
-    it('requests the current catalog once when the connection becomes authenticated', () => {
+    // The login prewarm is deferred to an idle slot so it cannot land in the
+    // middle of authentication and room entry; run those callbacks on demand.
+    let idleCallbacks: Array<() => void> = [];
+
+    beforeEach(() => {
+        idleCallbacks = [];
+        (globalThis as any).requestIdleCallback = (cb: () => void) => {
+            idleCallbacks.push(cb);
+
+            return idleCallbacks.length;
+        };
+    });
+
+    afterEach(() => {
+        delete (globalThis as any).requestIdleCallback;
+    });
+
+    const runIdle = () => {
+        const pending = idleCallbacks;
+
+        idleCallbacks = [];
+        pending.forEach(cb => cb());
+    };
+
+    it('prewarms the current catalog once the thread is idle after authenticating', () => {
         const requestedTypes: string[] = [];
         const controller = (catalogHelpers as any).createCatalogIndexPrewarmController((type: string) => requestedTypes.push(type));
 
@@ -68,6 +92,11 @@ describe('catalog index prewarm controller', () => {
         controller.update({ authenticated: false, visible: false, hasIndex: false, catalogType: CatalogType.NORMAL });
         controller.update({ authenticated: true, visible: false, hasIndex: false, catalogType: CatalogType.NORMAL });
         controller.update({ authenticated: true, visible: false, hasIndex: true, catalogType: CatalogType.NORMAL });
+
+        // nothing on the critical path: authentication and room entry come first
+        expect(requestedTypes).toEqual([]);
+
+        runIdle();
 
         expect(requestedTypes).toEqual([CatalogType.NORMAL]);
     });
@@ -80,7 +109,9 @@ describe('catalog index prewarm controller', () => {
         if (!controller) return;
 
         controller.update({ authenticated: true, visible: false, hasIndex: false, catalogType: CatalogType.NORMAL });
+        runIdle();
         requestedTypes.length = 0;
+        // opening is a request the user is waiting on, so it stays synchronous
         controller.update({ authenticated: true, visible: true, hasIndex: true, catalogType: CatalogType.NORMAL });
         controller.update({ authenticated: true, visible: true, hasIndex: true, catalogType: CatalogType.NORMAL });
         controller.update({ authenticated: true, visible: false, hasIndex: true, catalogType: CatalogType.NORMAL });
@@ -99,6 +130,8 @@ describe('catalog index prewarm controller', () => {
         controller.update({ authenticated: true, visible: false, hasIndex: false, catalogType: CatalogType.NORMAL });
         controller.update({ authenticated: false, visible: false, hasIndex: false, catalogType: CatalogType.NORMAL });
         controller.update({ authenticated: true, visible: false, hasIndex: false, catalogType: CatalogType.NORMAL });
+
+        runIdle();
 
         expect(requestedTypes).toEqual([CatalogType.NORMAL, CatalogType.NORMAL]);
     });

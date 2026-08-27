@@ -428,7 +428,7 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
                                 setMeExpanded(value => !value);
                                 event.stopPropagation();
                             } }>
-                            <LayoutAvatarImageView airMeMenu={ true } direction={ 3 } figure={ userFigure } className="tb-icon tb-avatar-head" />
+                            <LayoutAvatarImageView airMeMenu={ true } direction={ 3 } figure={ userFigure } />
                         </motion.div>
                         <img src={ memenuCircleImg } alt="" className="tb-memenu-circle" />
                         { (getTotalUnseen > 0) &&
@@ -557,7 +557,7 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
                                 setMeExpanded(value => !value);
                                 event.stopPropagation();
                             } }>
-                            <LayoutAvatarImageView airMeMenu={ true } direction={ 3 } figure={ userFigure } className="tb-icon tb-avatar-head" />
+                            <LayoutAvatarImageView airMeMenu={ true } direction={ 3 } figure={ userFigure } />
                         </motion.div>
                         <img src={ memenuCircleImg } alt="" className="tb-memenu-circle" />
                         { (getTotalUnseen > 0) &&

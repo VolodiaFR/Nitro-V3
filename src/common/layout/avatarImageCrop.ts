@@ -117,7 +117,38 @@ export const cropTransparentImageUrl = (imageUrl: string, targetSize: number = 2
     image.src = imageUrl;
 });
 
-/** AIR MeMenuNewIconLoader: HabboFaceFocuser.focusUserFace full dir 3 then cutCircle r=20. */
+export const AIR_ME_MENU_FACE = {
+    canvasWidth: 90,
+    canvasHeight: 130,
+    x: 21,
+    y: 30,
+    size: 50,
+    circleRadius: 20
+};
+
+export const airMeMenuFaceScale = (naturalWidth: number, naturalHeight: number): number =>
+{
+    const horizontal = naturalWidth / AIR_ME_MENU_FACE.canvasWidth;
+    const vertical = naturalHeight / AIR_ME_MENU_FACE.canvasHeight;
+    const scale = Math.min(horizontal, vertical);
+
+    if(!Number.isFinite(scale) || (scale <= 0)) return 1;
+
+    return scale;
+};
+
+export const scaledAirMeMenuFaceCrop = (naturalWidth: number, naturalHeight: number) =>
+{
+    const scale = airMeMenuFaceScale(naturalWidth, naturalHeight);
+
+    return {
+        sx: AIR_ME_MENU_FACE.x * scale,
+        sy: AIR_ME_MENU_FACE.y * scale,
+        sw: AIR_ME_MENU_FACE.size * scale,
+        sh: AIR_ME_MENU_FACE.size * scale
+    };
+};
+
 export const cropAirMeMenuFaceImageUrl = (imageUrl: string): Promise<string> => new Promise(resolve =>
 {
     const image = new Image();
@@ -126,19 +157,28 @@ export const cropAirMeMenuFaceImageUrl = (imageUrl: string): Promise<string> => 
         try
         {
             const canvas = document.createElement('canvas');
-            canvas.width = 50;
-            canvas.height = 50;
+            canvas.width = AIR_ME_MENU_FACE.size;
+            canvas.height = AIR_ME_MENU_FACE.size;
             const context = canvas.getContext('2d');
             if(!context) return resolve(imageUrl);
             context.imageSmoothingEnabled = false;
-            const sx = Math.min(21, Math.max(0, image.naturalWidth - 50));
-            const sy = Math.min(30, Math.max(0, image.naturalHeight - 50));
-            const sw = Math.min(50, image.naturalWidth - sx);
-            const sh = Math.min(50, image.naturalHeight - sy);
-            context.drawImage(image, sx, sy, sw, sh, 0, 0, sw, sh);
+            const crop = scaledAirMeMenuFaceCrop(image.naturalWidth, image.naturalHeight);
+            // focusUserFace copies with BitmapData.copyPixels, which only
+            // transfers the part of the window that overlaps the source and
+            // leaves the rest transparent. Clamping the window and then
+            // stretching it over the whole icon instead would distort the face.
+            const sx = Math.max(0, Math.min(crop.sx, image.naturalWidth));
+            const sy = Math.max(0, Math.min(crop.sy, image.naturalHeight));
+            const sw = Math.max(0, Math.min(crop.sx + crop.sw, image.naturalWidth) - sx);
+            const sh = Math.max(0, Math.min(crop.sy + crop.sh, image.naturalHeight) - sy);
+            if((sw > 0) && (sh > 0))
+            {
+                const factor = AIR_ME_MENU_FACE.size / crop.sw;
+                context.drawImage(image, sx, sy, sw, sh, (sx - crop.sx) * factor, (sy - crop.sy) * factor, sw * factor, sh * factor);
+            }
             context.globalCompositeOperation = 'destination-in';
             context.beginPath();
-            context.arc(25, 25, 20, 0, Math.PI * 2);
+            context.arc(AIR_ME_MENU_FACE.size / 2, AIR_ME_MENU_FACE.size / 2, AIR_ME_MENU_FACE.circleRadius, 0, Math.PI * 2);
             context.fill();
             resolve(canvas.toDataURL('image/png'));
         }

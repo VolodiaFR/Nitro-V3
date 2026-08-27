@@ -41,12 +41,14 @@ export const NavigatorRoomInfoPopupView: FC<{}> = () => {
         closePopup();
     };
 
+    const bubbleStyle = { left: x, top: y, width: 374, transform: 'translateY(-50%)' };
+
     return (
         <div
             role="dialog"
             aria-label={LocalizeText('navigator.room.info.popup.title')}
             className="nitro-navigator-air__room-bubble"
-            style={{ left: x, top: y, width: 374 }}
+            style={bubbleStyle}
             onMouseEnter={() => useNavigatorRoomInfoPopupStore.getState().setHovered(true)}
             onMouseLeave={() => useNavigatorRoomInfoPopupStore.getState().setHovered(false)}
             onClick={(event) => event.stopPropagation()}

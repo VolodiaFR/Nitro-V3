@@ -7,7 +7,12 @@ import { isValidJsonMode } from './scripts/json-mode.mjs';
 
 const legacyRendererRoot = resolve(import.meta.dirname, '..', 'renderer');
 const currentRendererRoot = resolve(import.meta.dirname, '..', 'Octane-Renderer');
-const rendererRoot = existsSync(currentRendererRoot) ? currentRendererRoot : legacyRendererRoot;
+// Checkouts cloned before the repository was renamed still use the lowercase
+// folder, which tsconfig.json also points at. Linux is case sensitive, so the
+// previous name has to stay in the lookup chain or those checkouts resolve to
+// the legacy path and the config throws.
+const previousRendererRoot = resolve(import.meta.dirname, '..', 'octane-renderer');
+const rendererRoot = [currentRendererRoot, previousRendererRoot, legacyRendererRoot].find(existsSync) ?? legacyRendererRoot;
 
 // Game assets live outside the repo, in a sibling directory next to Octane.
 // They are NOT placed under public/ on purpose: with ~177k files a symlink

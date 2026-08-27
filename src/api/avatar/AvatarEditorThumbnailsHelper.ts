@@ -2,7 +2,6 @@ import {
     AvatarFigurePartType,
     AvatarScaleType,
     AvatarSetType,
-    GetAssetManager,
     GetAvatarRenderManager,
     IAvatarImage,
     IFigurePart,
@@ -60,10 +59,30 @@ class LRUImageCache {
     }
 }
 
+export type AvatarEditorThumbRect = { x: number; y: number; width: number; height: number };
+
+export const unionAvatarEditorThumbRect = (left: AvatarEditorThumbRect, right: AvatarEditorThumbRect): AvatarEditorThumbRect => {
+    const x = Math.min(left.x, right.x);
+    const y = Math.min(left.y, right.y);
+
+    return {
+        x,
+        y,
+        width: Math.max(left.x + left.width, right.x + right.width) - x,
+        height: Math.max(left.y + left.height, right.y + right.height) - y
+    };
+};
+
+export const avatarEditorThumbDest = (assetX: number, assetY: number, union: AvatarEditorThumbRect) => ({
+    x: assetX - union.x,
+    y: assetY - union.y
+});
+
 export class AvatarEditorThumbnailsHelper {
     private static THUMBNAIL_CACHE: LRUImageCache = new LRUImageCache();
     private static PENDING_THUMBNAILS: Map<string, Promise<string>> = new Map();
     private static THUMB_DIRECTIONS: number[] = [2, 6, 0, 4, 3, 1];
+    private static THUMB_BOX: number = 50;
     private static ALPHA_FILTER: NitroAlphaFilter = new NitroAlphaFilter({ alpha: 0.2 });
     private static DRAW_ORDER: string[] = [
         AvatarFigurePartType.LEFT_HAND_ITEM,
@@ -166,6 +185,41 @@ export class AvatarEditorThumbnailsHelper {
         }
     }
 
+    private static async centerIntoThumbBox(imageUrl: string): Promise<string> {
+        try {
+            const image = new Image();
+
+            await new Promise<void>((resolve, reject) => {
+                image.onload = () => resolve();
+                image.onerror = () => reject(new Error('thumbnail load failed'));
+                image.src = imageUrl;
+            });
+
+            const width = image.naturalWidth;
+            const height = image.naturalHeight;
+
+            if (!width || !height) return imageUrl;
+
+            if (width === this.THUMB_BOX && height === this.THUMB_BOX) return imageUrl;
+
+            const canvas = document.createElement('canvas');
+
+            canvas.width = this.THUMB_BOX;
+            canvas.height = this.THUMB_BOX;
+
+            const context = canvas.getContext('2d');
+
+            if (!context) return imageUrl;
+
+            context.imageSmoothingEnabled = false;
+            context.drawImage(image, Math.trunc((this.THUMB_BOX - width) / 2), Math.trunc((this.THUMB_BOX - height) / 2));
+
+            return canvas.toDataURL('image/png');
+        } catch {
+            return imageUrl;
+        }
+    }
+
     private static getThumbnailKey(setType: string, part: IAvatarEditorCategoryPartItem, partColors?: IPartColor[], isDisabled?: boolean): string {
         let key = `${setType}-${part.partSet.id}`;
 
@@ -213,7 +267,7 @@ export class AvatarEditorThumbnailsHelper {
                 for (let index = 0; index < AvatarEditorThumbnailsHelper.THUMB_DIRECTIONS.length; index++) {
                     const assetName = `${AvatarFigurePartType.SCALE}_${AvatarFigurePartType.STD}_${sourcePart.type}_${sourcePart.id}_${AvatarEditorThumbnailsHelper.THUMB_DIRECTIONS[index]}_${AvatarFigurePartType.DEFAULT_FRAME}`;
 
-                    if (GetAssetManager().getAsset(assetName)?.texture) {
+                    if (GetAvatarRenderManager().getAssetByName(assetName)?.texture) {
                         directionIndex = index;
 
                         break;
@@ -225,32 +279,43 @@ export class AvatarEditorThumbnailsHelper {
 
             if (directionIndex < 0) return { container, renderedCount };
 
-            for (const part of parts) {
-                if (!part) continue;
+            const drawn: { figurePart: IFigurePart; asset: IGraphicAsset }[] = [];
+            let union: AvatarEditorThumbRect = null;
 
-                const assetName = `${AvatarFigurePartType.SCALE}_${AvatarFigurePartType.STD}_${part.type}_${part.id}_${AvatarEditorThumbnailsHelper.THUMB_DIRECTIONS[directionIndex]}_${AvatarFigurePartType.DEFAULT_FRAME}`;
-                const asset: IGraphicAsset = GetAssetManager().getAsset(assetName);
+            for (const figurePart of parts) {
+                if (!figurePart) continue;
+
+                const assetName = `${AvatarFigurePartType.SCALE}_${AvatarFigurePartType.STD}_${figurePart.type}_${figurePart.id}_${AvatarEditorThumbnailsHelper.THUMB_DIRECTIONS[directionIndex]}_${AvatarFigurePartType.DEFAULT_FRAME}`;
+                const asset: IGraphicAsset = GetAvatarRenderManager().getAssetByName(assetName);
 
                 if (!asset?.texture) continue;
 
-                const x = asset.offsetX;
-                const y = asset.offsetY;
+                drawn.push({ figurePart, asset });
 
+                const rect: AvatarEditorThumbRect = { x: asset.x, y: asset.y, width: asset.width, height: asset.height };
+
+                union = union ? unionAvatarEditorThumbRect(union, rect) : rect;
+            }
+
+            if (!union || union.width <= 0 || union.height <= 0) return { container, renderedCount };
+
+            for (const { figurePart, asset } of drawn) {
                 const sprite = new NitroSprite(asset.texture);
+                const dest = avatarEditorThumbDest(asset.x, asset.y, union);
 
-                sprite.position.set(x, y);
+                sprite.position.set(dest.x, dest.y);
 
-                if (useColors && part.colorLayerIndex > 0 && partColors && partColors.length) {
-                    const color = partColors[part.colorLayerIndex - 1];
+                if (useColors && figurePart.colorLayerIndex > 0 && partColors && partColors.length) {
+                    const color = partColors[figurePart.colorLayerIndex - 1];
 
                     if (color) sprite.tint = color.rgb;
                 }
 
-                if (isDisabled) container.filters = [AvatarEditorThumbnailsHelper.ALPHA_FILTER];
-
                 container.addChild(sprite);
                 renderedCount++;
             }
+
+            if (isDisabled) container.filters = [AvatarEditorThumbnailsHelper.ALPHA_FILTER];
 
             return { container, renderedCount };
         };
@@ -272,7 +337,8 @@ export class AvatarEditorThumbnailsHelper {
                 }
 
                 try {
-                    const imageUrl = await TextureUtils.generateImageUrl({ target: container, resolution: 1 });
+                    const renderedUrl = await TextureUtils.generateImageUrl({ target: container, resolution: 1 });
+                    const imageUrl = renderedUrl ? await AvatarEditorThumbnailsHelper.centerIntoThumbBox(renderedUrl) : renderedUrl;
 
                     if (completed) return;
 

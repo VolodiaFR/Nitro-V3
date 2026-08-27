@@ -4,7 +4,6 @@ import { createNitroStore } from '../../state/createNitroStore';
 export type NavigatorRoomInfoAnchorKind = 'info' | 'row' | 'tile';
 
 const POPUP_HIDE_DELAY_MS = 4000;
-const POPUP_HEIGHT = 350;
 
 export type NavigatorRoomInfoPopupState = {
     room: RoomDataParser | null;
@@ -84,7 +83,7 @@ export const useNavigatorRoomInfoPopupStore = createNitroStore<NavigatorRoomInfo
             visible: true,
             hovered: false,
             x: point.x,
-            y: point.y - POPUP_HEIGHT / 2
+            y: point.y
         });
     },
 
@@ -97,7 +96,7 @@ export const useNavigatorRoomInfoPopupStore = createNitroStore<NavigatorRoomInfo
             room,
             visible: true,
             x: point.x,
-            y: point.y - POPUP_HEIGHT / 2
+            y: point.y
         });
     }
 }));
