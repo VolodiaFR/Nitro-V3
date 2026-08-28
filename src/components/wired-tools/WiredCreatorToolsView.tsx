@@ -1014,10 +1014,16 @@ export const WiredCreatorToolsView: FC<{}> = () => {
         setIsVisible(false);
     }, [isVisible, roomSession?.roomId, roomSettings.isLoaded, roomSettings.canInspect]);
 
-    const selectedRoomObject =
-        roomSession && selectedFurni ? GetRoomEngine().getRoomObject(roomSession.roomId, selectedFurni.objectId, selectedFurni.category) : null;
-    const selectedUserRoomObject =
-        roomSession && selectedUser ? GetRoomEngine().getRoomObject(roomSession.roomId, selectedUser.roomIndex, RoomObjectCategory.UNIT) : null;
+    const [selectedRoomObject, setSelectedRoomObject] = useState<ReturnType<ReturnType<typeof GetRoomEngine>['getRoomObject']> | null>(null);
+    const [selectedUserRoomObject, setSelectedUserRoomObject] = useState<ReturnType<ReturnType<typeof GetRoomEngine>['getRoomObject']> | null>(null);
+
+    useEffect(() => {
+        setSelectedRoomObject(roomSession && selectedFurni ? GetRoomEngine().getRoomObject(roomSession.roomId, selectedFurni.objectId, selectedFurni.category) : null);
+    }, [roomSession, selectedFurni, furniInternalRevision]);
+
+    useEffect(() => {
+        setSelectedUserRoomObject(roomSession && selectedUser ? GetRoomEngine().getRoomObject(roomSession.roomId, selectedUser.roomIndex, RoomObjectCategory.UNIT) : null);
+    }, [roomSession, selectedUser, selectedUserActionVersion]);
 
     const currentTabLabel = useMemo(() => TABS.find((tab) => tab.key === activeTab)?.label ?? 'Monitor', [activeTab]);
     const selectedMonitorErrorInfo = useMemo(() => {
