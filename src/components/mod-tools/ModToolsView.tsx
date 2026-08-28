@@ -187,6 +187,7 @@ export const ModToolsView: FC<{}> = (props) => {
                                 active={isRoomInfoOpen}
                                 disabled={!isInRoom}
                                 gap={2}
+                                variant="secondary"
                                 justifyContent="start"
                                 title={!isInRoom ? noRoomHint : undefined}
                                 onClick={() => CreateLinkEvent(`mod-tools/toggle-room-info/${currentRoomId}`)}
@@ -198,6 +199,7 @@ export const ModToolsView: FC<{}> = (props) => {
                                 active={isRoomChatlogOpen}
                                 disabled={!isInRoom}
                                 gap={2}
+                                variant="secondary"
                                 innerRef={elementRef}
                                 justifyContent="start"
                                 title={!isInRoom ? noRoomHint : undefined}
@@ -247,6 +249,7 @@ export const ModToolsView: FC<{}> = (props) => {
                                         active={!!isUserInfoOpen}
                                         gap={2}
                                         justifyContent="start"
+                                        variant="secondary"
                                         onClick={() => CreateLinkEvent(`mod-tools/toggle-user-info/${selectedUser.userId}`)}
                                     >
                                         <div className="nitro-icon icon-user shrink-0" />
@@ -266,7 +269,7 @@ export const ModToolsView: FC<{}> = (props) => {
                             <div className="text-[.6rem] uppercase tracking-wide opacity-60 font-semibold pl-1">
                                 {LocalizeText('modtools.window.section.reports')}
                             </div>
-                            <Button active={isTicketsVisible} gap={2} justifyContent="start" onClick={() => setIsTicketsVisible((prevValue) => !prevValue)}>
+                            <Button active={isTicketsVisible} gap={2} justifyContent="start" variant="secondary" onClick={() => setIsTicketsVisible((prevValue) => !prevValue)}>
                                 <div className="nitro-icon icon-tickets shrink-0" />
                                 <span className="grow text-start">{LocalizeText('modtools.window.tools.report')}</span>
                                 {openTicketsCount > 0 && (
