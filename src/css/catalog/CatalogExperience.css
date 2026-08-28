@@ -92,6 +92,13 @@
     image-rendering: pixelated;
 }
 
+/*
+ * Where the original client puts it: `limitedItemWidget` at 186,5 sized 174x35 inside the
+ * 360-wide product view. Its right end runs under the rotation arrows, which live at 300..354
+ * in the same box - harmless there because the plaque's artwork is left-aligned inside a
+ * panel wider than its own container. Ours is not artwork but text, so the lane the arrows
+ * occupy is reserved instead of overwritten.
+ */
 .nitro-catalog-preview-limited {
     position: absolute;
     top: 5px;
@@ -99,6 +106,7 @@
     z-index: 6;
     width: 174px;
     height: 35px;
+    padding-right: 60px;
     pointer-events: none;
 }
 

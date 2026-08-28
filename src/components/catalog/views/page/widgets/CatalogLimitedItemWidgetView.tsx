@@ -10,8 +10,9 @@ export const CatalogLimitedItemWidgetView: FC = (props) => {
 
     return (
         <div className="w-full">
+            {/* Left-aligned, like the original's plaque: centring it walks the text under the
+                rotation arrows that share this corner. */}
             <LayoutLimitedEditionCompletePlateView
-                className="mx-auto"
                 uniqueLimitedItemsLeft={currentOffer.product.uniqueLimitedItemsLeft}
                 uniqueLimitedSeriesSize={currentOffer.product.uniqueLimitedItemSeriesSize}
             />
