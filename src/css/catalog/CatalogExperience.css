@@ -93,23 +93,22 @@
 }
 
 /*
- * The original puts `limitedItemWidget` at 186,5 sized 174x35 - but its product view is a fixed
- * 360 wide, so 186 + 174 is that view's right edge. This panel is not fixed: it stretches with
- * a window that resizes from 570 to 1040, so the same 186 pins the plate somewhere in the
- * middle instead. Anchoring right is what reproduces the original placement here.
+ * The plate is artwork of its own fixed size - `.unique-complete-plate` is the 170x29 of
+ * `catalog-info-amount-bg.png` - so this slot has nothing to decide: it takes the size of what
+ * it holds. Giving it a width of its own did not constrain the plate, it only overflowed it,
+ * which is how the plate still ended up under the arrows despite a reserved lane.
  *
- * The rotation arrows share this corner (`right: 6px`, 54 wide) and in the original they do
- * overlap the plaque - harmlessly, because there the plaque is artwork aligned to the left of a
- * panel wider than its container. Ours is text, so their 60px lane is reserved instead.
+ * The original puts `limitedItemWidget` at 186,5 in a product view fixed at 360 wide, so 186 is
+ * that view's right edge less the widget. This panel is not fixed - it stretches with a window
+ * that sizes itself between 570 and 1040 - so the placement has to be read from the right edge,
+ * offset by the lane the rotation arrows occupy there: 54px of button and the 6px they are
+ * inset by.
  */
 .nitro-catalog-preview-limited {
     position: absolute;
     top: 5px;
-    right: 0;
+    right: 60px;
     z-index: 6;
-    width: 174px;
-    height: 35px;
-    padding-right: 60px;
     pointer-events: none;
 }
 

@@ -26,27 +26,35 @@ ${selector} {`);
         return stylesheet.slice(start, stylesheet.indexOf('}', start));
     };
 
-    it('anchors both to the corner rather than to a fixed offset', () => {
+    it('reads its placement from the right edge, not from a fixed offset', () => {
+        const plate = rule(experience, '.nitro-catalog-preview-limited');
+
+        expect(plate).toContain('top: 5px');
+        // The original's 186 is its 360-wide view's right edge less the widget. This panel
+        // stretches with the window, so a fixed left offset lands in the middle of it.
+        expect(plate).not.toContain('left:');
+    });
+
+    it('clears the lane the controls occupy', () => {
         const plate = rule(experience, '.nitro-catalog-preview-limited');
         const controls = rule(catalog, '.nitro-catalog-preview-controls');
 
-        expect(plate).toContain('top: 5px');
-        expect(plate).toContain('width: 174px');
-        // The original's 186 is its 360-wide view's right edge minus these 174. This panel
-        // stretches with the window, so a fixed left offset lands in the middle of it.
-        expect(plate).toContain('right: 0');
-        expect(plate).not.toContain('left:');
         expect(controls).toContain('right: 6px');
         expect(controls).toContain('width: 54px');
+        // Those two numbers are the lane, and the plate starts where it ends.
+        expect(plate).toContain('right: 60px');
     });
 
-    it('stops the plate where the controls begin', () => {
+    it('takes the size of the plate rather than imposing one on it', () => {
         const plate = rule(experience, '.nitro-catalog-preview-limited');
 
-        // 54px of buttons and the 6px they are inset by: 186 + 174 - 60 = 300, where the
-        // original puts rotate_avatar_left.
-        expect(plate).toContain('padding-right: 60px');
-        // Centred, the text sits under those buttons however much room is reserved.
+        // `.unique-complete-plate` is the 170x29 of its own background artwork. A width here
+        // constrained nothing - the plate overflowed it - so reserving room inside this box
+        // moved the plate not at all.
+        expect(plate).not.toContain('width:');
+        expect(plate).not.toContain('height:');
+        expect(plate).not.toContain('padding-right:');
+        expect(widget).not.toContain('w-full');
         expect(widget).not.toContain('mx-auto');
     });
 });
