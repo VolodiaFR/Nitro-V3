@@ -116,7 +116,8 @@ export const CatalogStudioProvider: FC<{ active: boolean; children: ReactNode }>
             message: parser.message,
             revision: parser.revision,
             current: parser.current,
-            issues: parser.issues.map((issue) => ({ ...issue }))
+            issues: parser.issues.map((issue) => ({ ...issue })),
+            receivedAt: Date.now()
         };
         setValidation(next);
         updateRevision(parser.revision);
