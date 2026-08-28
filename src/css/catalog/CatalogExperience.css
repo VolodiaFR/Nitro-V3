@@ -93,16 +93,19 @@
 }
 
 /*
- * Where the original client puts it: `limitedItemWidget` at 186,5 sized 174x35 inside the
- * 360-wide product view. Its right end runs under the rotation arrows, which live at 300..354
- * in the same box - harmless there because the plaque's artwork is left-aligned inside a
- * panel wider than its own container. Ours is not artwork but text, so the lane the arrows
- * occupy is reserved instead of overwritten.
+ * The original puts `limitedItemWidget` at 186,5 sized 174x35 - but its product view is a fixed
+ * 360 wide, so 186 + 174 is that view's right edge. This panel is not fixed: it stretches with
+ * a window that resizes from 570 to 1040, so the same 186 pins the plate somewhere in the
+ * middle instead. Anchoring right is what reproduces the original placement here.
+ *
+ * The rotation arrows share this corner (`right: 6px`, 54 wide) and in the original they do
+ * overlap the plaque - harmlessly, because there the plaque is artwork aligned to the left of a
+ * panel wider than its container. Ours is text, so their 60px lane is reserved instead.
  */
 .nitro-catalog-preview-limited {
     position: absolute;
     top: 5px;
-    left: 186px;
+    right: 0;
     z-index: 6;
     width: 174px;
     height: 35px;

@@ -26,13 +26,16 @@ ${selector} {`);
         return stylesheet.slice(start, stylesheet.indexOf('}', start));
     };
 
-    it('keeps the original placement for both', () => {
+    it('anchors both to the corner rather than to a fixed offset', () => {
         const plate = rule(experience, '.nitro-catalog-preview-limited');
         const controls = rule(catalog, '.nitro-catalog-preview-controls');
 
-        expect(plate).toContain('left: 186px');
         expect(plate).toContain('top: 5px');
         expect(plate).toContain('width: 174px');
+        // The original's 186 is its 360-wide view's right edge minus these 174. This panel
+        // stretches with the window, so a fixed left offset lands in the middle of it.
+        expect(plate).toContain('right: 0');
+        expect(plate).not.toContain('left:');
         expect(controls).toContain('right: 6px');
         expect(controls).toContain('width: 54px');
     });
