@@ -4735,3 +4735,89 @@
     margin-top: 2px;
     color: #b83b32;
 }
+
+/* Problems panel: the rules are the list, the entities are the detail underneath.
+   A live catalog answers with hundreds of rows, so they open one rule at a time. */
+.nitro-catalog-admin-validation-list .nitro-catalog-admin-publish-changes-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.nitro-catalog-admin-validation-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #75756e;
+    font-size: 9px;
+    font-weight: 400;
+}
+
+.nitro-catalog-admin-validation-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nitro-catalog-admin-validation-group-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    padding: 7px 9px;
+    border: 1px solid #d9a39f;
+    border-radius: 4px;
+    background: #fff3f2;
+    color: #252521;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+.nitro-catalog-admin-validation-group-head:hover {
+    background: #ffe9e6;
+}
+
+.nitro-catalog-admin-validation-group-head > strong {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.nitro-catalog-admin-validation-count {
+    flex: 0 0 auto;
+    padding: 1px 7px;
+    border-radius: 9px;
+    background: #b4514b;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.nitro-catalog-admin-validation-group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-left: 16px;
+}
+
+/* The row became a button so a problem can carry you to the page it names. */
+.nitro-catalog-admin-validation-group-body .nitro-catalog-admin-validation-row {
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.nitro-catalog-admin-validation-group-body .nitro-catalog-admin-validation-row:disabled {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.nitro-catalog-admin-validation-group-body .nitro-catalog-admin-validation-row:not(:disabled):hover {
+    border-color: #b4514b;
+    background: #ffe9e6;
+}
