@@ -93,14 +93,6 @@ import { useCatalogSkipPurchaseConfirmation } from './useCatalogSkipPurchaseConf
 const DUMMY_PAGE_ID_FOR_OFFER_SEARCH = -12345678;
 const DRAG_AND_DROP_ENABLED = true;
 
-// Internal singleton source — published through the Zustand bridge so every
-// public filter below sees the same listeners + state. Do NOT export
-// this directly; consumers must go through the filters or the
-// deprecated `useCatalog` shim. The previous 1100-line monolith
-// exposed everything via `useCatalog`; the three filters below
-// (`useCatalogData` / `useCatalogUiState` / `useCatalogActions`)
-// shrink the surface each consumer subscribes to, which lets the
-// React Compiler memoize and avoids unrelated re-renders.
 const useCatalogStore = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [isBusy, setIsBusy] = useState(false);
@@ -157,24 +149,6 @@ const useCatalogStore = () => {
         catalogIndexPrewarm.current = createCatalogIndexPrewarmController((catalogType) => catalogIndexRequests.current.request(catalogType));
     }
 
-    const resetState = useCallback(() => {
-        pageRequestCorrelation.current.reset();
-        setIsBusy(false);
-        setCatalogLoadError(null);
-        setPageId(-1);
-        setPreviousPageId(-1);
-        setRootNode(null);
-        setOffersToNodes(null);
-        setCurrentPage(null);
-        setCurrentOffer(null);
-        resolvedOffersByProductKey.current.clear();
-        setActiveNodes([]);
-        setSearchResult(null);
-        setFrontPageItems([]);
-        setGiftReceiver(null);
-        setIsVisible(false);
-    }, []);
-
     const resetVisibleCatalogState = useCallback((type?: string) => {
         requestedPage.current.resetRequest();
         pageRequestCorrelation.current.reset();
@@ -195,8 +169,6 @@ const useCatalogStore = () => {
         setCurrentType(normalizeCatalogType(type));
     }, []);
 
-    // Merge real-time imported furniture from custom/imported.jsonc once per session or after publishing.
-    // Fetching on every catalog open was adding avoidable latency; the file is usually absent.
     const importedFurnidataMerged = useRef(false);
 
     const refreshImportedFurnidata = useCallback((force: boolean = false) => {
@@ -260,11 +232,6 @@ const useCatalogStore = () => {
         (offer: IPurchasableOffer) => {
             const roomSession = GetRoomSession();
 
-            // Count non-self, non-moderator users sharing the room. Only
-            // matters when the subscription has expired — the pure helper
-            // short-circuits on the limit-reached / not-in-room paths
-            // first, so we skip the room scan when there's still time on
-            // the clock.
             let visitorCount = 0;
 
             if (roomSession && secondsLeft <= 0 && !builderPlacementBlockedByVisitors) {
@@ -854,22 +821,14 @@ const useCatalogStore = () => {
     });
 
     useMessageEvent<CatalogPublishedMessageEvent>(CatalogPublishedMessageEvent, (event) => {
-        const wasVisible = isVisible;
-
         importedFurnidataMerged.current = false;
         catalogIndexRequests.current.reset();
-        resetState();
 
-        if (connectionState.authenticated) catalogIndexRequests.current.request(currentType);
+        if (!connectionState.authenticated) return;
 
-        if (wasVisible)
-            simpleAlert(
-                LocalizeText('catalog.alert.published.description'),
-                NotificationAlertType.ALERT,
-                null,
-                null,
-                LocalizeText('catalog.alert.published.title')
-            );
+        catalogIndexRequests.current.request(currentType);
+
+        if (isVisible && pageId > -1) loadCatalogPage(pageId, currentOffer?.offerId ?? -1);
     });
 
     useMessageEvent<BuildersClubFurniCountMessageEvent>(BuildersClubFurniCountMessageEvent, (event) => {

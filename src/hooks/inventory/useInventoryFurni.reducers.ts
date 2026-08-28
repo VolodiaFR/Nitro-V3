@@ -38,6 +38,10 @@ export const applyFurnitureListAddOrUpdate = (state: GroupItem[], event: Furnitu
                 const furniture = group.items[j];
 
                 if (furniture.id === item.itemId) {
+                    // Clone the group AND the item before mutating, so the input state's objects
+                    // are never touched. React may invoke this updater twice (StrictMode /
+                    // React-Compiler purity checks); mutating the input makes the second pass
+                    // diverge. Mirrors applyFurnitureListRemoved.
                     const clonedGroup = group.clone();
                     const clonedFurniture = furniture.clone();
 
@@ -77,6 +81,11 @@ export const applyFurnitureListAddOrUpdate = (state: GroupItem[], event: Furnitu
     return newValue;
 };
 
+// Pure reducer over an ALREADY-MERGED fragment map. Fragment accumulation is I/O-ordering
+// state, not derived render state, so it lives in the event handler (useInventoryFurni.ts) and
+// must NOT run inside a setState updater: React double-invokes updaters (StrictMode /
+// React-Compiler), and the previous in-updater state machine cleared the accumulator on the
+// first pass, so the second pass discarded a fully-assembled multi-fragment inventory.
 export const applyMergedFurnitureList = (state: GroupItem[], fragment: Map<number, FurnitureListItemParser>, ctx: FurniReducerContext): GroupItem[] => {
     const newValue = [...state];
     const existingIds = getAllItemIds(newValue);
@@ -96,6 +105,7 @@ export const applyMergedFurnitureList = (state: GroupItem[], fragment: Map<numbe
                 continue;
             }
 
+            // Clone before removing so the input state's GroupItem is left untouched.
             const group = originalGroup.clone();
             const item = group.remove(existingId);
 
@@ -145,12 +155,19 @@ export const applyFurnitureListRemoved = (state: GroupItem[], event: FurnitureLi
     while (index < newValue.length) {
         const originalGroup = newValue[index];
 
+        // Pure existence check first - must NOT mutate the input state. React can invoke
+        // this state updater twice (StrictMode / React Compiler purity checks). GroupItem.remove
+        // reassigns the group's internal items, so mutating the input directly makes the second
+        // pass a no-op (item already gone), React keeps that result, and the furni lingers.
         if (!originalGroup.getItemById(parser.itemId)) {
             index++;
 
             continue;
         }
 
+        // Clone before removing so the incoming state's GroupItem is left untouched. remove()
+        // reassigns the clone's own _items array (CloneObject shares the reference, but remove
+        // copies-then-reassigns), so the original group keeps its items across a re-invocation.
         const group = CloneObject(originalGroup);
         const item = group.remove(parser.itemId);
 
@@ -177,6 +194,8 @@ export const applyFurnitureListRemoved = (state: GroupItem[], event: FurnitureLi
 export const clearUnseenFlags = (state: GroupItem[]): GroupItem[] => {
     if (!state?.length) return state;
 
+    // Pure: clone each group instead of mutating the input state's GroupItems, so a
+    // StrictMode / React-Compiler double-invoke of the updater stays deterministic.
     return state.map((groupItem) => {
         const nextGroupItem = groupItem.clone();
 
