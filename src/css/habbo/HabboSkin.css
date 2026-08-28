@@ -1,5 +1,9 @@
 :root {
     --habbo-skin-button: url("../../assets/images/habbo-skin/slices/button-default.png");
+    --habbo-skin-checkbox: url("../../assets/images/habbo-skin/slices/checkbox-default.png");
+    --habbo-skin-checkbox-checked: url("../../assets/images/habbo-skin/slices/checkbox-checked.png");
+    --habbo-skin-radio: url("../../assets/images/habbo-skin/slices/radio-default.png");
+    --habbo-skin-radio-checked: url("../../assets/images/habbo-skin/slices/radio-checked.png");
     --habbo-skin-button-hover: url("../../assets/images/habbo-skin/slices/button-hover.png");
     --habbo-skin-button-pressed: url("../../assets/images/habbo-skin/slices/button-pressed.png");
     --habbo-skin-button-disabled: url("../../assets/images/habbo-skin/slices/button-disabled.png");

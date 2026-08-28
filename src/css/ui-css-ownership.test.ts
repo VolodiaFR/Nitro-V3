@@ -140,7 +140,9 @@ describe('UI CSS ownership', () =>
         expect(indexCss).not.toContain('.nitro-wired :where(select, input[type=\'text\'], input[type=\'number\'], textarea)');
         expect(wiredCss).toContain('.nitro-wired :where(select, input[type=\'text\'], input[type=\'number\'], textarea)');
         expect(wiredCss).toContain('.nitro-wired__variable-picker-portal');
-        expect(indexCss).toContain('.nitro-mod-tools :where(input, select, textarea)');
+        // Text fields only: a checkbox is not a text field, and the mod tool used to paint it as one.
+        expect(indexCss).toContain(".nitro-mod-tools :where(input:not([type='checkbox']):not([type='radio']), select, textarea)");
+        expect(indexCss).not.toContain('.nitro-mod-tools :where(input, select, textarea)');
         expect(indexCss).toContain('[class*="nitro-mod-tools-"] :where(.bg-white, .bg-light, .bg-muted, .bg-card-grid-item, .bg-white\\/70)');
         expect(wiredCss).toContain('.nitro-wired__body');
         expect(wiredCss).toContain('overflow-y: auto');
