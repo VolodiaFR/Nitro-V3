@@ -41,7 +41,7 @@ export const ModToolsUserChatlogView: FC<ModToolsUserChatlogViewProps> = (props)
             />
             <NitroCardContentView className="text-black h-full" gap={1}>
                 {userChatlog ? (
-                    <ChatlogView records={userChatlog} />
+                    <ChatlogView key={username ?? ''} initialQuery={username ?? ''} records={userChatlog} />
                 ) : (
                     <div className="flex flex-col items-center justify-center gap-2 py-8 opacity-50 text-sm">
                         <FaSpinner className="animate-spin" size={22} />

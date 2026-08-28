@@ -11,11 +11,16 @@ import {
     ModeratorInitMessageEvent,
     ModeratorToolPreferencesEvent
 } from '@nitrots/nitro-renderer';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { registerSharedHook, useSharedHook } from '@/state/useSharedHook';
 import { NotificationAlertType, PlaySound, SoundNames } from '../../api';
 import { useMessageEvent } from '../events';
 import { useNotification } from '../notification';
+
+export interface ModToolsSanctionEntry {
+    label: string;
+    at: number;
+}
 
 const useModToolsState = () => {
     const [settings, setSettings] = useState<ModeratorInitData>(null);
@@ -25,6 +30,9 @@ const useModToolsState = () => {
     const [openUserChatlogs, setOpenUserChatlogs] = useState<number[]>([]);
     const [tickets, setTickets] = useState<IssueMessageData[]>([]);
     const [cfhCategories, setCfhCategories] = useState<CallForHelpCategoryData[]>([]);
+    // What this moderator has already applied to whom, for as long as the client is open.
+    // Two panels on the same person is the easy way to sanction twice for one thing.
+    const [sanctionLog, setSanctionLog] = useState<Record<number, ModToolsSanctionEntry[]>>({});
     const { simpleAlert = null } = useNotification();
 
     const openRoomInfo = (roomId: number) => {
@@ -185,8 +193,14 @@ const useModToolsState = () => {
         // todo: update sanction data
     });
 
+    const recordSanction = useCallback((userId: number, label: string) => {
+        setSanctionLog((prev) => ({ ...prev, [userId]: [...(prev[userId] ?? []), { label, at: Date.now() }] }));
+    }, []);
+
     return {
         settings,
+        sanctionLog,
+        recordSanction,
         openRooms,
         openRoomChatlogs,
         openUserChatlogs,

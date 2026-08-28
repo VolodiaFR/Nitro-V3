@@ -9,7 +9,7 @@ import {
     ModTradingLockMessageComposer
 } from '@nitrots/nitro-renderer';
 import { FC, useMemo, useRef, useState } from 'react';
-import { FaBan, FaBolt, FaEnvelope, FaExclamationTriangle, FaGavel, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
+import { FaBan, FaBolt, FaEnvelope, FaExclamationTriangle, FaGavel, FaHistory, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
 import { ISelectedUser, LocalizeText, ModActionDefinition, NotificationAlertType, SendMessageComposer } from '../../../../api';
 import { Button, DraggableWindowPosition, NitroCardContentView, NitroCardHeaderView, NitroCardView } from '../../../../common';
 import { useModTools, useNotification } from '../../../../hooks';
@@ -52,14 +52,24 @@ const ACTION_TONE: Record<number, string> = {
     [ModActionDefinition.MESSAGE]: 'bg-zinc-100 text-zinc-800 border-zinc-200'
 };
 
+const formatSanctionTime = (at: number) => {
+    try {
+        return new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+        return '';
+    }
+};
+
 export const ModToolsUserModActionView: FC<ModToolsUserModActionViewProps> = (props) => {
     const { user = null, onCloseClick = null } = props;
     const [selectedTopic, setSelectedTopic] = useState(-1);
     const [selectedAction, setSelectedAction] = useState(-1);
     const [message, setMessage] = useState<string>('');
-    const { cfhCategories = null, settings = null } = useModTools();
+    const [pendingSanction, setPendingSanction] = useState<ModActionDefinition>(null);
+    const { cfhCategories = null, settings = null, sanctionLog = null, recordSanction = null } = useModTools();
     const { simpleAlert = null } = useNotification();
     const isSendingRef = useRef<boolean>(false);
+    const appliedThisSession = sanctionLog?.[user?.userId] ?? [];
 
     const topics = useMemo(() => {
         const values: CallForHelpTopicData[] = [];
@@ -91,6 +101,27 @@ export const ModToolsUserModActionView: FC<ModToolsUserModActionViewProps> = (pr
         onCloseClick();
     };
 
+    // Ban, kick, mute and trade lock cannot be undone from this window, and the panel
+    // shows one user while another may be selected behind it. The confirmation names
+    // who and what before anything leaves the client.
+    const NEEDS_CONFIRMATION = [
+        ModActionDefinition.BAN,
+        ModActionDefinition.KICK,
+        ModActionDefinition.MUTE,
+        ModActionDefinition.TRADE_LOCK
+    ];
+
+    const requestSanction = () => {
+        const sanction = MOD_ACTION_DEFINITIONS[selectedAction];
+
+        if (sanction && NEEDS_CONFIRMATION.includes(sanction.actionType)) {
+            setPendingSanction(sanction);
+            return;
+        }
+
+        sendSanction();
+    };
+
     const sendSanction = () => {
         if (isSendingRef.current) return;
 
@@ -106,6 +137,8 @@ export const ModToolsUserModActionView: FC<ModToolsUserModActionViewProps> = (pr
         if (errorMessage) return sendAlert(errorMessage);
 
         const messageOrDefault = message.trim().length === 0 ? LocalizeText(`help.cfh.topic.${category.id}`) : message;
+
+        recordSanction?.(user.userId, sanction.name);
 
         switch (sanction.actionType) {
             case ModActionDefinition.ALERT: {
@@ -160,7 +193,7 @@ export const ModToolsUserModActionView: FC<ModToolsUserModActionViewProps> = (pr
                 headerText={LocalizeText('modtools.user.modaction.title', ['username'], [user.username])}
                 onCloseClick={() => onCloseClick()}
             />
-            <NitroCardContentView className="text-black" gap={2}>
+            <NitroCardContentView className="text-black relative" gap={2}>
                 {/* Target header */}
                 <div className="flex items-center gap-2 bg-gradient-to-r from-rose-50 to-transparent rounded p-2 border border-rose-100">
                     <FaGavel className="text-rose-600 shrink-0" size={16} />
@@ -239,15 +272,59 @@ export const ModToolsUserModActionView: FC<ModToolsUserModActionViewProps> = (pr
                     </div>
                 )}
 
+                {/* What this moderator has already applied to this person, this session */}
+                {!!appliedThisSession.length && (
+                    <div className="flex flex-col gap-0.5 rounded border border-amber-200 bg-amber-50/60 p-1.5">
+                        <span className="text-[.6rem] uppercase tracking-wide font-semibold opacity-70">
+                            {LocalizeText('modtools.user.modaction.button.apply')}
+                        </span>
+                        {appliedThisSession.slice(-3).map((entry, index) => (
+                            <span key={index} className="text-[.65rem] flex items-center gap-1">
+                                <FaHistory className="opacity-50 shrink-0" size={8} />
+                                <strong className="truncate">{entry.label}</strong>
+                                <span className="opacity-60 tabular-nums shrink-0">{formatSanctionTime(entry.at)}</span>
+                            </span>
+                        ))}
+                    </div>
+                )}
+
                 {/* Action buttons */}
                 <div className="flex gap-1.5 pt-1 border-t border-zinc-200">
                     <Button className="grow" disabled={!canSubmit} gap={1} variant="primary" onClick={sendDefaultSanction}>
                         <FaBolt size={12} /> {LocalizeText('modtools.user.modaction.button.default')}
                     </Button>
-                    <Button className="grow" disabled={!canSubmit || selectedAction === -1} gap={1} variant="success" onClick={sendSanction}>
+                    <Button className="grow" disabled={!canSubmit || selectedAction === -1} gap={1} variant="success" onClick={requestSanction}>
                         <FaGavel size={12} /> {LocalizeText('modtools.user.modaction.button.apply')}
                     </Button>
                 </div>
+                {pendingSanction && (
+                    <div
+                        aria-label="Confirm moderation action"
+                        aria-modal="true"
+                        className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-white/95 p-3 text-center"
+                        role="dialog"
+                    >
+                        <FaExclamationTriangle className="text-amber-500" size={20} />
+                        <div className="text-sm">
+                            <strong>{pendingSanction.name}</strong>
+                            <div className="opacity-70">{user?.username}</div>
+                        </div>
+                        <div className="flex gap-1.5">
+                            <Button variant="secondary" onClick={() => setPendingSanction(null)}>
+                                {LocalizeText('generic.cancel')}
+                            </Button>
+                            <Button
+                                variant="danger"
+                                onClick={() => {
+                                    setPendingSanction(null);
+                                    sendSanction();
+                                }}
+                            >
+                                {LocalizeText('modtools.user.modaction.button.apply')}
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </NitroCardContentView>
         </NitroCardView>
     );

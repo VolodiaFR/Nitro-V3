@@ -8,6 +8,8 @@ import { ChatlogRecord } from './ChatlogRecord';
 
 interface ChatlogViewProps {
     records: ChatRecordData[];
+    /** Opens already filtered - a user's own chatlog is only ever read for that user. */
+    initialQuery?: string;
 }
 
 /**
@@ -47,9 +49,9 @@ export const filterChatlogRecords = (records: ChatlogRecord[], query: string): C
 };
 
 export const ChatlogView: FC<ChatlogViewProps> = (props) => {
-    const { records = null } = props;
+    const { records = null, initialQuery = '' } = props;
     const { openRoomInfo = null } = useModTools();
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState(initialQuery);
 
     const allRecords = useMemo(() => {
         const results: ChatlogRecord[] = [];
@@ -149,7 +151,7 @@ export const ChatlogView: FC<ChatlogViewProps> = (props) => {
             <div className="min-w-0 overflow-x-auto">
                 <div className="min-w-[360px]">
                     {/* Column headers */}
-                    <div className="grid grid-cols-[60px_120px_1fr] gap-2 text-[.7rem] uppercase tracking-wide opacity-60 font-semibold border-b border-zinc-200 pb-1 px-1">
+                    <div className="grid grid-cols-[84px_120px_1fr] gap-2 text-[.7rem] uppercase tracking-wide opacity-60 font-semibold border-b border-zinc-200 pb-1 px-1">
                         <div>{LocalizeText('modtools.chatlog.column.time')}</div>
                         <div>{LocalizeText('modtools.chatlog.column.user')}</div>
                         <div>{LocalizeText('modtools.chatlog.column.message')}</div>
@@ -171,7 +173,7 @@ export const ChatlogView: FC<ChatlogViewProps> = (props) => {
 
                                 return (
                                     <div
-                                        className={`grid grid-cols-[60px_120px_1fr] gap-2 items-start px-1 py-1.5 text-sm border-b border-zinc-100 even:bg-black/[0.02] hover:bg-sky-50/50 transition-colors ${row.hasHighlighting ? 'bg-amber-50/60' : ''}`}
+                                        className={`grid grid-cols-[84px_120px_1fr] gap-2 items-start px-1 py-1.5 text-sm border-b border-zinc-100 even:bg-black/[0.02] hover:bg-sky-50/50 transition-colors ${row.hasHighlighting ? 'bg-amber-50/60' : ''}`}
                                     >
                                         <span className="font-mono text-[.7rem] opacity-70 tabular-nums whitespace-nowrap">{row.timestamp}</span>
                                         <button
