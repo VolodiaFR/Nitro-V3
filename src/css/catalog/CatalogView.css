@@ -965,12 +965,12 @@
 }
 
 /*
- * The window grows to fit the tab strip, so below its maximum width the tabs are never
- * squeezed - `flex-shrink` has nothing to act on. Past that maximum the strip used to run
- * under the shell's `overflow: hidden` and the last categories became unreachable: no
- * scrolling, no wrapping, just gone. Letting the tabs shrink there keeps every category on
- * screen and clickable, the label ellipsising down to its icon, which is what the original
- * client's tab context does when its buttons no longer fit.
+ * A tab never shrinks on its own: the strip is measured to decide how wide the window should
+ * be, so a tab whose width depended on that window would feed its own measurement. Past the
+ * window's maximum width the strip used to run under the shell's `overflow: hidden` and the
+ * last categories became unreachable - no scrolling, no wrapping, just gone. The hook adds
+ * `is-condensed` in exactly that case, and only then are they allowed to shrink, the label
+ * ellipsising down to its icon the way the original client's tab context does.
  */
 .nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item {
     display: inline-flex;
@@ -980,14 +980,22 @@
     height: 30px !important;
     min-height: 30px !important;
     max-height: 30px !important;
-    min-width: 34px;
-    flex: 0 1 auto;
+    min-width: 0;
+    flex: 0 0 auto;
     max-width: none;
     padding: 4px 8px 6px !important;
     margin: 0 2px 0 0;
-    flex-shrink: 1;
+    flex-shrink: 0;
     white-space: nowrap;
     overflow: hidden;
+}
+
+/* Only once the window has run out of room to widen. Until then the tabs keep their natural
+   width, which is what the strip is measured at. */
+.nitro-catalog-window .nitro-catalog-tabs-shell.is-condensed .nitro-card-tab-item {
+    min-width: 34px;
+    flex: 0 1 auto;
+    flex-shrink: 1;
 }
 
 .nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item:last-of-type {

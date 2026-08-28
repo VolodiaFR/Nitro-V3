@@ -10,10 +10,12 @@ import { useCatalogData, useCatalogUiState } from '../../../../../hooks';
  * The official client zooms this preview by scaling the canvas itself, and lifts it in the same
  * step: `canvas.y = -(height * scale - height) / 2 - 41` in
  * `ProductViewCatalogWidget.applyRoomCanvasZoom`. We take the zoom from the room engine instead,
- * which gives a sharper figure but carries no lift of its own - so without this the figure sits
- * 41px lower in the box than it does in the original client.
+ * which gives a sharper figure but carries no lift of its own.
+ *
+ * Those 41 are measured on a canvas the same step has already scaled by two, so in the engine's
+ * own pixels - which is what this offset is in - the lift is half of them.
  */
-const ZOOMED_AVATAR_LIFT = 41;
+const ZOOMED_AVATAR_LIFT = 21;
 
 const zoomAvatarPreview = (roomPreviewer: RoomPreviewer) => {
     roomPreviewer.zoomIn();
@@ -31,7 +33,16 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
 
         const product = currentOffer.product;
 
-        if (!product) return;
+        // The previewer is shared with every other catalog layout, and this offset is a live
+        // Point on it: whatever is left here is inherited by the next thing drawn in it.
+        const clearViewOffset = () => {
+            roomPreviewer.addViewOffset.y = 0;
+        };
+
+        if (!product) {
+            clearViewOffset();
+            return;
+        }
 
         roomPreviewer.addViewOffset.y = product.isUniqueLimitedItem ? -15 : 0;
         roomPreviewer.centerWallItems = true;
@@ -131,6 +142,8 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
 
         populate();
         roomPreviewer.setAutomaticStateChange(animateFurnitureState);
+
+        return clearViewOffset;
     }, [currentOffer, previewStuffData, roomPreviewer]);
 
     if (!currentOffer) return null;

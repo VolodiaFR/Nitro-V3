@@ -103,8 +103,9 @@ describe('catalog product preview', () => {
             expect(avatarRenderManager.getFigureStringWithFigureIds).toHaveBeenCalledWith('base-figure', 'M', [101, 202]);
             expect(roomPreviewer.addAvatarIntoRoom).toHaveBeenCalledWith('composed-figure', 0);
             expect(roomPreviewer.zoomIn).toHaveBeenCalledOnce();
-            // The official client lifts a zoomed avatar preview by 41px as part of the zoom.
-            expect(roomPreviewer.addViewOffset.y).toBe(-41);
+            // The official client lifts a zoomed avatar preview as part of the zoom: 41px on a
+            // canvas that step has already doubled, so half that in the engine's own pixels.
+            expect(roomPreviewer.addViewOffset.y).toBe(-21);
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(false);
         });
     });
@@ -165,6 +166,33 @@ describe('catalog product preview', () => {
             expect(roomPreviewer.addAvatarIntoRoom).toHaveBeenCalledWith('base-figure', 0);
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(false);
         });
+    });
+
+    /**
+     * The previewer is shared with every other catalog layout, and the offset is a live Point on
+     * it: an outfit's lift left behind is inherited by the next furniture drawn in the same box.
+     */
+    it('hands the previewer back unlifted when it stops driving it', async () => {
+        const roomPreviewer = createRoomPreviewer();
+
+        vi.mocked(GetAvatarRenderManager).mockReturnValue({
+            getFigureStringWithFigureIds: vi.fn(() => 'composed-figure'),
+            isValidFigureSetForGender: vi.fn(() => true)
+        } as any);
+        vi.mocked(GetSessionDataManager).mockReturnValue({
+            figure: 'base-figure',
+            gender: 'M',
+            getFloorItemData: () => ({ customParams: '101' })
+        } as any);
+        vi.mocked(useCatalogData).mockReturnValue({ currentOffer: createFloorOffer(23), roomPreviewer } as any);
+
+        const view = render(<CatalogViewProductWidgetView />);
+
+        await waitFor(() => expect(roomPreviewer.addViewOffset.y).toBe(-21));
+
+        view.unmount();
+
+        expect(roomPreviewer.addViewOffset.y).toBe(0);
     });
 
     it('keeps landscape previews static after the wall object is loaded', async () => {

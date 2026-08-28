@@ -23,15 +23,25 @@ describe('catalog tab strip', () => {
         expect(code).not.toContain('scrollWidth');
     });
 
-    it('lets the tabs condense once the window cannot widen any further', () => {
-        const rule = stylesheet.slice(
+    it('measures the tabs at their natural width, never at the width it is deciding', () => {
+        // A tab that could shrink to fit the current window would report that squeezed width
+        // back as the width the window should have.
+        const base = stylesheet.slice(
             stylesheet.indexOf('.nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item {'),
-            stylesheet.indexOf('.nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item:last-of-type')
+            stylesheet.indexOf('.nitro-catalog-window .nitro-catalog-tabs-shell.is-condensed')
         );
 
-        expect(rule).toContain('flex-shrink: 1');
-        expect(rule).not.toContain('flex-shrink: 0');
+        expect(base).toContain('flex-shrink: 0');
+        expect(hook).toContain("classList.remove(CONDENSED_CLASS)");
+        expect(hook).toContain("classList.add(CONDENSED_CLASS)");
+    });
+
+    it('lets the tabs condense only once the window cannot widen any further', () => {
+        const condensed = stylesheet.slice(stylesheet.indexOf('.nitro-catalog-window .nitro-catalog-tabs-shell.is-condensed'));
+
+        expect(condensed).toContain('flex-shrink: 1');
         // Shrunk down to its icon a tab is still a target; shrunk to nothing it is not.
-        expect(rule).toContain('min-width: 34px');
+        expect(condensed).toContain('min-width: 34px');
+        expect(hook).toContain('needed > CATALOG_WINDOW_MAX_WIDTH');
     });
 });
