@@ -964,6 +964,14 @@
     flex-wrap: nowrap;
 }
 
+/*
+ * The window grows to fit the tab strip, so below its maximum width the tabs are never
+ * squeezed - `flex-shrink` has nothing to act on. Past that maximum the strip used to run
+ * under the shell's `overflow: hidden` and the last categories became unreachable: no
+ * scrolling, no wrapping, just gone. Letting the tabs shrink there keeps every category on
+ * screen and clickable, the label ellipsising down to its icon, which is what the original
+ * client's tab context does when its buttons no longer fit.
+ */
 .nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item {
     display: inline-flex;
     align-items: center;
@@ -972,12 +980,12 @@
     height: 30px !important;
     min-height: 30px !important;
     max-height: 30px !important;
-    min-width: 0;
-    flex: 0 0 auto;
+    min-width: 34px;
+    flex: 0 1 auto;
     max-width: none;
     padding: 4px 8px 6px !important;
     margin: 0 2px 0 0;
-    flex-shrink: 0;
+    flex-shrink: 1;
     white-space: nowrap;
     overflow: hidden;
 }
