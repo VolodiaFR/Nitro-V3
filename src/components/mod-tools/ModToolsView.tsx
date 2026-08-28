@@ -9,7 +9,7 @@ import {
     RoomObjectType
 } from '@nitrots/nitro-renderer';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { FaTimes, FaUserSlash } from 'react-icons/fa';
+import { FaTimes } from 'react-icons/fa';
 import { GetRoomSession, ISelectedUser, LocalizeText } from '../../api';
 import { Button, DraggableWindowPosition, NitroCardContentView, NitroCardHeaderView, NitroCardView } from '../../common';
 import { useModTools, useNitroEvent, useObjectSelectedEvent, useRoomUserListSnapshot } from '../../hooks';
@@ -257,8 +257,8 @@ export const ModToolsView: FC<{}> = (props) => {
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-2 rounded p-2 border border-dashed border-zinc-300 bg-zinc-50/50 opacity-70">
-                                    <FaUserSlash className="text-zinc-400 shrink-0" size={14} />
+                                <div className="flex items-center gap-2 rounded p-2 border border-dashed border-zinc-300 bg-zinc-50/50">
+                                    <div className="nitro-icon icon-avatar-anonymous shrink-0 opacity-70" />
                                     <span className="text-xs italic">{LocalizeText('modtools.window.select.user')}</span>
                                 </div>
                             )}
