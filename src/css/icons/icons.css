@@ -789,6 +789,12 @@
     height: 17px;
 }
 
+.nitro-icon.icon-avatar-anonymous {
+    background-image: url("@/assets/images/icons/avatar-anonymous.png");
+    width: 16px;
+    height: 17px;
+}
+
 .nitro-icon.icon-user {
     background-image: url("@/assets/images/icons/user.png");
     width: 18px;
