@@ -28,10 +28,13 @@ ${selector} {`);
 
     it('reads its placement from the right edge, not from a fixed offset', () => {
         const plate = rule(experience, '.nitro-catalog-preview-limited');
+        const productView = rule(catalog, '.nitro-catalog-product-view');
 
         expect(plate).toContain('top: 5px');
-        // The original's 186 is its 360-wide view's right edge less the widget. This panel
-        // stretches with the window, so a fixed left offset lands in the middle of it.
+        // `.nitro-catalog-product-view` is pinned to the original's 360, so the original's
+        // `left: 186` and this are the same placement - but this one survives that box being
+        // squeezed under its own `max-width: 100%`.
+        expect(productView).toContain('width: 360px');
         expect(plate).not.toContain('left:');
     });
 

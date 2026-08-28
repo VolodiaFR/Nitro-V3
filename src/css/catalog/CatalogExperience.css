@@ -98,11 +98,15 @@
  * it holds. Giving it a width of its own did not constrain the plate, it only overflowed it,
  * which is how the plate still ended up under the arrows despite a reserved lane.
  *
- * The original puts `limitedItemWidget` at 186,5 in a product view fixed at 360 wide, so 186 is
- * that view's right edge less the widget. This panel is not fixed - it stretches with a window
- * that sizes itself between 570 and 1040 - so the placement has to be read from the right edge,
- * offset by the lane the rotation arrows occupy there: 54px of button and the 6px they are
- * inset by.
+ * `.nitro-catalog-product-view` is pinned to the original's 360x240, so reading the placement
+ * from the right edge is the same as the original's `left: 186` - and stays right if that box
+ * is ever squeezed under its `max-width: 100%`.
+ *
+ * The 60px is a deliberate departure. The original lets the plaque run under the rotation
+ * arrows (186..360 against 300..354) because there it is artwork aligned to the left of a panel
+ * wider than its container, so the arrows land on the empty part. Ours is a plate with text
+ * across it, so it stops where they start: 54px of button and the 6px they are inset by, which
+ * puts its right edge at 300 - where the original puts rotate_avatar_left.
  */
 .nitro-catalog-preview-limited {
     position: absolute;
