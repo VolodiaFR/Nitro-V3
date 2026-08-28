@@ -200,3 +200,32 @@
     border-image-source: var(--habbo-skin-shiny-red-pressed) !important;
     box-shadow: none !important;
 }
+
+/* Selected state.
+   Button adds the class `active` when a toggle is on - an open mod tool, the
+   selected catalog page, the current floorplan brush - but the skin only drew the
+   `:active` pseudo-class, which lasts as long as the mouse is down. So sixteen call
+   sites were saying "this one is on" and nothing showed it.
+   The pressed artwork says it best; the inset shadow keeps it apart from a click,
+   which is momentary. */
+.habbo-btn-primary.active,
+.habbo-btn-buy.active,
+.habbo-btn-success.active,
+.habbo-btn-green.active {
+    border-image-source: var(--habbo-skin-shiny-thick-green-pressed) !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.34) !important;
+    filter: none;
+}
+
+.habbo-btn-secondary.active,
+.habbo-btn-slice.active {
+    border-image-source: var(--habbo-skin-button-pressed) !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.28) !important;
+    filter: none;
+}
+
+.habbo-btn-danger.active {
+    border-image-source: var(--habbo-skin-shiny-red-pressed) !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.34) !important;
+    filter: none;
+}
