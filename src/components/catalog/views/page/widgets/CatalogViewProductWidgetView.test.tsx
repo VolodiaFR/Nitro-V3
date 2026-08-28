@@ -103,6 +103,8 @@ describe('catalog product preview', () => {
             expect(avatarRenderManager.getFigureStringWithFigureIds).toHaveBeenCalledWith('base-figure', 'M', [101, 202]);
             expect(roomPreviewer.addAvatarIntoRoom).toHaveBeenCalledWith('composed-figure', 0);
             expect(roomPreviewer.zoomIn).toHaveBeenCalledOnce();
+            // The official client lifts a zoomed avatar preview by 41px as part of the zoom.
+            expect(roomPreviewer.addViewOffset.y).toBe(-41);
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(false);
         });
     });
@@ -130,6 +132,8 @@ describe('catalog product preview', () => {
             expect(roomPreviewer.addFurnitureIntoRoom).toHaveBeenCalledWith(500, expect.anything(), null, '');
             expect(roomPreviewer.addAvatarIntoRoom).not.toHaveBeenCalled();
             expect(roomPreviewer.zoomIn).not.toHaveBeenCalled();
+            // Furniture is framed dead centre; only an avatar is lifted.
+            expect(roomPreviewer.addViewOffset.y).toBe(0);
             expect(roomPreviewer.centerWallItems).toBe(true);
             expect(roomPreviewer.updateObjectRoom).not.toHaveBeenCalled();
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(true);

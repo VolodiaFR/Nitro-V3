@@ -1,8 +1,24 @@
-import { GetAvatarRenderManager, GetSessionDataManager, Vector3d } from '@nitrots/nitro-renderer';
+import { GetAvatarRenderManager, GetSessionDataManager, RoomPreviewer, Vector3d } from '@nitrots/nitro-renderer';
 import { FC, useEffect } from 'react';
 import { FurniCategory, Offer, ProductTypeEnum } from '../../../../../api';
 import { AutoGrid, Column, LayoutGridItem, LayoutRoomPreviewerView } from '../../../../../common';
 import { useCatalogData, useCatalogUiState } from '../../../../../hooks';
+
+/**
+ * How much higher than dead centre an avatar preview sits.
+ *
+ * The official client zooms this preview by scaling the canvas itself, and lifts it in the same
+ * step: `canvas.y = -(height * scale - height) / 2 - 41` in
+ * `ProductViewCatalogWidget.applyRoomCanvasZoom`. We take the zoom from the room engine instead,
+ * which gives a sharper figure but carries no lift of its own - so without this the figure sits
+ * 41px lower in the box than it does in the original client.
+ */
+const ZOOMED_AVATAR_LIFT = 41;
+
+const zoomAvatarPreview = (roomPreviewer: RoomPreviewer) => {
+    roomPreviewer.zoomIn();
+    roomPreviewer.addViewOffset.y = -ZOOMED_AVATAR_LIFT;
+};
 
 export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => {
     const { height = 240 } = props;
@@ -55,7 +71,7 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
                         const figureString = avatarRenderManager.getFigureStringWithFigureIds(sessionDataManager.figure, sessionDataManager.gender, figureSets);
 
                         roomPreviewer.addAvatarIntoRoom(figureString || sessionDataManager.figure, 0);
-                        roomPreviewer.zoomIn();
+                        zoomAvatarPreview(roomPreviewer);
                     } else {
                         // RoomPreviewer only keys its fast path by class/extra,
                         // so force a transactional refresh when stuff data
@@ -101,11 +117,11 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
                 }
                 case ProductTypeEnum.ROBOT:
                     roomPreviewer.addAvatarIntoRoom(product.extraParam, 0);
-                    roomPreviewer.zoomIn();
+                    zoomAvatarPreview(roomPreviewer);
                     return;
                 case ProductTypeEnum.EFFECT:
                     roomPreviewer.addAvatarIntoRoom(GetSessionDataManager().figure, product.productClassId);
-                    roomPreviewer.zoomIn();
+                    zoomAvatarPreview(roomPreviewer);
                     return;
                 default:
                     roomPreviewer.reset(false);
