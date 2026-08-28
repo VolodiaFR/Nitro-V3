@@ -72,6 +72,9 @@ const useInventoryFurniState = () => {
     useMessageEvent<FurnitureListEvent>(FurnitureListEvent, (event) => {
         const parser = event.getParser();
 
+        // Accumulate multi-fragment inventories HERE, in the event handler (runs once per packet),
+        // not inside the setState updater (React double-invokes updaters). Only when the last
+        // fragment completes the merge do we hand the finished map to the pure reducer.
         if (!fragmentsRef.current) fragmentsRef.current = new Array(parser.totalFragments);
 
         const merged = mergeFurniFragments(parser.fragment, parser.totalFragments, parser.fragmentNumber, fragmentsRef.current);
@@ -99,8 +102,12 @@ const useInventoryFurniState = () => {
         setSelectedItem((prevValue) => {
             if (!prevValue) return groupItems[0];
 
+            // Same reference still present - keep it.
             if (groupItems.indexOf(prevValue) !== -1) return prevValue;
 
+            // The reducers replace touched groups with clones, so the old reference goes stale on
+            // any inventory change. Reconcile by stable identity instead of dropping to groupItems[0],
+            // so the selection (and preview panel) doesn't jump to the first tile on every update.
             const key = getGroupItemKey(prevValue);
             const match = groupItems.find((group) => getGroupItemKey(group) === key);
 

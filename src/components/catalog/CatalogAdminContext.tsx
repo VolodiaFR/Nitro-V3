@@ -456,6 +456,11 @@ export const CatalogAdminProvider: FC<{ children: ReactNode }> = ({ children }) 
                 }));
             }
             setLastError(null);
+
+            if (smartSaveResult.entityType === 'OFFER') {
+                window.dispatchEvent(new Event('catalog-admin-refresh-current-page'));
+            }
+
             return;
         }
 
