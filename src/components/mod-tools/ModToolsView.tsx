@@ -99,14 +99,22 @@ export const ModToolsView: FC<{}> = (props) => {
         setUserResults([...(parser.friends ?? []), ...(parser.others ?? [])]);
     });
 
-    const searchUser = useCallback(() => {
+    // Searches as it is typed, with the same 350ms pause the furni editor uses: the name
+    // goes out once the typing settles rather than once per keystroke.
+    useEffect(() => {
         const name = userQuery.trim();
 
-        if (name.length < 2) return;
+        if (name.length < 2) {
+            setUserResults(null);
+            return;
+        }
 
-        isSearchingRef.current = true;
-        setUserResults([]);
-        SendMessageComposer(new HabboSearchComposer(name));
+        const handle = window.setTimeout(() => {
+            isSearchingRef.current = true;
+            SendMessageComposer(new HabboSearchComposer(name));
+        }, 350);
+
+        return () => window.clearTimeout(handle);
     }, [userQuery]);
 
     const pickUser = useCallback((result: HabboSearchResultData) => {
@@ -292,22 +300,18 @@ export const ModToolsView: FC<{}> = (props) => {
                                         <div className="nitro-icon icon-avatar-anonymous shrink-0 opacity-70" />
                                         <span className="text-xs italic">{LocalizeText('modtools.window.select.user')}</span>
                                     </div>
-                                    <div className="flex items-center gap-1">
+                                    <div className="relative">
                                         <input
-                                            className="grow min-w-0"
+                                            className="w-full pr-6"
                                             type="text"
                                             value={userQuery}
                                             placeholder={LocalizeText('generic.search')}
                                             onChange={(event) => setUserQuery(event.target.value)}
-                                            onKeyDown={(event) => event.key === 'Enter' && searchUser()}
                                         />
-                                        <Button
-                                            disabled={userQuery.trim().length < 2}
-                                            variant="secondary"
-                                            onClick={searchUser}
-                                        >
-                                            <FaSearch size={11} />
-                                        </Button>
+                                        <FaSearch
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none"
+                                            size={10}
+                                        />
                                     </div>
                                     {userResults && !userResults.length && <div className="text-[.65rem] italic opacity-60 pl-1">
                                         {LocalizeText('generic.no_results_found')}
