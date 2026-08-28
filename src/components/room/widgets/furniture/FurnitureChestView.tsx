@@ -79,6 +79,7 @@ export const FurnitureChestView: FC = () => {
     const [used, setUsed] = useState(0);
     const [accessOpen, setAccessOpen] = useState(true);
     const [accessDonate, setAccessDonate] = useState(false);
+    const [locked, setLocked] = useState(false);
     const [appearanceState, setAppearanceState] = useState(0);
     const [notifyFull, setNotifyFull] = useState(false);
     const [notifyDonation, setNotifyDonation] = useState(false);
@@ -198,6 +199,7 @@ export const FurnitureChestView: FC = () => {
         setUsed(p.used);
         setAccessOpen(p.accessOpen);
         setAccessDonate(p.accessDonate);
+        setLocked(p.locked);
         setAppearanceState(p.appearanceState);
         setNotifyFull(p.notifyFull);
         setNotifyDonation(p.notifyDonation);
@@ -336,6 +338,14 @@ export const FurnitureChestView: FC = () => {
             <NitroCardView className="nitro-widget-chest" theme="primary-slim" style={{ width: 460 }}>
                 <NitroCardHeaderView headerText={name || chestTypeLabel} onCloseClick={close} />
                 <NitroCardContentView>
+                    {locked && (
+                        <div className="mb-1 rounded border border-[#c08a5a] bg-[#f7e6cf] px-2 py-1 text-[11px] text-[#7a4a1c]">
+                            {localizeWithFallback(
+                                'wiredchests.locked.notice',
+                                'This chest is locked. Withdrawals stay disabled until it is unlocked from the wired chests tab.',
+                            )}
+                        </div>
+                    )}
                     {/* ===== header box (chest_generic.xml container "header", 460x51) =====
                          grey band (layout_1 #dadada) + bottom splitter (#c0c0c0 @y50);
                          desc text @(10,10) 380w bold blend=0.6; bell btn @(397,7) + gear btn @(426,7) 24x24.
@@ -464,7 +474,7 @@ export const FurnitureChestView: FC = () => {
                                             setFurniWithdrawAmount(Math.max(0, parseInt(e.target.value.replace(/\D/g, ''), 10) || 0))
                                         }
                                     />
-                                    <ChestButton fixed disabled={!selectedGroup || selectedFurniQty <= 0} onClick={withdrawFurni}>
+                                    <ChestButton fixed disabled={locked || !selectedGroup || selectedFurniQty <= 0} onClick={withdrawFurni}>
                                         {LocalizeText('wiredchests.withdraw')}
                                     </ChestButton>
                                 </div>
@@ -505,7 +515,7 @@ export const FurnitureChestView: FC = () => {
                                 value={withdrawAmount}
                                 onChange={(e) => setWithdrawAmount(Math.max(0, parseInt(e.target.value.replace(/\D/g, ''), 10) || 0))}
                             />
-                            <ChestButton fixed disabled={creditsBalance <= 0} onClick={withdraw}>
+                            <ChestButton fixed disabled={locked || creditsBalance <= 0} onClick={withdraw}>
                                 {LocalizeText('wiredchests.withdraw')}
                             </ChestButton>
                         </div>
@@ -547,7 +557,7 @@ export const FurnitureChestView: FC = () => {
                         <div className="nitro-chest__footer-row">
                             {!isFurni ? (
                                 <div className="nitro-chest__footer-group">
-                                    <ChestButton wide footer disabled={creditsBalance <= 0} onClick={withdrawAll}>
+                                    <ChestButton wide footer disabled={locked || creditsBalance <= 0} onClick={withdrawAll}>
                                         {LocalizeText('wiredchests.withdraw_all')}
                                     </ChestButton>
                                     <ChestButton wide footer onClick={() => setDepositOpen((v) => !v)}>
@@ -556,7 +566,7 @@ export const FurnitureChestView: FC = () => {
                                 </div>
                             ) : (
                                 <div className="nitro-chest__footer-group">
-                                    <ChestButton wide footer disabled={furniEntries.length <= 0} onClick={withdrawAll}>
+                                    <ChestButton wide footer disabled={locked || furniEntries.length <= 0} onClick={withdrawAll}>
                                         {LocalizeText('wiredchests.withdraw_all')}
                                     </ChestButton>
                                     <ChestButton wide footer onClick={startDepositFurni}>

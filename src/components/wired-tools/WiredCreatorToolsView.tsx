@@ -117,6 +117,7 @@ import {
     WiredToolsTab
 } from './WiredCreatorTools.types';
 
+import { WiredChestsTabView } from './WiredChestsTabView';
 import { WiredInspectionTabView } from './WiredInspectionTabView';
 import { WiredMonitorTabView } from './WiredMonitorTabView';
 import { WiredToolsSettingsTabView } from './WiredToolsSettingsTabView';
@@ -1025,7 +1026,6 @@ export const WiredCreatorToolsView: FC<{}> = () => {
         setSelectedUserRoomObject(roomSession && selectedUser ? GetRoomEngine().getRoomObject(roomSession.roomId, selectedUser.roomIndex, RoomObjectCategory.UNIT) : null);
     }, [roomSession, selectedUser, selectedUserActionVersion]);
 
-    const currentTabLabel = useMemo(() => TABS.find((tab) => tab.key === activeTab)?.label ?? 'Monitor', [activeTab]);
     const selectedMonitorErrorInfo = useMemo(() => {
         if (!selectedMonitorErrorType) return null;
 
@@ -3311,14 +3311,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
                         />
                     )}
                     {activeTab === 'settings' && <WiredToolsSettingsTabView />}
-                    {activeTab !== 'monitor' && activeTab !== 'inspection' && activeTab !== 'variables' && activeTab !== 'settings' && (
-                        <div className="p-4 min-h-[360px] flex items-center justify-center text-center text-[#555]">
-                            <div className="max-w-[320px]">
-                                <Text bold>{currentTabLabel}</Text>
-                                <div className="mt-2 text-[12px]">This tab is now ready to be wired into the new `:wired` tools flow.</div>
-                            </div>
-                        </div>
-                    )}
+                    {activeTab === 'chests' && <WiredChestsTabView />}
                 </NitroCardContentView>
             </NitroCardView>
             {isMonitorHistoryOpen && (
