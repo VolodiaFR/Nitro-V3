@@ -1,24 +1,22 @@
-import { GetAvatarRenderManager, GetSessionDataManager, RoomPreviewer, Vector3d } from '@nitrots/nitro-renderer';
+import { GetAvatarRenderManager, GetSessionDataManager, Vector3d } from '@nitrots/nitro-renderer';
 import { FC, useEffect } from 'react';
 import { FurniCategory, Offer, ProductTypeEnum } from '../../../../../api';
 import { AutoGrid, Column, LayoutGridItem, LayoutRoomPreviewerView } from '../../../../../common';
 import { useCatalogData, useCatalogUiState } from '../../../../../hooks';
 
 /**
- * How much higher than dead centre an avatar preview sits.
+ * How much higher than dead centre anything in this box sits.
  *
- * The official client zooms this preview by scaling the canvas itself, and lifts it in the same
- * step: `canvas.y = -(height * scale - height) / 2 - 41` in
- * `ProductViewCatalogWidget.applyRoomCanvasZoom`. We take the zoom from the room engine instead,
- * which gives a sharper figure but carries no lift of its own - so without this the figure sits
- * 41px lower in the box than it does in the original client.
+ * The original lifts its zoomed avatar preview by 41 in
+ * `ProductViewCatalogWidget.applyRoomCanvasZoom`, on a canvas that same step has already scaled
+ * by two - half that in the engine's own pixels, which is what this offset is in. It gives
+ * furniture no lift of its own, but our canvas is centred in a box shorter than itself where
+ * the original's is top-aligned, so furniture came out sitting low in the same way. One number
+ * for the whole box rather than a rule per product type.
+ *
+ * A unique limited item keeps the original's extra -15 on top.
  */
-const ZOOMED_AVATAR_LIFT = 41;
-
-const zoomAvatarPreview = (roomPreviewer: RoomPreviewer) => {
-    roomPreviewer.zoomIn();
-    roomPreviewer.addViewOffset.y = -ZOOMED_AVATAR_LIFT;
-};
+const PREVIEW_LIFT = 21;
 
 export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => {
     const { height = 240 } = props;
@@ -31,9 +29,18 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
 
         const product = currentOffer.product;
 
-        if (!product) return;
+        // The previewer is shared with every other catalog layout, and this offset is a live
+        // Point on it: whatever is left here is inherited by the next thing drawn in it.
+        const clearViewOffset = () => {
+            roomPreviewer.addViewOffset.y = 0;
+        };
 
-        roomPreviewer.addViewOffset.y = product.isUniqueLimitedItem ? -15 : 0;
+        if (!product) {
+            clearViewOffset();
+            return;
+        }
+
+        roomPreviewer.addViewOffset.y = -(PREVIEW_LIFT + (product.isUniqueLimitedItem ? 15 : 0));
         roomPreviewer.centerWallItems = true;
         roomPreviewer.setAutomaticStateChange(false);
         roomPreviewer.updateRoomWallsAndFloorVisibility(true, true);
@@ -71,7 +78,7 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
                         const figureString = avatarRenderManager.getFigureStringWithFigureIds(sessionDataManager.figure, sessionDataManager.gender, figureSets);
 
                         roomPreviewer.addAvatarIntoRoom(figureString || sessionDataManager.figure, 0);
-                        zoomAvatarPreview(roomPreviewer);
+                        roomPreviewer.zoomIn();
                     } else {
                         // RoomPreviewer only keys its fast path by class/extra,
                         // so force a transactional refresh when stuff data
@@ -117,11 +124,11 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
                 }
                 case ProductTypeEnum.ROBOT:
                     roomPreviewer.addAvatarIntoRoom(product.extraParam, 0);
-                    zoomAvatarPreview(roomPreviewer);
+                    roomPreviewer.zoomIn();
                     return;
                 case ProductTypeEnum.EFFECT:
                     roomPreviewer.addAvatarIntoRoom(GetSessionDataManager().figure, product.productClassId);
-                    zoomAvatarPreview(roomPreviewer);
+                    roomPreviewer.zoomIn();
                     return;
                 default:
                     roomPreviewer.reset(false);
@@ -131,6 +138,8 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
 
         populate();
         roomPreviewer.setAutomaticStateChange(animateFurnitureState);
+
+        return clearViewOffset;
     }, [currentOffer, previewStuffData, roomPreviewer]);
 
     if (!currentOffer) return null;

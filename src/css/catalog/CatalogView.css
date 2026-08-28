@@ -964,6 +964,14 @@
     flex-wrap: nowrap;
 }
 
+/*
+ * A tab never shrinks on its own: the strip is measured to decide how wide the window should
+ * be, so a tab whose width depended on that window would feed its own measurement. Past the
+ * window's maximum width the strip used to run under the shell's `overflow: hidden` and the
+ * last categories became unreachable - no scrolling, no wrapping, just gone. The hook adds
+ * `is-condensed` in exactly that case, and only then are they allowed to shrink, the label
+ * ellipsising down to its icon the way the original client's tab context does.
+ */
 .nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item {
     display: inline-flex;
     align-items: center;
@@ -980,6 +988,14 @@
     flex-shrink: 0;
     white-space: nowrap;
     overflow: hidden;
+}
+
+/* Only once the window has run out of room to widen. Until then the tabs keep their natural
+   width, which is what the strip is measured at. */
+.nitro-catalog-window .nitro-catalog-tabs-shell.is-condensed .nitro-card-tab-item {
+    min-width: 34px;
+    flex: 0 1 auto;
+    flex-shrink: 1;
 }
 
 .nitro-catalog-window .nitro-catalog-tabs-shell .nitro-card-tab-item:last-of-type {
@@ -1291,12 +1307,20 @@
     background: var(--catalog-standard-panel);
 }
 
+/*
+ * The original's `productViewWidget` is a fixed 360x240 because its window is a fixed 570. Ours
+ * sizes itself from its tab strip, up to 1040, and pinning this box to 360 left the rest of that
+ * width as dead grey beside the preview. It follows the page instead; 240 stays, since the room
+ * canvas behind it is drawn taller than the box and cropped, exactly as the original does.
+ *
+ * Everything placed inside it is anchored to an edge rather than to an offset measured from the
+ * old 360 - see `.nitro-catalog-preview-limited` and `.nitro-catalog-preview-controls`.
+ */
 .nitro-catalog-product-view {
     position: relative;
     top: 0;
     left: 0;
-    width: 360px !important;
-    max-width: 100%;
+    width: 100%;
     height: 240px;
     min-height: 0;
     overflow: hidden;
@@ -1328,9 +1352,10 @@
     background: #000;
 }
 
+/* Follows the product view now that the product view follows the page. */
 .nitro-catalog-offer-panel > .nitro-catalog-offer-preview {
-    width: 360px;
-    min-width: 360px;
+    width: 100%;
+    min-width: 0;
 }
 
 .nitro-catalog-preview-title {
