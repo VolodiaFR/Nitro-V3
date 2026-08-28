@@ -1307,12 +1307,20 @@
     background: var(--catalog-standard-panel);
 }
 
+/*
+ * The original's `productViewWidget` is a fixed 360x240 because its window is a fixed 570. Ours
+ * sizes itself from its tab strip, up to 1040, and pinning this box to 360 left the rest of that
+ * width as dead grey beside the preview. It follows the page instead; 240 stays, since the room
+ * canvas behind it is drawn taller than the box and cropped, exactly as the original does.
+ *
+ * Everything placed inside it is anchored to an edge rather than to an offset measured from the
+ * old 360 - see `.nitro-catalog-preview-limited` and `.nitro-catalog-preview-controls`.
+ */
 .nitro-catalog-product-view {
     position: relative;
     top: 0;
     left: 0;
-    width: 360px !important;
-    max-width: 100%;
+    width: 100%;
     height: 240px;
     min-height: 0;
     overflow: hidden;
@@ -1344,9 +1352,10 @@
     background: #000;
 }
 
+/* Follows the product view now that the product view follows the page. */
 .nitro-catalog-offer-panel > .nitro-catalog-offer-preview {
-    width: 360px;
-    min-width: 360px;
+    width: 100%;
+    min-width: 0;
 }
 
 .nitro-catalog-preview-title {

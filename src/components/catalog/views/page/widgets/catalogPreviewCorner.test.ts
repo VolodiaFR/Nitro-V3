@@ -31,10 +31,11 @@ ${selector} {`);
         const productView = rule(catalog, '.nitro-catalog-product-view');
 
         expect(plate).toContain('top: 5px');
-        // `.nitro-catalog-product-view` is pinned to the original's 360, so the original's
-        // `left: 186` and this are the same placement - but this one survives that box being
-        // squeezed under its own `max-width: 100%`.
-        expect(productView).toContain('width: 360px');
+        // The box this sits in is no longer the original's fixed 360: it follows a window that
+        // sizes itself from its tab strip. An offset measured from the left would drift into
+        // the middle of it, which is exactly what the original's `left: 186` would do here.
+        expect(productView).toContain('width: 100%');
+        expect(productView).not.toContain('width: 360px');
         expect(plate).not.toContain('left:');
     });
 
