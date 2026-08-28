@@ -103,8 +103,7 @@ describe('catalog product preview', () => {
             expect(avatarRenderManager.getFigureStringWithFigureIds).toHaveBeenCalledWith('base-figure', 'M', [101, 202]);
             expect(roomPreviewer.addAvatarIntoRoom).toHaveBeenCalledWith('composed-figure', 0);
             expect(roomPreviewer.zoomIn).toHaveBeenCalledOnce();
-            // The official client lifts a zoomed avatar preview as part of the zoom: 41px on a
-            // canvas that step has already doubled, so half that in the engine's own pixels.
+            // 41px on a canvas the same step has already doubled: half that in engine pixels.
             expect(roomPreviewer.addViewOffset.y).toBe(-21);
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(false);
         });
@@ -133,8 +132,9 @@ describe('catalog product preview', () => {
             expect(roomPreviewer.addFurnitureIntoRoom).toHaveBeenCalledWith(500, expect.anything(), null, '');
             expect(roomPreviewer.addAvatarIntoRoom).not.toHaveBeenCalled();
             expect(roomPreviewer.zoomIn).not.toHaveBeenCalled();
-            // Furniture is framed dead centre; only an avatar is lifted.
-            expect(roomPreviewer.addViewOffset.y).toBe(0);
+            // Furniture is not zoomed, but it is lifted: the canvas is centred in a box shorter
+            // than itself, so dead centre reads low for everything in it, not just avatars.
+            expect(roomPreviewer.addViewOffset.y).toBe(-21);
             expect(roomPreviewer.centerWallItems).toBe(true);
             expect(roomPreviewer.updateObjectRoom).not.toHaveBeenCalled();
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(true);
