@@ -6,13 +6,12 @@ import {
     RoomEngineEvent,
     RoomId,
     RoomObjectCategory,
-    RoomObjectType
-} from '@nitrots/nitro-renderer';
-import { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { FaTimes } from 'react-icons/fa';
-import { GetRoomSession, ISelectedUser, LocalizeText } from '../../api';
+    RoomObjectType, HabboSearchComposer, HabboSearchResultData, HabboSearchResultEvent } from '@nitrots/nitro-renderer';
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FaSearch, FaTimes } from 'react-icons/fa';
+import { GetRoomSession, ISelectedUser, LocalizeText, SendMessageComposer } from '../../api';
 import { Button, DraggableWindowPosition, NitroCardContentView, NitroCardHeaderView, NitroCardView } from '../../common';
-import { useModTools, useNitroEvent, useObjectSelectedEvent, useRoomUserListSnapshot } from '../../hooks';
+import { useMessageEvent, useModTools, useNitroEvent, useObjectSelectedEvent, useRoomUserListSnapshot } from '../../hooks';
 import { ModToolsChatlogView } from './views/room/ModToolsChatlogView';
 import { ModToolsRoomView } from './views/room/ModToolsRoomView';
 import { ModToolsTicketsView } from './views/tickets/ModToolsTicketsView';
@@ -24,6 +23,11 @@ export const ModToolsView: FC<{}> = (props) => {
     const [currentRoomId, setCurrentRoomId] = useState<number>(-1);
     const [selectedUser, setSelectedUser] = useState<ISelectedUser>(null);
     const [isTicketsVisible, setIsTicketsVisible] = useState(false);
+    const [userQuery, setUserQuery] = useState('');
+    const [userResults, setUserResults] = useState<HabboSearchResultData[]>(null);
+    // The search packet is shared with the friend list, so only a search this window
+    // started is allowed to fill this list.
+    const isSearchingRef = useRef(false);
     const {
         tickets = [],
         openRooms = [],
@@ -84,6 +88,32 @@ export const ModToolsView: FC<{}> = (props) => {
 
         setSelectedUser({ userId: userData.webID, username: userData.name });
     });
+
+    useMessageEvent<HabboSearchResultEvent>(HabboSearchResultEvent, (event) => {
+        if (!isSearchingRef.current) return;
+
+        isSearchingRef.current = false;
+
+        const parser = event.getParser();
+
+        setUserResults([...(parser.friends ?? []), ...(parser.others ?? [])]);
+    });
+
+    const searchUser = useCallback(() => {
+        const name = userQuery.trim();
+
+        if (name.length < 2) return;
+
+        isSearchingRef.current = true;
+        setUserResults([]);
+        SendMessageComposer(new HabboSearchComposer(name));
+    }, [userQuery]);
+
+    const pickUser = useCallback((result: HabboSearchResultData) => {
+        setSelectedUser({ userId: result.avatarId, username: result.avatarName });
+        setUserResults(null);
+        setUserQuery('');
+    }, []);
 
     useEffect(() => {
         const linkTracker: ILinkEventTracker = {
@@ -257,9 +287,42 @@ export const ModToolsView: FC<{}> = (props) => {
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-2 rounded p-2 border border-dashed border-zinc-300 bg-zinc-50/50">
-                                    <div className="nitro-icon icon-avatar-anonymous shrink-0 opacity-70" />
-                                    <span className="text-xs italic">{LocalizeText('modtools.window.select.user')}</span>
+                                <div className="flex flex-col gap-1.5">
+                                    <div className="flex items-center gap-2 rounded p-2 border border-dashed border-zinc-300 bg-zinc-50/50">
+                                        <div className="nitro-icon icon-avatar-anonymous shrink-0 opacity-70" />
+                                        <span className="text-xs italic">{LocalizeText('modtools.window.select.user')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <input
+                                            className="grow min-w-0"
+                                            type="text"
+                                            value={userQuery}
+                                            placeholder={LocalizeText('generic.search')}
+                                            onChange={(event) => setUserQuery(event.target.value)}
+                                            onKeyDown={(event) => event.key === 'Enter' && searchUser()}
+                                        />
+                                        <Button
+                                            disabled={userQuery.trim().length < 2}
+                                            variant="secondary"
+                                            onClick={searchUser}
+                                        >
+                                            <FaSearch size={11} />
+                                        </Button>
+                                    </div>
+                                    {userResults && !userResults.length && <div className="text-[.65rem] italic opacity-60 pl-1">
+                                        {LocalizeText('generic.no_results_found')}
+                                    </div>}
+                                    {userResults && userResults.length > 0 && <div className="flex flex-col gap-0.5 max-h-28 overflow-y-auto">
+                                        {userResults.slice(0, 12).map((result) => <button
+                                            key={result.avatarId}
+                                            className="flex items-center gap-2 rounded px-2 py-1 text-start hover:bg-zinc-100"
+                                            type="button"
+                                            onClick={() => pickUser(result)}
+                                        >
+                                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${result.isAvatarOnline ? 'bg-emerald-500' : 'bg-zinc-300'}`} />
+                                            <span className="truncate text-xs">{result.avatarName}</span>
+                                        </button>)}
+                                    </div>}
                                 </div>
                             )}
                         </div>
