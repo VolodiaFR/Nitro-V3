@@ -319,7 +319,6 @@ export const WiredChestsTabView: FC<{}> = () => {
             {detailsOpen && (
                 <WiredChestTransactionsWindow
                     expandedId={expandedId}
-                    filter={filter}
                     page={page}
                     pageCount={pageCount}
                     renderDetailItems={renderDetailItems}
@@ -339,7 +338,6 @@ interface WiredChestTransactionsWindowProps {
     rows: IWiredChestTransactionRow[];
     page: number;
     pageCount: number;
-    filter: number;
     expandedId: number;
     typeLabel: (row: IWiredChestTransactionRow) => string;
     sourceLabel: (row: IWiredChestTransactionRow) => string;
