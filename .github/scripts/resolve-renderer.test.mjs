@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { resolveRenderer } from './resolve-renderer.mjs';
+import { isAbsentRefFailure, resolveRenderer } from './resolve-renderer.mjs';
 
 const baseInput = {
     eventName: 'pull_request',
@@ -63,5 +63,30 @@ describe('renderer resolution', () => {
                 ref: 'release-candidate',
             }
         );
+    });
+});
+
+describe('remote ref lookup failures', () => {
+    // Every case above injects a healthy lookup, which is exactly why a lookup that answered `false`
+    // to everything went unnoticed: the resolver then silently paired every build with the fallback
+    // branch instead of the companion one. These pin which failures are an answer and which are a
+    // fault that has to surface.
+
+    it('treats a non-zero git exit status as "the branch is not there"', () => {
+        const missing = Object.assign(new Error('Command failed: git ls-remote'), { code: 2 });
+
+        assert.equal(isAbsentRefFailure(missing), true);
+    });
+
+    it('refuses to read a missing git binary as an absent branch', () => {
+        const noGit = Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' });
+
+        assert.equal(isAbsentRefFailure(noGit), false);
+    });
+
+    it('refuses to read a programming error as an absent branch', () => {
+        const bug = new ReferenceError("Cannot access 'execFileAsync' before initialization");
+
+        assert.equal(isAbsentRefFailure(bug), false);
     });
 });
