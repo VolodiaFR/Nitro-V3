@@ -1,3 +1,10 @@
+import { execFile } from 'node:child_process';
+import { appendFileSync } from 'node:fs';
+import { promisify } from 'node:util';
+import { pathToFileURL } from 'node:url';
+
+const execFileAsync = promisify(execFile);
+
 const companionRefsFor = (headRef) => {
     if (!headRef) return [];
 
@@ -58,6 +65,14 @@ export const resolveRenderer = async (input, hasRef) => {
     return { repository, ref };
 };
 
+/**
+ * `git ls-remote --exit-code` leaves the process with a non-zero status when the ref is absent, and
+ * that status is an answer: the branch is not there. Anything else -- git missing from PATH, a
+ * programming error inside this file -- is a fault, and swallowing it would answer "no such ref" to
+ * every question and quietly pair every build with the fallback branch.
+ */
+export const isAbsentRefFailure = (error) => typeof error?.code === 'number';
+
 const hasRemoteRef = async (repository, ref) => {
     try {
         await execFileAsync('git', [
@@ -69,8 +84,10 @@ const hasRemoteRef = async (repository, ref) => {
         ]);
 
         return true;
-    } catch {
-        return false;
+    } catch (error) {
+        if (isAbsentRefFailure(error)) return false;
+
+        throw error;
     }
 };
 
@@ -103,9 +120,3 @@ const run = async () => {
 };
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await run();
-import { execFile } from 'node:child_process';
-import { appendFileSync } from 'node:fs';
-import { promisify } from 'node:util';
-import { pathToFileURL } from 'node:url';
-
-const execFileAsync = promisify(execFile);
