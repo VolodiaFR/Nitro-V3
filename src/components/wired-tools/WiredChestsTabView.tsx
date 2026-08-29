@@ -146,7 +146,7 @@ export const WiredChestsTabView: FC<{}> = () => {
         showConfirm(
             localizeWithFallback(
                 'wiredmenu.chests.chest_control.lock_all.warning.desc',
-                'This locks every chest in the room, including the ones other people own. Wired keeps working - only withdrawals by hand stop.',
+                'This locks every chest in the room, including the ones other people own. Wired keeps working - only what people do by hand stops.',
             ),
             () => sendLock(true, true),
             () => {
@@ -293,7 +293,7 @@ export const WiredChestsTabView: FC<{}> = () => {
                     <div className="text-[11px] text-[#6b6659]">
                         {localizeWithFallback(
                             'wiredmenu.chests.chest_control.hint',
-                            'A locked chest still accepts deposits and still answers wired - only withdrawals by hand are blocked.',
+                            'A locked chest still answers wired - only what people do by hand is blocked, in both directions.',
                         )}
                     </div>
                     <div className="flex flex-wrap gap-2">

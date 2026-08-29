@@ -7,9 +7,11 @@ import {
     ChestLogEvent,
     ChestRequestLogComposer,
     ChestSaveNotificationsComposer,
+    ChestSaveOptionsComposer,
     ChestSaveSettingsComposer,
     ChestStartDepositComposer,
     ChestUpgradeCapacityComposer,
+    ChestUpgradeResultEvent,
     ChestWithdrawAllFurniComposer,
     ChestWithdrawComposer,
     ChestWithdrawFurniComposer,
@@ -29,7 +31,7 @@ import furniEmptyScene from '../../../../assets/images/chest/variant_furni_chest
 import bellIcon from '../../../../assets/images/chest/wired_chests_bell_icon.png';
 import gearIcon from '../../../../assets/images/chest/wired_chests_gear_icon.png';
 import { Column, Flex, LayoutCurrencyIcon, LayoutFurniImageView, NitroCardContentView, NitroCardHeaderView, NitroCardView, Text } from '../../../../common';
-import { useMessageEvent } from '../../../../hooks';
+import { useMessageEvent, usePurse } from '../../../../hooks';
 import { useInventoryFurni } from '../../../../hooks/inventory';
 import { ChestButton } from './ChestButton';
 import { ChestFurniGroup, chestFurniDisplayName, groupStoredFurni } from './chestFurniGrouping';
@@ -52,6 +54,13 @@ interface ChestLogRow {
 const CREDITS = -1;
 const CHEST_KIND_FURNI = 1;
 const UPGRADE_STEP = 5000;
+const NON_DIGITS = /\D/g;
+/** Matches ChestStorage.MAX_CAPACITY, the ceiling the server refuses to go past. */
+const MAX_CAPACITY = 1_000_000;
+/** Matches the server's per-purchase cap. */
+const MAX_UPGRADES_PER_PURCHASE = 10;
+const LOCK_INFO_RULES = [1, 2, 3, 4, 5, 6, 7].map((n) => `wiredchests.lock_info.rule_${ n }`);
+const CAPACITY_INFO_RULES = [1, 2, 3, 4].map((n) => `wiredchests.capacity_info.rule_${ n }`);
 const FURNI_SEARCH_THRESHOLD = 31;
 
 const furniName = (baseItemId: number, wallItem = false): string => {
@@ -80,7 +89,9 @@ export const FurnitureChestView: FC = () => {
     const [accessOpen, setAccessOpen] = useState(true);
     const [accessDonate, setAccessDonate] = useState(false);
     const [locked, setLocked] = useState(false);
+    const [autoLock, setAutoLock] = useState(false);
     const [capacity, setCapacity] = useState(0);
+    const [isOwner, setIsOwner] = useState(false);
     const [appearanceState, setAppearanceState] = useState(0);
     const [notifyFull, setNotifyFull] = useState(false);
     const [notifyDonation, setNotifyDonation] = useState(false);
@@ -106,6 +117,15 @@ export const FurnitureChestView: FC = () => {
     const [logRows, setLogRows] = useState<ChestLogRow[]>([]);
     const [upgradeQty, setUpgradeQty] = useState(1);
     const [confirmWithdrawAll, setConfirmWithdrawAll] = useState(false);
+    const [confirmLock, setConfirmLock] = useState<null | boolean>(null);
+    const [showLockInfo, setShowLockInfo] = useState(false);
+    const [upgradeResult, setUpgradeResult] = useState('');
+    const [capacityDraft, setCapacityDraft] = useState('');
+    const [chestBaseItemId, setChestBaseItemId] = useState(0);
+
+    const { getCurrencyAmount } = usePurse();
+    const creditsWallet = getCurrencyAmount(-1);
+    const diamondsWallet = getCurrencyAmount(5);
     const [depositFurniOpen, setDepositFurniOpen] = useState(false);
     const [furniSearchDraft, setFurniSearchDraft] = useState('');
     const [furniSearchQuery, setFurniSearchQuery] = useState('');
@@ -201,7 +221,11 @@ export const FurnitureChestView: FC = () => {
         setAccessOpen(p.accessOpen);
         setAccessDonate(p.accessDonate);
         setLocked(p.locked);
+        setAutoLock(p.autoLock);
         setCapacity(p.capacity || p.capacityMax);
+        setCapacityDraft(String(p.capacity || p.capacityMax));
+        setIsOwner(p.viewerOwnsChest);
+        setChestBaseItemId(p.chestSpriteId);
         setAppearanceState(p.appearanceState);
         setNotifyFull(p.notifyFull);
         setNotifyDonation(p.notifyDonation);
@@ -236,6 +260,27 @@ export const FurnitureChestView: FC = () => {
             }));
             setLegacyFurniGroups(legacyGroups);
         }
+    });
+
+    useMessageEvent<ChestUpgradeResultEvent>(ChestUpgradeResultEvent, (event) => {
+        const p = event.getParser();
+        if (p.chestId !== itemId) return;
+
+        if (p.successful) {
+            setUpgradeResult('');
+            setShowUpgrade(false);
+            return;
+        }
+
+        // Every refusal has its own reason text; an unknown code still says something rather than
+        // leaving the button looking like it was ignored.
+        setUpgradeResult(
+            LocalizeText(
+                'wiredchests.upgrade.result.error',
+                ['reason'],
+                [localizeWithFallback(`wiredchests.upgrade.result.error.${ p.resultCode }`, '')],
+            ),
+        );
     });
 
     useMessageEvent<ChestFurniChunkEvent>(ChestFurniChunkEvent, (event) => {
@@ -316,24 +361,74 @@ export const FurnitureChestView: FC = () => {
         );
     };
     const depositInventoryItem = (inventoryItemId: number) => {
-        if (inventoryItemId <= 0 || used >= capacityMax) return;
+        if (inventoryItemId <= 0 || used >= capacity) return;
         SendMessageComposer(new ChestDepositInventoryItemComposer(itemId, inventoryItemId));
     };
     const startDepositFurni = () => setDepositFurniOpen((v) => !v);
     const requestLog = () => SendMessageComposer(new ChestRequestLogComposer(itemId));
     const saveSettings = () => {
-        SendMessageComposer(
-            new ChestSaveSettingsComposer(itemId, name, description, accessOpen, accessDonate, appearanceState, locked, capacity),
-        );
+        SendMessageComposer(new ChestSaveSettingsComposer(itemId, name, description, accessOpen, accessDonate, appearanceState));
         setShowSettings(false);
+    };
+    /**
+     * The three switches on this window save the moment they are touched, the way the official one
+     * does — no save button, because closing a chest is not a settings change you review first.
+     */
+    const saveOptions = (next: { locked?: boolean; autoLock?: boolean; capacity?: number }) => {
+        const nextLocked = next.locked ?? locked;
+        const nextAutoLock = next.autoLock ?? autoLock;
+        const nextCapacity = next.capacity ?? capacity;
+
+        setLocked(nextLocked);
+        setAutoLock(nextAutoLock);
+        setCapacity(nextCapacity);
+        SendMessageComposer(new ChestSaveOptionsComposer(itemId, nextLocked, nextAutoLock, nextCapacity));
+    };
+
+    /**
+     * A lock closes the chest to the room, not to its owner, so the owner keeps both directions and
+     * everyone else loses both until it comes off.
+     */
+    const canWithdraw = !locked || isOwner;
+    const canDeposit = !locked || isOwner;
+
+    /**
+     * Anyone in the room who can reach this window may throw the lock -- that is the point of a panic
+     * button. Taking it off again is the owner's alone, so a lock cannot be undone by whoever set it.
+     */
+    const canToggleLock = isOwner || !locked;
+
+    /**
+     * How many steps are still buyable. The official offers 1..remaining rather than a fixed list, so
+     * the dropdown can never propose a purchase the chest has no room for.
+     */
+    const upgradesLeft = Math.max(0, Math.floor((MAX_CAPACITY - capacityMax) / UPGRADE_STEP));
+    const upgradeOptions = Array.from(
+        { length: Math.min(upgradesLeft, MAX_UPGRADES_PER_PURCHASE) },
+        (unused, index) => index + 1,
+    );
+
+    /** The reason the buy button is off, in the official's own order: capacity first, then money. */
+    const upgradeError = !upgradesLeft
+        ? 'wiredchests.upgrade.error.reason.at_capacity'
+        : creditsWallet < COST_CREDITS * upgradeQty || diamondsWallet < COST_DIAMONDS * upgradeQty
+          ? 'wiredchests.upgrade.error.reason.not_enough_currency'
+          : '';
+
+    const commitCapacity = () => {
+        const parsed = parseInt(capacityDraft, 10);
+        const next = Math.min(Math.max(isNaN(parsed) ? 1 : parsed, 1), capacityMax);
+
+        setCapacityDraft(String(next));
+        if (next !== capacity) saveOptions({ capacity: next });
     };
     const saveNotifications = () => {
         SendMessageComposer(new ChestSaveNotificationsComposer(itemId, notifyFull, notifyDonation, notifyWithdraw, notifyEmpty, notifyWired, notifyMode));
         setShowNotifications(false);
     };
     const buyUpgrade = () => {
+        setUpgradeResult('');
         SendMessageComposer(new ChestUpgradeCapacityComposer(itemId, upgradeQty));
-        setShowUpgrade(false);
     };
 
     return (
@@ -342,7 +437,7 @@ export const FurnitureChestView: FC = () => {
             <NitroCardView className="nitro-widget-chest" theme="primary-slim" style={{ width: 460 }}>
                 <NitroCardHeaderView headerText={name || chestTypeLabel} onCloseClick={close} />
                 <NitroCardContentView>
-                    {locked && (
+                    {locked && !isOwner && (
                         <div className="mb-1 rounded border border-[#c08a5a] bg-[#f7e6cf] px-2 py-1 text-[11px] text-[#7a4a1c]">
                             {localizeWithFallback(
                                 'wiredchests.locked.notice',
@@ -478,7 +573,7 @@ export const FurnitureChestView: FC = () => {
                                             setFurniWithdrawAmount(Math.max(0, parseInt(e.target.value.replace(/\D/g, ''), 10) || 0))
                                         }
                                     />
-                                    <ChestButton fixed disabled={locked || !selectedGroup || selectedFurniQty <= 0} onClick={withdrawFurni}>
+                                    <ChestButton fixed disabled={!canWithdraw || !selectedGroup || selectedFurniQty <= 0} onClick={withdrawFurni}>
                                         {LocalizeText('wiredchests.withdraw')}
                                     </ChestButton>
                                 </div>
@@ -519,7 +614,7 @@ export const FurnitureChestView: FC = () => {
                                 value={withdrawAmount}
                                 onChange={(e) => setWithdrawAmount(Math.max(0, parseInt(e.target.value.replace(/\D/g, ''), 10) || 0))}
                             />
-                            <ChestButton fixed disabled={locked || creditsBalance <= 0} onClick={withdraw}>
+                            <ChestButton fixed disabled={!canWithdraw || creditsBalance <= 0} onClick={withdraw}>
                                 {LocalizeText('wiredchests.withdraw')}
                             </ChestButton>
                         </div>
@@ -533,7 +628,7 @@ export const FurnitureChestView: FC = () => {
                                 value={depositAmount}
                                 onChange={(e) => setDepositAmount(Math.max(0, parseInt(e.target.value, 10) || 0))}
                             />
-                            <ChestButton wide disabled={locked} onClick={deposit}>
+                            <ChestButton wide disabled={!canDeposit} onClick={deposit}>
                                 {LocalizeText('wiredchests.deposit')}
                             </ChestButton>
                         </Flex>
@@ -541,39 +636,94 @@ export const FurnitureChestView: FC = () => {
                         </>
                     )}
                     <div className="nitro-chest__footer">
+                        <div className="nitro-chest__locking">
+                            <label className="nitro-chest__option">
+                                <input
+                                    type="checkbox"
+                                    className="form-check-input"
+                                    checked={locked}
+                                    disabled={!canToggleLock}
+                                    onChange={(e) => setConfirmLock(e.target.checked)}
+                                />
+                                <Text small>{localizeWithFallback('wiredchests.lock_chest', 'Lock this chest')}</Text>
+                            </label>
+                            <label className="nitro-chest__option">
+                                <input
+                                    type="checkbox"
+                                    className="form-check-input"
+                                    checked={autoLock}
+                                    disabled={!isOwner}
+                                    onChange={(e) => saveOptions({ autoLock: e.target.checked })}
+                                />
+                                <Text small>{localizeWithFallback(
+                                    'wiredchests.auto_lock_chest',
+                                    'Lock the chest automatically when the owner leaves the room',
+                                )}</Text>
+                            </label>
+                            <button
+                                type="button"
+                                className="nitro-chest__info-button"
+                                title={localizeWithFallback('wiredchests.lock_info.title', 'About locking')}
+                                onClick={() => setShowLockInfo((v) => !v)}
+                            >
+                                i
+                            </button>
+                        </div>
                         <Flex alignItems="center" justifyContent="between" className="nitro-chest__footer-capacity">
-                            <Text small style={{ opacity: 0.6 }}>
-                                {LocalizeText('wiredchests.space_used2', ['count', 'total'], [String(used), String(capacityMax)])}
-                            </Text>
+                            <Flex alignItems="center" gap={1}>
+                                <Text small style={{ opacity: 0.6 }}>
+                                    {localizeWithFallback('wiredchests.capacity', 'Chest capacity:')}
+                                </Text>
+                                <input
+                                    className="form-control form-control-sm nitro-chest__capacity-input"
+                                    inputMode="numeric"
+                                    type="text"
+                                    disabled={!isOwner}
+                                    value={capacityDraft}
+                                    onChange={(e) => setCapacityDraft(e.target.value.replace(NON_DIGITS, ''))}
+                                    onBlur={commitCapacity}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') commitCapacity();
+                                    }}
+                                />
+                            </Flex>
                             <Flex alignItems="center" gap={1}>
                                 <Text small style={{ opacity: 0.6 }}>
                                     {LocalizeText('wiredchests.max_capacity', ['max_capacity'], [String(capacityMax)])}
                                 </Text>
                                 <ChestButton
                                     icon
+                                    disabled={!isOwner}
                                     onClick={() => setShowUpgrade(true)}
-                                    title={LocalizeText('wiredchests.upgrade_capacity')}
+                                    title={
+                                        isOwner
+                                            ? LocalizeText('wiredchests.upgrade_capacity')
+                                            : localizeWithFallback('wiredchests.upgrade.error.reason.not_owner', '')
+                                    }
                                 >
                                     +
                                 </ChestButton>
                             </Flex>
                         </Flex>
+                        <Text small style={{ opacity: 0.6 }}>
+                            {LocalizeText('wiredchests.space_used2', ['count', 'total'], [String(used), String(capacity)])}
+                        </Text>
                         <div className="nitro-chest__footer-row">
                             {!isFurni ? (
                                 <div className="nitro-chest__footer-group">
-                                    <ChestButton wide footer disabled={locked || creditsBalance <= 0} onClick={withdrawAll}>
+                                    <ChestButton wide footer disabled={!canWithdraw || creditsBalance <= 0} onClick={withdrawAll}>
                                         {LocalizeText('wiredchests.withdraw_all')}
                                     </ChestButton>
-                                    <ChestButton wide footer disabled={locked} onClick={() => setDepositOpen((v) => !v)}>
+                                    <ChestButton wide footer disabled={!canDeposit} onClick={() => setDepositOpen((v) => !v)}>
                                         {LocalizeText('wiredchests.initial_deposit')}
                                     </ChestButton>
                                 </div>
                             ) : (
                                 <div className="nitro-chest__footer-group">
-                                    <ChestButton wide footer disabled={locked || furniEntries.length <= 0} onClick={withdrawAll}>
+                                    <ChestButton wide footer disabled={!canWithdraw || furniEntries.length <= 0} onClick={withdrawAll}>
                                         {LocalizeText('wiredchests.withdraw_all')}
                                     </ChestButton>
-                                    <ChestButton wide footer disabled={locked} onClick={startDepositFurni}>
+                                    <ChestButton wide footer disabled={!canDeposit} onClick={startDepositFurni}>
                                         {LocalizeText(depositFurniOpen ? 'wiredchests.cancel' : 'wiredchests.start_deposit')}
                                     </ChestButton>
                                 </div>
@@ -600,7 +750,7 @@ export const FurnitureChestView: FC = () => {
                                             type="button"
                                             className="nitro-chest__deposit-cell"
                                             title={row.name}
-                                            disabled={used >= capacityMax}
+                                            disabled={used >= capacity}
                                             onClick={() => depositInventoryItem(row.id)}
                                         >
                                             <img
@@ -618,7 +768,7 @@ export const FurnitureChestView: FC = () => {
                                     ))}
                                 </div>
                             )}
-                            {capacityMax - used <= 0 && (
+                            {capacity - used <= 0 && (
                                 <Text small className="nitro-chest__deposit-full">
                                     {LocalizeText('wiredchests.deposit_furni.full')}
                                 </Text>
@@ -660,42 +810,6 @@ export const FurnitureChestView: FC = () => {
                                     </option>
                                 ))}
                             </select>
-                            <Text bold>{localizeWithFallback('wiredchests.settings.locking', 'Locking')}</Text>
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    className="form-check-input"
-                                    checked={locked}
-                                    onChange={(e) => setLocked(e.target.checked)}
-                                />
-                                <Text small>{localizeWithFallback('wiredchests.settings.locking.lock', 'Lock this chest')}</Text>
-                            </label>
-                            <Text small>
-                                {localizeWithFallback(
-                                    'wiredchests.settings.locking.info',
-                                    'A locked chest still answers wired, but nobody can put anything in or take anything out by hand.',
-                                )}
-                            </Text>
-                            <Text bold>{localizeWithFallback('wiredchests.settings.capacity', 'Capacity')}</Text>
-                            <Text small>
-                                {LocalizeText('wiredchests.max_capacity', ['max_capacity'], [String(capacityMax)])}
-                            </Text>
-                            <input
-                                className="form-control form-control-sm"
-                                inputMode="numeric"
-                                type="text"
-                                value={capacity}
-                                onChange={(e) => {
-                                    const parsed = parseInt(e.target.value.replace(/\D/g, ''), 10);
-                                    setCapacity(Math.min(Math.max(isNaN(parsed) ? 1 : parsed, 1), capacityMax));
-                                }}
-                            />
-                            <Text small>
-                                {localizeWithFallback(
-                                    'wiredchests.settings.capacity.info',
-                                    'Stop filling at this many, even though the chest could hold more.',
-                                )}
-                            </Text>
                             <div className="nitro-chest__actions">
                                 <ChestButton wide onClick={saveSettings}>
                                     {LocalizeText('wiredchests.ready')}
@@ -767,30 +881,63 @@ export const FurnitureChestView: FC = () => {
                     <NitroCardHeaderView headerText={LocalizeText('wiredchests.upgrade.title')} onCloseClick={() => setShowUpgrade(false)} />
                     <NitroCardContentView>
                         <Column gap={2}>
-                            <Text bold>
-                                {LocalizeText('wiredchests.upgrade.capacity.extra', ['purchase_capacity'], [String(UPGRADE_STEP * upgradeQty)])}
-                            </Text>
-                            <Text small>
-                                {LocalizeText('wiredchests.upgrade.capacity.current', ['current_capacity'], [String(capacityMax)])}
-                            </Text>
-                            <Text small>
-                                {LocalizeText('wiredchests.upgrade.capacity.new', ['new_capacity'], [String(capacityMax + UPGRADE_STEP * upgradeQty)])}
-                            </Text>
+                            <Flex alignItems="center" gap={2}>
+                                <div className="nitro-chest__upgrade-preview">
+                                    {chestBaseItemId > 0 && <LayoutFurniImageView productType={FurnitureType.FLOOR} productClassId={chestBaseItemId} direction={2} />}
+                                </div>
+                                <Column gap={1}>
+                                    <Text bold>
+                                        {LocalizeText('wiredchests.upgrade.capacity.extra', ['purchase_capacity'], [String(UPGRADE_STEP * upgradeQty)])}
+                                    </Text>
+                                    <Text small>
+                                        {LocalizeText('wiredchests.upgrade.capacity.current', ['current_capacity'], [String(capacityMax)])}
+                                    </Text>
+                                    <Text small>
+                                        {LocalizeText('wiredchests.upgrade.capacity.new', ['new_capacity'], [String(capacityMax + UPGRADE_STEP * upgradeQty)])}
+                                    </Text>
+                                </Column>
+                            </Flex>
                             <Flex alignItems="center" gap={2}>
                                 <Text small>{LocalizeText('wiredchests.quantity')}</Text>
-                                <select className="form-select form-select-sm" value={upgradeQty} onChange={(e) => setUpgradeQty(parseInt(e.target.value, 10))}>
-                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((q) => (
+                                <select
+                                    className="form-select form-select-sm"
+                                    value={upgradeQty}
+                                    onChange={(e) => setUpgradeQty(parseInt(e.target.value, 10))}
+                                >
+                                    {upgradeOptions.map((q) => (
                                         <option key={q} value={q}>
                                             {q}
                                         </option>
                                     ))}
                                 </select>
                             </Flex>
-                            <Text bold>
-                                {LocalizeText('wiredchests.upgrade.price', ['credits', 'diamonds'], [String(COST_CREDITS * upgradeQty), String(COST_DIAMONDS * upgradeQty)])}
-                            </Text>
+                            <Flex alignItems="center" gap={1}>
+                                {COST_CREDITS > 0 && (
+                                    <>
+                                        <LayoutCurrencyIcon type={-1} />
+                                        <Text bold>{COST_CREDITS * upgradeQty}</Text>
+                                    </>
+                                )}
+                                {COST_CREDITS > 0 && COST_DIAMONDS > 0 && <Text bold>+</Text>}
+                                {COST_DIAMONDS > 0 && (
+                                    <>
+                                        <LayoutCurrencyIcon type={5} />
+                                        <Text bold>{COST_DIAMONDS * upgradeQty}</Text>
+                                    </>
+                                )}
+                            </Flex>
+                            {upgradeError && (
+                                <Text small className="nitro-chest__upgrade-error">
+                                    {LocalizeText('wiredchests.upgrade.error', ['reason'], [localizeWithFallback(upgradeError, '')])}
+                                </Text>
+                            )}
+                            {upgradeResult && (
+                                <Text small className="nitro-chest__upgrade-error">
+                                    {upgradeResult}
+                                </Text>
+                            )}
                             <div className="nitro-chest__actions">
-                                <ChestButton wide onClick={buyUpgrade}>
+                                <ChestButton wide disabled={!!upgradeError} onClick={buyUpgrade}>
                                     {LocalizeText('wiredchests.upgrade.buy')}
                                 </ChestButton>
                                 <ChestButton wide onClick={() => setShowUpgrade(false)}>
@@ -854,6 +1001,72 @@ export const FurnitureChestView: FC = () => {
             )}
 
             {/* ===== WITHDRAW-ALL CONFIRM (mirrors WiredChestWrapperView.onWithdrawAllClick) ===== */}
+            {confirmLock !== null && (
+                <NitroCardView className="nitro-widget-chest-confirm" theme="primary-slim" style={{ width: 340 }}>
+                    <NitroCardHeaderView
+                        headerText={localizeWithFallback(
+                            confirmLock ? 'wiredchests.lock.confirm.title' : 'wiredchests.unlock.confirm.title',
+                            '',
+                        )}
+                        onCloseClick={() => setConfirmLock(null)}
+                    />
+                    <NitroCardContentView>
+                        <Column gap={2}>
+                            <Text>
+                                {localizeWithFallback(
+                                    confirmLock ? 'wiredchests.lock.confirm.desc' : 'wiredchests.unlock.confirm.desc',
+                                    '',
+                                )}
+                            </Text>
+                            <div className="nitro-chest__actions">
+                                <ChestButton
+                                    wide
+                                    onClick={() => {
+                                        saveOptions({ locked: confirmLock });
+                                        setConfirmLock(null);
+                                    }}
+                                >
+                                    {LocalizeText('wiredchests.ready')}
+                                </ChestButton>
+                                <ChestButton wide onClick={() => setConfirmLock(null)}>
+                                    {LocalizeText('wiredchests.cancel')}
+                                </ChestButton>
+                            </div>
+                        </Column>
+                    </NitroCardContentView>
+                </NitroCardView>
+            )}
+
+            {showLockInfo && (
+                <NitroCardView className="nitro-widget-chest-info" theme="primary-slim" style={{ width: 400 }}>
+                    <NitroCardHeaderView
+                        headerText={localizeWithFallback('wiredchests.lock_info.title', 'About locking')}
+                        onCloseClick={() => setShowLockInfo(false)}
+                    />
+                    <NitroCardContentView>
+                        <Column gap={2}>
+                            <Text small>{localizeWithFallback('wiredchests.lock_info.desc', '')}</Text>
+                            <ul className="nitro-chest__rules">
+                                {LOCK_INFO_RULES.map((key) => (
+                                    <li key={key}>
+                                        <Text small>{localizeWithFallback(key, '')}</Text>
+                                    </li>
+                                ))}
+                            </ul>
+                            <Text bold>{localizeWithFallback('wiredchests.capacity_info.title', 'About capacity')}</Text>
+                            <Text small>{localizeWithFallback('wiredchests.capacity_info.desc', '')}</Text>
+                            <ul className="nitro-chest__rules">
+                                {CAPACITY_INFO_RULES.map((key) => (
+                                    <li key={key}>
+                                        <Text small>{localizeWithFallback(key, '')}</Text>
+                                    </li>
+                                ))}
+                            </ul>
+                        </Column>
+                    </NitroCardContentView>
+                </NitroCardView>
+            )}
+
             {confirmWithdrawAll && (
                 <NitroCardView className="nitro-widget-chest-confirm" theme="primary-slim" style={{ width: 320 }}>
                     <NitroCardHeaderView headerText={LocalizeText('wiredchests.withdraw_all.confirm.title')} onCloseClick={() => setConfirmWithdrawAll(false)} />
