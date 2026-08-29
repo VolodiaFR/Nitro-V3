@@ -80,6 +80,7 @@ export const FurnitureChestView: FC = () => {
     const [accessOpen, setAccessOpen] = useState(true);
     const [accessDonate, setAccessDonate] = useState(false);
     const [locked, setLocked] = useState(false);
+    const [capacity, setCapacity] = useState(0);
     const [appearanceState, setAppearanceState] = useState(0);
     const [notifyFull, setNotifyFull] = useState(false);
     const [notifyDonation, setNotifyDonation] = useState(false);
@@ -200,6 +201,7 @@ export const FurnitureChestView: FC = () => {
         setAccessOpen(p.accessOpen);
         setAccessDonate(p.accessDonate);
         setLocked(p.locked);
+        setCapacity(p.capacity || p.capacityMax);
         setAppearanceState(p.appearanceState);
         setNotifyFull(p.notifyFull);
         setNotifyDonation(p.notifyDonation);
@@ -320,7 +322,9 @@ export const FurnitureChestView: FC = () => {
     const startDepositFurni = () => setDepositFurniOpen((v) => !v);
     const requestLog = () => SendMessageComposer(new ChestRequestLogComposer(itemId));
     const saveSettings = () => {
-        SendMessageComposer(new ChestSaveSettingsComposer(itemId, name, description, accessOpen, accessDonate, appearanceState));
+        SendMessageComposer(
+            new ChestSaveSettingsComposer(itemId, name, description, accessOpen, accessDonate, appearanceState, locked, capacity),
+        );
         setShowSettings(false);
     };
     const saveNotifications = () => {
@@ -342,7 +346,7 @@ export const FurnitureChestView: FC = () => {
                         <div className="mb-1 rounded border border-[#c08a5a] bg-[#f7e6cf] px-2 py-1 text-[11px] text-[#7a4a1c]">
                             {localizeWithFallback(
                                 'wiredchests.locked.notice',
-                                'This chest is locked. Withdrawals stay disabled until it is unlocked from the wired chests tab.',
+                                'This chest is locked. Nothing goes in or out by hand until it is unlocked.',
                             )}
                         </div>
                     )}
@@ -529,7 +533,7 @@ export const FurnitureChestView: FC = () => {
                                 value={depositAmount}
                                 onChange={(e) => setDepositAmount(Math.max(0, parseInt(e.target.value, 10) || 0))}
                             />
-                            <ChestButton wide onClick={deposit}>
+                            <ChestButton wide disabled={locked} onClick={deposit}>
                                 {LocalizeText('wiredchests.deposit')}
                             </ChestButton>
                         </Flex>
@@ -560,7 +564,7 @@ export const FurnitureChestView: FC = () => {
                                     <ChestButton wide footer disabled={locked || creditsBalance <= 0} onClick={withdrawAll}>
                                         {LocalizeText('wiredchests.withdraw_all')}
                                     </ChestButton>
-                                    <ChestButton wide footer onClick={() => setDepositOpen((v) => !v)}>
+                                    <ChestButton wide footer disabled={locked} onClick={() => setDepositOpen((v) => !v)}>
                                         {LocalizeText('wiredchests.initial_deposit')}
                                     </ChestButton>
                                 </div>
@@ -569,7 +573,7 @@ export const FurnitureChestView: FC = () => {
                                     <ChestButton wide footer disabled={locked || furniEntries.length <= 0} onClick={withdrawAll}>
                                         {LocalizeText('wiredchests.withdraw_all')}
                                     </ChestButton>
-                                    <ChestButton wide footer onClick={startDepositFurni}>
+                                    <ChestButton wide footer disabled={locked} onClick={startDepositFurni}>
                                         {LocalizeText(depositFurniOpen ? 'wiredchests.cancel' : 'wiredchests.start_deposit')}
                                     </ChestButton>
                                 </div>
@@ -656,6 +660,42 @@ export const FurnitureChestView: FC = () => {
                                     </option>
                                 ))}
                             </select>
+                            <Text bold>{localizeWithFallback('wiredchests.settings.locking', 'Locking')}</Text>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    className="form-check-input"
+                                    checked={locked}
+                                    onChange={(e) => setLocked(e.target.checked)}
+                                />
+                                <Text small>{localizeWithFallback('wiredchests.settings.locking.lock', 'Lock this chest')}</Text>
+                            </label>
+                            <Text small>
+                                {localizeWithFallback(
+                                    'wiredchests.settings.locking.info',
+                                    'A locked chest still answers wired, but nobody can put anything in or take anything out by hand.',
+                                )}
+                            </Text>
+                            <Text bold>{localizeWithFallback('wiredchests.settings.capacity', 'Capacity')}</Text>
+                            <Text small>
+                                {LocalizeText('wiredchests.max_capacity', ['max_capacity'], [String(capacityMax)])}
+                            </Text>
+                            <input
+                                className="form-control form-control-sm"
+                                inputMode="numeric"
+                                type="text"
+                                value={capacity}
+                                onChange={(e) => {
+                                    const parsed = parseInt(e.target.value.replace(/\D/g, ''), 10);
+                                    setCapacity(Math.min(Math.max(isNaN(parsed) ? 1 : parsed, 1), capacityMax));
+                                }}
+                            />
+                            <Text small>
+                                {localizeWithFallback(
+                                    'wiredchests.settings.capacity.info',
+                                    'Stop filling at this many, even though the chest could hold more.',
+                                )}
+                            </Text>
                             <div className="nitro-chest__actions">
                                 <ChestButton wide onClick={saveSettings}>
                                     {LocalizeText('wiredchests.ready')}
