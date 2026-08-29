@@ -2,6 +2,7 @@ import {
     AchievementNotificationMessageEvent,
     ActivityPointNotificationMessageEvent,
     BadgeReceivedEvent,
+    ChestNotificationEvent,
     ClubGiftNotificationEvent,
     ClubGiftSelectedEvent,
     ConnectionErrorEvent,
@@ -307,6 +308,26 @@ const useNotificationStore = () => {
         const badgeImage = GetSessionDataManager().getBadgeUrl(parser.data.badgeCode);
 
         showSingleBubble(badgeName, NotificationBubbleType.BADGE_RECEIVED, badgeImage, parser.data.badgeCode);
+    });
+
+    useMessageEvent<ChestNotificationEvent>(ChestNotificationEvent, (event) => {
+        const parser = event.getParser();
+        const key = CHEST_NOTIFICATION_KEYS[parser.reason];
+
+        if (!key) return;
+
+        // A chest with no name of its own is still "your chest", so the message falls back rather
+        // than announcing an empty string.
+        const chestName = parser.chestName || LocalizeText('wiredchests.notification.unnamed');
+
+        showSingleBubble(
+            LocalizeText(
+                key,
+                ['chest', 'name', 'amount'],
+                [chestName, parser.actorName, String(parser.amount)],
+            ),
+            NotificationBubbleType.INFO,
+        );
     });
 
     useMessageEvent<BadgeReceivedEvent>(BadgeReceivedEvent, (event) => {
@@ -643,6 +664,15 @@ const useNotificationStore = () => {
         closeConfirm
     };
 };
+
+/** Reasons a chest tells its owner something, in the order the server numbers them. */
+const CHEST_NOTIFICATION_KEYS = [
+    'wiredchests.notification.full',
+    'wiredchests.notification.donation',
+    'wiredchests.notification.withdraw',
+    'wiredchests.notification.empty',
+    'wiredchests.notification.wired',
+];
 
 export const useNotificationState = () => {
     const { alerts, bubbleAlerts, confirms } = useSharedHook(useNotificationStore);
