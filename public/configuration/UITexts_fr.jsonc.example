@@ -906,6 +906,8 @@
     "wiredchests.cancel": "Annuler",
     "inventory.wired_trading.payment": "Paiement",
     "inventory.wired_trading.trade": "Echange",
+    "inventory.wired_trading.chest_deposit": "Remplir le coffre",
+    "inventory.wired_trading.depositing": "Va dans le coffre",
     "inventory.wired_trading.your_inventory": "Tes meubles",
     "inventory.wired_trading.put_on_table": "Proposer",
     "inventory.wired_trading.put_all": "Tout",

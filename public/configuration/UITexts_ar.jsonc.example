@@ -862,6 +862,8 @@
     "wiredchests.cancel": "إلغاء",
     "inventory.wired_trading.payment": "دفع",
     "inventory.wired_trading.trade": "مقايضة",
+    "inventory.wired_trading.chest_deposit": "املأ الصندوق",
+    "inventory.wired_trading.depositing": "سيدخل الصندوق",
     "inventory.wired_trading.your_inventory": "أثاثك",
     "inventory.wired_trading.put_on_table": "اعرض",
     "inventory.wired_trading.put_all": "الكل",

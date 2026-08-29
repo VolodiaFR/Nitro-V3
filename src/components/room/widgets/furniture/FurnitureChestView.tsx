@@ -126,7 +126,6 @@ export const FurnitureChestView: FC = () => {
     const { getCurrencyAmount } = usePurse();
     const creditsWallet = getCurrencyAmount(-1);
     const diamondsWallet = getCurrencyAmount(5);
-    const [depositFurniOpen, setDepositFurniOpen] = useState(false);
     const [furniSearchDraft, setFurniSearchDraft] = useState('');
     const [furniSearchQuery, setFurniSearchQuery] = useState('');
 
@@ -161,19 +160,6 @@ export const FurnitureChestView: FC = () => {
         [],
     );
 
-    // One cell per furni type (like the chest grid), with a quantity badge;
-    // clicking deposits the first unlocked item of that type.
-    const depositableInventoryItems = useMemo(() => {
-        const rows: { id: number; baseItemId: number; name: string; quantity: number }[] = [];
-        for (const g of groupItems) {
-            if (g.isWallItem) continue;
-            const unlocked = g.items.filter((item) => !item.locked);
-            if (!unlocked.length) continue;
-            rows.push({ id: unlocked[0].id, baseItemId: g.type, name: g.name, quantity: unlocked.length });
-        }
-        return rows;
-    }, [groupItems]);
-
     const visibleFurniEntries = useMemo(() => {
         const q = furniSearchQuery.trim().toLowerCase();
         if (!q) return furniEntries;
@@ -192,20 +178,6 @@ export const FurnitureChestView: FC = () => {
 
     const selectedGroup = furniEntries.find((f) => f.key === selectedFurniKey) ?? null;
 
-    useEffect(() => {
-        if (!depositFurniOpen) return;
-        SendMessageComposer(new FurnitureListComposer());
-        SendMessageComposer(new ChestStartDepositComposer(itemId));
-    }, [depositFurniOpen, itemId]);
-
-    // Withdrawn items reach the inventory as a refresh push (FurnitureListInvalidate),
-    // not as list add/update events — useInventoryFurni only re-requests the list when
-    // the inventory window itself is open. Re-request here while the deposit panel is
-    // showing so its cells and counters stay live after a withdraw.
-    useMessageEvent<FurnitureListInvalidateEvent>(FurnitureListInvalidateEvent, () => {
-        if (!depositFurniOpen) return;
-        SendMessageComposer(new FurnitureListComposer());
-    });
 
     useEffect(() => {
         syncSelectedFurniKey(furniEntries);
@@ -327,7 +299,6 @@ export const FurnitureChestView: FC = () => {
         setItemId(-1);
         setStoredFurniItems([]);
         setLegacyFurniGroups([]);
-        setDepositFurniOpen(false);
     };
     const deposit = () => {
         if (depositAmount <= 0) return;
@@ -364,7 +335,10 @@ export const FurnitureChestView: FC = () => {
         if (inventoryItemId <= 0 || used >= capacity) return;
         SendMessageComposer(new ChestDepositInventoryItemComposer(itemId, inventoryItemId));
     };
-    const startDepositFurni = () => setDepositFurniOpen((v) => !v);
+    const startDepositFurni = () => {
+        SendMessageComposer(new FurnitureListComposer());
+        SendMessageComposer(new ChestStartDepositComposer(itemId));
+    };
     const requestLog = () => SendMessageComposer(new ChestRequestLogComposer(itemId));
     const saveSettings = () => {
         SendMessageComposer(new ChestSaveSettingsComposer(itemId, name, description, accessOpen, accessDonate, appearanceState));
@@ -724,7 +698,7 @@ export const FurnitureChestView: FC = () => {
                                         {LocalizeText('wiredchests.withdraw_all')}
                                     </ChestButton>
                                     <ChestButton wide footer disabled={!canDeposit} onClick={startDepositFurni}>
-                                        {LocalizeText(depositFurniOpen ? 'wiredchests.cancel' : 'wiredchests.start_deposit')}
+                                        {LocalizeText('wiredchests.start_deposit')}
                                     </ChestButton>
                                 </div>
                             )}
@@ -733,48 +707,6 @@ export const FurnitureChestView: FC = () => {
                             </ChestButton>
                         </div>
                     </div>
-                    {isFurni && depositFurniOpen && (
-                        <div className="nitro-chest__deposit-panel">
-                            <Text bold small className="nitro-chest__deposit-title">
-                                {LocalizeText('wiredchests.deposit_furni.title')}
-                            </Text>
-                            {depositableInventoryItems.length === 0 ? (
-                                <Text small style={{ opacity: 0.6 }}>
-                                    {LocalizeText('wiredchests.deposit_furni.empty_inventory')}
-                                </Text>
-                            ) : (
-                                <div className="nitro-chest__deposit-grid">
-                                    {depositableInventoryItems.map((row) => (
-                                        <button
-                                            key={row.id}
-                                            type="button"
-                                            className="nitro-chest__deposit-cell"
-                                            title={row.name}
-                                            disabled={used >= capacity}
-                                            onClick={() => depositInventoryItem(row.id)}
-                                        >
-                                            <img
-                                                src={ProductImageUtility.getProductImageUrl(FurnitureType.FLOOR, row.baseItemId, '')}
-                                                alt=""
-                                                draggable={false}
-                                                style={{ maxWidth: 38, maxHeight: 38, objectFit: 'contain', imageRendering: 'pixelated' }}
-                                            />
-                                            {row.quantity > 1 && (
-                                                <div className="nitro-chest__qty-badge">
-                                                    <span>{row.quantity}</span>
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                            {capacity - used <= 0 && (
-                                <Text small className="nitro-chest__deposit-full">
-                                    {LocalizeText('wiredchests.deposit_furni.full')}
-                                </Text>
-                            )}
-                        </div>
-                    )}
                 </NitroCardContentView>
             </NitroCardView>
 

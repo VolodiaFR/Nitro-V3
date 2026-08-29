@@ -906,6 +906,8 @@
     "wiredchests.cancel": "Annuleren",
     "inventory.wired_trading.payment": "Betaling",
     "inventory.wired_trading.trade": "Ruil",
+    "inventory.wired_trading.chest_deposit": "De kist vullen",
+    "inventory.wired_trading.depositing": "Gaat in de kist",
     "inventory.wired_trading.your_inventory": "Jouw meubels",
     "inventory.wired_trading.put_on_table": "Aanbieden",
     "inventory.wired_trading.put_all": "Alles",

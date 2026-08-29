@@ -15,8 +15,16 @@ import { useInventoryFurni, useWiredTrading } from '../../../../hooks';
 /** The window has room for nine, the same as the trade it is modelled on. */
 const MAX_ITEMS_ON_TABLE = 9;
 
-const CONTRACT_TITLES = ['inventory.wired_trading.payment', 'inventory.wired_trading.trade', 'inventory.wired_trading.payment'];
-const CONTRACT_FALLBACKS = ['Payment', 'Trade', 'Payment'];
+const CONTRACT_TITLES = [
+    'inventory.wired_trading.payment',
+    'inventory.wired_trading.trade',
+    'inventory.wired_trading.payment',
+    'inventory.wired_trading.chest_deposit',
+];
+const CONTRACT_FALLBACKS = ['Payment', 'Trade', 'Payment', 'Fill the chest'];
+
+/** A table opened to fill a chest: nothing is required of the player, and nothing comes back. */
+const CONTRACT_TYPE_CHEST_DEPOSIT = 3;
 
 /**
  * The negotiation a wired contract opens: what you offer on one side, what you receive on the other,
@@ -46,6 +54,8 @@ export const InventoryWiredTradeView: FC<{}> = () => {
         progress,
         cancel,
     } = useWiredTrading();
+
+    const isChestDeposit = contractType === CONTRACT_TYPE_CHEST_DEPOSIT;
 
     const { groupItems = [] } = useInventoryFurni();
     const [selected, setSelected] = useState<GroupItem>(null);
@@ -150,13 +160,15 @@ export const InventoryWiredTradeView: FC<{}> = () => {
                             {localizeWithFallback('inventory.wired_trading.seconds_left', 'Time left %time%', ['time'], [clock])}
                         </span>
                     )}
-                    <Button variant="secondary" onClick={() => setShowRequirements(!showRequirements)}>
-                        {localizeWithFallback('inventory.wired_trading.requirements.title', 'Requirements')}
-                    </Button>
+                    {!isChestDeposit && (
+                        <Button variant="secondary" onClick={() => setShowRequirements(!showRequirements)}>
+                            {localizeWithFallback('inventory.wired_trading.requirements.title', 'Requirements')}
+                        </Button>
+                    )}
                 </div>
             </div>
 
-            {showRequirements && (
+            {showRequirements && !isChestDeposit && (
                 <div className="rounded border border-[#b9b3a5] bg-[#f7f5ee] p-2 flex flex-col gap-1">
                     <Text small bold>
                         {localizeWithFallback('inventory.wired_trading.requirements.offering', 'You give')}
@@ -228,8 +240,12 @@ export const InventoryWiredTradeView: FC<{}> = () => {
                     )}
                 </Column>
 
-                <Column overflow="hidden" size={4}>
-                    <Text small>{localizeWithFallback('inventory.wired_trading.offering', 'You offer')}</Text>
+                <Column overflow="hidden" size={isChestDeposit ? 8 : 4}>
+                    <Text small>
+                        {isChestDeposit
+                            ? localizeWithFallback('inventory.wired_trading.depositing', 'Going into the chest')
+                            : localizeWithFallback('inventory.wired_trading.offering', 'You offer')}
+                    </Text>
                     <AutoGrid columnCount={3}>
                         {Array.from(Array(MAX_ITEMS_ON_TABLE), (unused, index) => {
                             const item = offeredItems[index] ?? null;
@@ -251,7 +267,7 @@ export const InventoryWiredTradeView: FC<{}> = () => {
                     </AutoGrid>
                 </Column>
 
-                <Column overflow="hidden" size={4}>
+                <Column overflow="hidden" size={4} className={isChestDeposit ? 'hidden' : undefined}>
                     <Text small>{localizeWithFallback('inventory.wired_trading.receiving', 'You receive')}</Text>
                     <AutoGrid columnCount={3}>
                         {rewardFurni.map((reward, index) => (
@@ -279,7 +295,13 @@ export const InventoryWiredTradeView: FC<{}> = () => {
                 <Button variant="danger" onClick={cancel}>
                     {localizeWithFallback('generic.cancel', 'Cancel')}
                 </Button>
-                <Button disabled={!canAccept || waitingOnCountdown} variant="success" onClick={progress}>
+                {/* A deposit asks for nothing, so the offer always "satisfies" it -- but confirming an
+                    empty table would just close the window, which is not what the button promises. */}
+                <Button
+                    disabled={!canAccept || waitingOnCountdown || (isChestDeposit && !offeredItems.length)}
+                    variant="success"
+                    onClick={progress}
+                >
                     {acceptLabel()}
                 </Button>
             </Flex>

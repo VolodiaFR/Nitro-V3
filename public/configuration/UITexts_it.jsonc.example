@@ -996,6 +996,8 @@
     "wiredchests.cancel": "Annulla",
     "inventory.wired_trading.payment": "Pagamento",
     "inventory.wired_trading.trade": "Scambio",
+    "inventory.wired_trading.chest_deposit": "Riempi lo scrigno",
+    "inventory.wired_trading.depositing": "Va nello scrigno",
     "inventory.wired_trading.your_inventory": "I tuoi furni",
     "inventory.wired_trading.put_on_table": "Offri",
     "inventory.wired_trading.put_all": "Tutti",

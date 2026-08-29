@@ -799,6 +799,8 @@
     "wiredchests.cancel": "Cancel",
     "inventory.wired_trading.payment": "Payment",
     "inventory.wired_trading.trade": "Trade",
+    "inventory.wired_trading.chest_deposit": "Fill the chest",
+    "inventory.wired_trading.depositing": "Going into the chest",
     "inventory.wired_trading.your_inventory": "Your furni",
     "inventory.wired_trading.put_on_table": "Offer",
     "inventory.wired_trading.put_all": "All",

@@ -901,6 +901,8 @@
     // Wired chests + wired trading
     "inventory.wired_trading.payment": "Bezahlung",
     "inventory.wired_trading.trade": "Tausch",
+    "inventory.wired_trading.chest_deposit": "Truhe fuellen",
+    "inventory.wired_trading.depositing": "Kommt in die Truhe",
     "inventory.wired_trading.your_inventory": "Deine Möbel",
     "inventory.wired_trading.put_on_table": "Anbieten",
     "inventory.wired_trading.put_all": "Alle",
