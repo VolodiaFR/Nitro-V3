@@ -184,6 +184,17 @@ export const FurnitureChestView: FC = () => {
         syncSelectedFurniKey(furniEntries);
     }, [furniEntries, syncSelectedFurniKey]);
 
+    // A chest set to open while someone looks inside stays open until we say we stopped, and the
+    // window can go away without the close button ever being clicked -- leaving the room, reloading,
+    // the widget unmounting. Saying goodbye from the cleanup covers every one of those.
+    useEffect(() => {
+        if (itemId <= 0) return;
+
+        return () => {
+            SendMessageComposer(new ChestCloseComposer(itemId));
+        };
+    }, [itemId]);
+
     useMessageEvent<ChestDataEvent>(ChestDataEvent, (event) => {
         const p = event.getParser();
         setItemId(p.itemId);
@@ -297,9 +308,6 @@ export const FurnitureChestView: FC = () => {
     const selectedFurniQty = selectedGroup?.quantity ?? 0;
 
     const close = () => {
-        // A chest set to open while someone looks inside stays open until we say we stopped.
-        if (itemId > 0) SendMessageComposer(new ChestCloseComposer(itemId));
-
         setItemId(-1);
         setStoredFurniItems([]);
         setLegacyFurniGroups([]);
