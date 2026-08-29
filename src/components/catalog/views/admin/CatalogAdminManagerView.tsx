@@ -23,6 +23,7 @@ import { useCatalogActions, useCatalogData, useCatalogUiState } from '../../../.
 import { replaceCatalogPageOffers } from '../../../../hooks/catalog/useCatalog.helpers';
 import { getCatalogStudioCommandState, getCatalogStudioWorkspaceTabs } from '../../admin/studio/CatalogStudioCommandCenter';
 import { CatalogStudioProblemsHistoryPanel } from '../../admin/studio/CatalogStudioProblemsHistoryPanel';
+import { CatalogStudioValidationIssue } from '../../admin/studio/CatalogStudioTypes';
 import { CatalogStudioTransferPanel } from '../../admin/studio/CatalogStudioTransferPanel';
 import { useCatalogStudio } from '../../admin/studio/useCatalogStudio';
 import { useCatalogAdmin } from '../../CatalogAdminContext';
@@ -131,6 +132,14 @@ export const CatalogAdminManagerView: FC<{}> = () => {
     useEffect(() => {
         if (currentPage?.pageId != null && currentPage.pageId !== selectedPageId) setSelectedPageId(currentPage.pageId);
     }, [currentPage?.pageId, selectedPageId]);
+
+    // A problem names an entity; the operator wants to be standing on it.
+    const handleProblemSelect = useCallback((issue: CatalogStudioValidationIssue) => {
+        if (issue.entityType !== 'PAGE') return;
+
+        setSelectedPageId(issue.entityId);
+        setActiveTab('catalog');
+    }, []);
 
     const handlePageDragStart = useCallback((event: React.DragEvent, node: ICatalogNode) => {
         event.stopPropagation();
@@ -631,6 +640,9 @@ export const CatalogAdminManagerView: FC<{}> = () => {
                 history={studio.history}
                 loading={studio.loading}
                 undo={studio.undo}
+                revalidate={studio.validate}
+                checkedAt={studio.validation?.receivedAt ?? null}
+                onSelectEntity={handleProblemSelect}
             />
         </div>
     );

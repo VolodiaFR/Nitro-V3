@@ -4,6 +4,20 @@ import { FurniCategory, Offer, ProductTypeEnum } from '../../../../../api';
 import { AutoGrid, Column, LayoutGridItem, LayoutRoomPreviewerView } from '../../../../../common';
 import { useCatalogData, useCatalogUiState } from '../../../../../hooks';
 
+/**
+ * How much higher than dead centre anything in this box sits.
+ *
+ * The original lifts its zoomed avatar preview by 41 in
+ * `ProductViewCatalogWidget.applyRoomCanvasZoom`, on a canvas that same step has already scaled
+ * by two - half that in the engine's own pixels, which is what this offset is in. It gives
+ * furniture no lift of its own, but our canvas is centred in a box shorter than itself where
+ * the original's is top-aligned, so furniture came out sitting low in the same way. One number
+ * for the whole box rather than a rule per product type.
+ *
+ * A unique limited item keeps the original's extra -15 on top.
+ */
+const PREVIEW_LIFT = 21;
+
 export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => {
     const { height = 240 } = props;
     const { currentOffer = null, roomPreviewer = null } = useCatalogData();
@@ -15,9 +29,18 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
 
         const product = currentOffer.product;
 
-        if (!product) return;
+        // The previewer is shared with every other catalog layout, and this offset is a live
+        // Point on it: whatever is left here is inherited by the next thing drawn in it.
+        const clearViewOffset = () => {
+            roomPreviewer.addViewOffset.y = 0;
+        };
 
-        roomPreviewer.addViewOffset.y = product.isUniqueLimitedItem ? -15 : 0;
+        if (!product) {
+            clearViewOffset();
+            return;
+        }
+
+        roomPreviewer.addViewOffset.y = -(PREVIEW_LIFT + (product.isUniqueLimitedItem ? 15 : 0));
         roomPreviewer.centerWallItems = true;
         roomPreviewer.setAutomaticStateChange(false);
         roomPreviewer.updateRoomWallsAndFloorVisibility(true, true);
@@ -115,6 +138,8 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
 
         populate();
         roomPreviewer.setAutomaticStateChange(animateFurnitureState);
+
+        return clearViewOffset;
     }, [currentOffer, previewStuffData, roomPreviewer]);
 
     if (!currentOffer) return null;

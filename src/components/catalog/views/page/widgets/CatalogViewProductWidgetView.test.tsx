@@ -103,6 +103,8 @@ describe('catalog product preview', () => {
             expect(avatarRenderManager.getFigureStringWithFigureIds).toHaveBeenCalledWith('base-figure', 'M', [101, 202]);
             expect(roomPreviewer.addAvatarIntoRoom).toHaveBeenCalledWith('composed-figure', 0);
             expect(roomPreviewer.zoomIn).toHaveBeenCalledOnce();
+            // 41px on a canvas the same step has already doubled: half that in engine pixels.
+            expect(roomPreviewer.addViewOffset.y).toBe(-21);
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(false);
         });
     });
@@ -130,6 +132,9 @@ describe('catalog product preview', () => {
             expect(roomPreviewer.addFurnitureIntoRoom).toHaveBeenCalledWith(500, expect.anything(), null, '');
             expect(roomPreviewer.addAvatarIntoRoom).not.toHaveBeenCalled();
             expect(roomPreviewer.zoomIn).not.toHaveBeenCalled();
+            // Furniture is not zoomed, but it is lifted: the canvas is centred in a box shorter
+            // than itself, so dead centre reads low for everything in it, not just avatars.
+            expect(roomPreviewer.addViewOffset.y).toBe(-21);
             expect(roomPreviewer.centerWallItems).toBe(true);
             expect(roomPreviewer.updateObjectRoom).not.toHaveBeenCalled();
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(true);
@@ -161,6 +166,33 @@ describe('catalog product preview', () => {
             expect(roomPreviewer.addAvatarIntoRoom).toHaveBeenCalledWith('base-figure', 0);
             expect(roomPreviewer.setAutomaticStateChange).toHaveBeenLastCalledWith(false);
         });
+    });
+
+    /**
+     * The previewer is shared with every other catalog layout, and the offset is a live Point on
+     * it: an outfit's lift left behind is inherited by the next furniture drawn in the same box.
+     */
+    it('hands the previewer back unlifted when it stops driving it', async () => {
+        const roomPreviewer = createRoomPreviewer();
+
+        vi.mocked(GetAvatarRenderManager).mockReturnValue({
+            getFigureStringWithFigureIds: vi.fn(() => 'composed-figure'),
+            isValidFigureSetForGender: vi.fn(() => true)
+        } as any);
+        vi.mocked(GetSessionDataManager).mockReturnValue({
+            figure: 'base-figure',
+            gender: 'M',
+            getFloorItemData: () => ({ customParams: '101' })
+        } as any);
+        vi.mocked(useCatalogData).mockReturnValue({ currentOffer: createFloorOffer(23), roomPreviewer } as any);
+
+        const view = render(<CatalogViewProductWidgetView />);
+
+        await waitFor(() => expect(roomPreviewer.addViewOffset.y).toBe(-21));
+
+        view.unmount();
+
+        expect(roomPreviewer.addViewOffset.y).toBe(0);
     });
 
     it('keeps landscape previews static after the wall object is loaded', async () => {

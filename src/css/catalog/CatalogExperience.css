@@ -92,13 +92,27 @@
     image-rendering: pixelated;
 }
 
+/*
+ * The plate is artwork of its own fixed size - `.unique-complete-plate` is the 170x29 of
+ * `catalog-info-amount-bg.png` - so this slot has nothing to decide: it takes the size of what
+ * it holds. Giving it a width of its own did not constrain the plate, it only overflowed it,
+ * which is how the plate still ended up under the arrows despite a reserved lane.
+ *
+ * `.nitro-catalog-product-view` is pinned to the original's 360x240, so reading the placement
+ * from the right edge is the same as the original's `left: 186` - and stays right if that box
+ * is ever squeezed under its `max-width: 100%`.
+ *
+ * The 60px is a deliberate departure. The original lets the plaque run under the rotation
+ * arrows (186..360 against 300..354) because there it is artwork aligned to the left of a panel
+ * wider than its container, so the arrows land on the empty part. Ours is a plate with text
+ * across it, so it stops where they start: 54px of button and the 6px they are inset by, which
+ * puts its right edge at 300 - where the original puts rotate_avatar_left.
+ */
 .nitro-catalog-preview-limited {
     position: absolute;
     top: 5px;
-    left: 186px;
+    right: 60px;
     z-index: 6;
-    width: 174px;
-    height: 35px;
     pointer-events: none;
 }
 
