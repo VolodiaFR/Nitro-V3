@@ -58,6 +58,8 @@ export const WiredChestsTabView: FC<{}> = () => {
 
     const [lockBusy, setLockBusy] = useState(false);
     const [lockResult, setLockResult] = useState('');
+    /** Zero means the whole room. A room with a dozen chests makes a log nobody can read. */
+    const [onlyChestId, setOnlyChestId] = useState(0);
 
     // The detail window drives paging; while it is open the preview must not poll page 1 out from
     // under it. Held in a ref so the interval effect does not restart on every open/close.
@@ -67,9 +69,12 @@ export const WiredChestsTabView: FC<{}> = () => {
     const canManageOwn = !!roomSession && (roomSession.isRoomOwner || roomSession.controllerLevel >= RoomControllerLevel.GUEST);
     const canManageAll = !!roomSession?.isRoomOwner;
 
-    const requestPage = useCallback((nextPage: number, nextFilter: number) => {
-        SendMessageComposer(new WiredChestRoomLogsComposer(PAGE_SIZE, nextPage, nextFilter));
-    }, []);
+    const requestPage = useCallback(
+        (nextPage: number, nextFilter: number, chestId = onlyChestId) => {
+            SendMessageComposer(new WiredChestRoomLogsComposer(PAGE_SIZE, nextPage, nextFilter, chestId));
+        },
+        [onlyChestId],
+    );
 
     useEffect(() => {
         requestPage(1, filter);
@@ -277,6 +282,21 @@ export const WiredChestsTabView: FC<{}> = () => {
                             ))}
                         </select>
                     </div>
+                    {!!onlyChestId && (
+                        <div className="flex items-center justify-between gap-2 rounded border border-[#c08a5a] bg-[#f7e6cf] px-2 py-1">
+                            <span className="text-[11px] text-[#7a4a1c]">
+                                {localizeWithFallback(
+                                    'wiredmenu.chests.room_logs.filtered_to_chest',
+                                    'Showing chest %id% only',
+                                    ['id'],
+                                    [String(onlyChestId)],
+                                )}
+                            </span>
+                            <Button variant="secondary" onClick={() => setOnlyChestId(0)}>
+                                {localizeWithFallback('wiredmenu.chests.room_logs.show_all_chests', 'All chests')}
+                            </Button>
+                        </div>
+                    )}
                     <div className="max-h-[180px] overflow-y-auto border border-[#d1ccbf] rounded">{renderPreviewBody()}</div>
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-[11px] text-[#6b6659] tabular-nums">
@@ -326,6 +346,7 @@ export const WiredChestsTabView: FC<{}> = () => {
                     sourceLabel={sourceLabel}
                     typeLabel={typeLabel}
                     onClose={closeDetails}
+                    onFilterChest={setOnlyChestId}
                     onPage={(nextPage) => requestPage(nextPage, filter)}
                     onToggleDetail={toggleDetail}
                 />
@@ -345,6 +366,8 @@ interface WiredChestTransactionsWindowProps {
     onClose: () => void;
     onPage: (page: number) => void;
     onToggleDetail: (transactionId: number, hasDetails: boolean) => void;
+    /** Narrow the whole log to one chest. A room full of chests logs more than anyone can read. */
+    onFilterChest: (chestId: number) => void;
 }
 
 /**
@@ -352,7 +375,19 @@ interface WiredChestTransactionsWindowProps {
  * has no room for and a per-row breakdown of the furni that moved.
  */
 const WiredChestTransactionsWindow: FC<WiredChestTransactionsWindowProps> = (props) => {
-    const { rows, page, pageCount, expandedId, typeLabel, sourceLabel, renderDetailItems, onClose, onPage, onToggleDetail } = props;
+    const {
+        rows,
+        page,
+        pageCount,
+        expandedId,
+        typeLabel,
+        sourceLabel,
+        renderDetailItems,
+        onClose,
+        onPage,
+        onToggleDetail,
+        onFilterChest,
+    } = props;
 
     return (
         <NitroCardView className="min-w-[720px] max-w-[720px]" theme="primary-slim" uniqueKey="wired-chest-transactions">
@@ -392,7 +427,19 @@ const WiredChestTransactionsWindow: FC<WiredChestTransactionsWindowProps> = (pro
                                 {rows.map((row) => (
                                     <Fragment key={row.transactionId}>
                                         <tr className="border-t border-[#e4e0d5]">
-                                            <td className="px-2 py-1 tabular-nums">{row.chestId}</td>
+                                            <td className="px-2 py-1 tabular-nums">
+                                                <button
+                                                    type="button"
+                                                    className="underline decoration-dotted"
+                                                    title={localizeWithFallback(
+                                                        'wiredmenu.chests.room_logs.only_this_chest',
+                                                        'Only this chest',
+                                                    )}
+                                                    onClick={() => onFilterChest(row.chestId)}
+                                                >
+                                                    {row.chestId}
+                                                </button>
+                                            </td>
                                             <td className="px-2 py-1">{formatTimestamp(row.timestamp)}</td>
                                             <td className="px-2 py-1">{typeLabel(row)}</td>
                                             <td className="px-2 py-1">{sourceLabel(row)}</td>
