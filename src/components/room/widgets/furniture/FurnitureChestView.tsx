@@ -2,6 +2,7 @@ import {
     ChestCloseComposer,
     ChestDataEvent,
     ChestDepositComposer,
+    ChestEnableWiredComposer,
     ChestDepositInventoryItemComposer,
     ChestFurniChunkEvent,
     ChestFurniDeltaEvent,
@@ -123,6 +124,9 @@ export const FurnitureChestView: FC = () => {
     const [upgradeResult, setUpgradeResult] = useState('');
     const [capacityDraft, setCapacityDraft] = useState('');
     const [chestBaseItemId, setChestBaseItemId] = useState(0);
+    const [wiredEnabled, setWiredEnabled] = useState(true);
+    const [isStarter, setIsStarter] = useState(false);
+    const [confirmWiredUpgrade, setConfirmWiredUpgrade] = useState(false);
 
     const { getCurrencyAmount } = usePurse();
     const creditsWallet = getCurrencyAmount(-1);
@@ -210,6 +214,8 @@ export const FurnitureChestView: FC = () => {
         setCapacityDraft(String(p.capacity || p.capacityMax));
         setIsOwner(p.viewerOwnsChest);
         setChestBaseItemId(p.chestSpriteId);
+        setWiredEnabled(p.wiredEnabled);
+        setIsStarter(p.starterChest);
         setAppearanceState(p.appearanceState);
         setNotifyFull(p.notifyFull);
         setNotifyDonation(p.notifyDonation);
@@ -754,6 +760,33 @@ export const FurnitureChestView: FC = () => {
                                     </option>
                                 ))}
                             </select>
+                            <Text bold>{localizeWithFallback('wiredchests.settings.wired', 'Wired')}</Text>
+                            {wiredEnabled ? (
+                                <Text small>
+                                    {localizeWithFallback(
+                                        'wiredchests.settings.wired.enabled',
+                                        'This chest answers wired.',
+                                    )}
+                                </Text>
+                            ) : (
+                                <>
+                                    <ChestButton
+                                        wide
+                                        disabled={!isOwner || isStarter}
+                                        onClick={() => setConfirmWiredUpgrade(true)}
+                                    >
+                                        {localizeWithFallback('wiredchests.settings.wired.upgrade', 'Make it wired')}
+                                    </ChestButton>
+                                    <Text small style={{ opacity: 0.6 }}>
+                                        {localizeWithFallback(
+                                            isStarter
+                                                ? 'wiredchests.settings.wired.starter'
+                                                : 'wiredchests.settings.wired.hint',
+                                            '',
+                                        )}
+                                    </Text>
+                                </>
+                            )}
                             <div className="nitro-chest__actions">
                                 <ChestButton wide onClick={saveSettings}>
                                     {LocalizeText('wiredchests.ready')}
@@ -945,6 +978,50 @@ export const FurnitureChestView: FC = () => {
             )}
 
             {/* ===== WITHDRAW-ALL CONFIRM (mirrors WiredChestWrapperView.onWithdrawAllClick) ===== */}
+            {confirmWiredUpgrade && (
+                <NitroCardView className="nitro-widget-chest-confirm" theme="primary-slim" style={{ width: 360 }}>
+                    <NitroCardHeaderView
+                        headerText={localizeWithFallback('wiredchests.upgrade.wired.title', 'Make it wired')}
+                        onCloseClick={() => setConfirmWiredUpgrade(false)}
+                    />
+                    <NitroCardContentView>
+                        <Column gap={2}>
+                            <Flex alignItems="center" gap={2}>
+                                <div className="nitro-chest__upgrade-preview">
+                                    {chestBaseItemId > 0 && (
+                                        <LayoutFurniImageView
+                                            productType={FurnitureType.FLOOR}
+                                            productClassId={chestBaseItemId}
+                                            direction={2}
+                                        />
+                                    )}
+                                </div>
+                                <Text>
+                                    {localizeWithFallback(
+                                        'wiredchests.upgrade.wired.desc',
+                                        'Wired will be able to fill and empty this chest. This cannot be undone.',
+                                    )}
+                                </Text>
+                            </Flex>
+                            <div className="nitro-chest__actions">
+                                <ChestButton
+                                    wide
+                                    onClick={() => {
+                                        SendMessageComposer(new ChestEnableWiredComposer(itemId));
+                                        setConfirmWiredUpgrade(false);
+                                    }}
+                                >
+                                    {LocalizeText('wiredchests.ready')}
+                                </ChestButton>
+                                <ChestButton wide onClick={() => setConfirmWiredUpgrade(false)}>
+                                    {LocalizeText('wiredchests.cancel')}
+                                </ChestButton>
+                            </div>
+                        </Column>
+                    </NitroCardContentView>
+                </NitroCardView>
+            )}
+
             {confirmLock !== null && (
                 <NitroCardView className="nitro-widget-chest-confirm" theme="primary-slim" style={{ width: 340 }}>
                     <NitroCardHeaderView
