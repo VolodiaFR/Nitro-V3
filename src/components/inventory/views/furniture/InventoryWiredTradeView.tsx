@@ -49,6 +49,7 @@ export const InventoryWiredTradeView: FC<{}> = () => {
 
     const { groupItems = [] } = useInventoryFurni();
     const [selected, setSelected] = useState<GroupItem>(null);
+    const [quantity, setQuantity] = useState(1);
 
     const canChangeOffer = state === WIRED_TRADE_STATE_ADDING_ITEMS;
     const waitingOnCountdown = state === WIRED_TRADE_STATE_COUNTDOWN && countdown > 0;
@@ -60,11 +61,27 @@ export const InventoryWiredTradeView: FC<{}> = () => {
         return `${ minutes }:${ seconds < 10 ? '0' : '' }${ seconds }`;
     }, [secondsLeft]);
 
-    const put = (group: GroupItem) => {
-        if (!canChangeOffer) return;
+    /** How many more the table will take. The server holds the same ceiling, so asking for more
+     * than this would simply be dropped on the other side without explanation. */
+    const roomLeft = Math.max(0, MAX_ITEMS_ON_TABLE - offeredItems.length);
 
-        const item = group.getLastItem();
-        if (item) offerItems([item.id]);
+    const put = (group: GroupItem, count: number) => {
+        if (!canChangeOffer || !group || roomLeft <= 0) return;
+
+        const wanted = Math.min(Math.max(1, count), group.getUnlockedCount(), roomLeft);
+        const items = group.getTradeItems(wanted);
+
+        if (!items || !items.length) return;
+
+        offerItems(items.map((item) => item.id));
+    };
+
+    /** Clamp as the field is typed, so the button never carries a number the group cannot honour. */
+    const changeQuantity = (value: string) => {
+        const parsed = parseInt(value.replace(/\D/g, ''), 10);
+        const ceiling = selected ? Math.min(selected.getUnlockedCount(), Math.max(1, roomLeft)) : 1;
+
+        setQuantity(Math.min(Math.max(isNaN(parsed) ? 1 : parsed, 1), ceiling));
     };
 
     const nodeLabel = (node: IWiredTradeNode) =>
@@ -172,14 +189,43 @@ export const InventoryWiredTradeView: FC<{}> = () => {
                                 itemActive={selected === group}
                                 itemCount={group.getUnlockedCount()}
                                 itemImage={group.iconUrl}
-                                onClick={() => setSelected(group)}
-                                onDoubleClick={() => put(group)}
+                                onClick={() => {
+                                    setSelected(group);
+                                    setQuantity(1);
+                                }}
+                                onDoubleClick={() => put(group, 1)}
                             />
                         ))}
                     </AutoGrid>
-                    <Button disabled={!canChangeOffer || !selected} variant="secondary" onClick={() => put(selected)}>
-                        {localizeWithFallback('inventory.wired_trading.put_on_table', 'Offer')}
-                    </Button>
+                    <Flex gap={1} alignItems="center">
+                        <input
+                            className="form-control form-control-sm w-[52px] text-center"
+                            disabled={!canChangeOffer || !selected}
+                            inputMode="numeric"
+                            type="text"
+                            value={quantity}
+                            onChange={(event) => changeQuantity(event.target.value)}
+                        />
+                        <Button
+                            disabled={!canChangeOffer || !selected || roomLeft <= 0}
+                            variant="secondary"
+                            onClick={() => put(selected, quantity)}
+                        >
+                            {localizeWithFallback('inventory.wired_trading.put_on_table', 'Offer')}
+                        </Button>
+                        <Button
+                            disabled={!canChangeOffer || !selected || roomLeft <= 0}
+                            variant="secondary"
+                            onClick={() => put(selected, roomLeft)}
+                        >
+                            {localizeWithFallback('inventory.wired_trading.put_all', 'All')}
+                        </Button>
+                    </Flex>
+                    {!!selected && roomLeft <= 0 && (
+                        <div className="text-[11px] text-[#8f3527]">
+                            {localizeWithFallback('inventory.wired_trading.table_full', 'The table is full.')}
+                        </div>
+                    )}
                 </Column>
 
                 <Column overflow="hidden" size={4}>

@@ -966,6 +966,8 @@
     "inventory.wired_trading.trade": "Scambio",
     "inventory.wired_trading.your_inventory": "I tuoi furni",
     "inventory.wired_trading.put_on_table": "Offri",
+    "inventory.wired_trading.put_all": "Tutti",
+    "inventory.wired_trading.table_full": "Il tavolo e' pieno.",
     "inventory.wired_trading.offering": "Tu offri",
     "inventory.wired_trading.receiving": "Tu ricevi",
     "inventory.wired_trading.confirm": "Conferma",
