@@ -127,6 +127,8 @@ export const FurnitureChestView: FC = () => {
     const [wiredEnabled, setWiredEnabled] = useState(true);
     const [isStarter, setIsStarter] = useState(false);
     const [confirmWiredUpgrade, setConfirmWiredUpgrade] = useState(false);
+    const [previewMode, setPreviewMode] = useState(0);
+    const [previewAmount, setPreviewAmount] = useState(1);
 
     const { getCurrencyAmount } = usePurse();
     const creditsWallet = getCurrencyAmount(-1);
@@ -216,6 +218,8 @@ export const FurnitureChestView: FC = () => {
         setChestBaseItemId(p.chestSpriteId);
         setWiredEnabled(p.wiredEnabled);
         setIsStarter(p.starterChest);
+        setPreviewMode(p.previewMode);
+        setPreviewAmount(p.previewAmount);
         setAppearanceState(p.appearanceState);
         setNotifyFull(p.notifyFull);
         setNotifyDonation(p.notifyDonation);
@@ -359,7 +363,18 @@ export const FurnitureChestView: FC = () => {
     };
     const requestLog = () => SendMessageComposer(new ChestRequestLogComposer(itemId));
     const saveSettings = () => {
-        SendMessageComposer(new ChestSaveSettingsComposer(itemId, name, description, accessOpen, accessDonate, appearanceState));
+        SendMessageComposer(
+            new ChestSaveSettingsComposer(
+                itemId,
+                name,
+                description,
+                accessOpen,
+                accessDonate,
+                appearanceState,
+                previewMode,
+                previewAmount,
+            ),
+        );
         setShowSettings(false);
     };
     /**
@@ -760,6 +775,48 @@ export const FurnitureChestView: FC = () => {
                                     </option>
                                 ))}
                             </select>
+                            {isFurni && (
+                                <>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            className="form-check-input"
+                                            checked={previewMode > 0}
+                                            onChange={(e) => setPreviewMode(e.target.checked ? 1 : 0)}
+                                        />
+                                        <Text small>
+                                            {localizeWithFallback(
+                                                'wiredchests.settings.appearance.preview',
+                                                'Show what is inside on top of the chest',
+                                            )}
+                                        </Text>
+                                    </label>
+                                    <Text small style={{ opacity: 0.6 }}>
+                                        {localizeWithFallback('wiredchests.settings.appearance.preview.note', '')}
+                                    </Text>
+                                    {previewMode > 0 && (
+                                        <Flex alignItems="center" gap={2}>
+                                            <Text small>
+                                                {localizeWithFallback(
+                                                    'wiredchests.settings.appearance.preview_amount',
+                                                    'How many',
+                                                )}
+                                            </Text>
+                                            <select
+                                                className="form-select form-select-sm"
+                                                value={previewAmount}
+                                                onChange={(e) => setPreviewAmount(parseInt(e.target.value, 10))}
+                                            >
+                                                {[1, 2, 3, 4].map((n) => (
+                                                    <option key={n} value={n}>
+                                                        {n}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </Flex>
+                                    )}
+                                </>
+                            )}
                             <Text bold>{localizeWithFallback('wiredchests.settings.wired', 'Wired')}</Text>
                             {wiredEnabled ? (
                                 <Text small>
