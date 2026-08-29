@@ -1,4 +1,5 @@
 import {
+    ChestCloseComposer,
     ChestDataEvent,
     ChestDepositComposer,
     ChestDepositInventoryItemComposer,
@@ -296,6 +297,9 @@ export const FurnitureChestView: FC = () => {
     const selectedFurniQty = selectedGroup?.quantity ?? 0;
 
     const close = () => {
+        // A chest set to open while someone looks inside stays open until we say we stopped.
+        if (itemId > 0) SendMessageComposer(new ChestCloseComposer(itemId));
+
         setItemId(-1);
         setStoredFurniItems([]);
         setLegacyFurniGroups([]);
