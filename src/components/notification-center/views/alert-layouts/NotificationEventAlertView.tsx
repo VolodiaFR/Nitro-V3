@@ -1,4 +1,4 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { LocalizeText, NotificationAlertItem, OpenUrl } from '../../../../api';
 import { Button, LayoutAvatarImageView, LayoutNotificationAlertView, LayoutNotificationAlertViewProps } from '../../../../common';
 
@@ -32,6 +32,7 @@ export const getEventDetails = (item: NotificationAlertItem) => {
 
 export const NotificationEventAlertView: FC<NotificationEventAlertViewProps> = (props) => {
     const { item = null, title = (props.item && props.item.title) || '', onClose = null, classNames = [], ...rest } = props;
+    const [imageFailed, setImageFailed] = useState<boolean>(false);
 
     const details = useMemo(() => getEventDetails(item), [item]);
 
@@ -41,7 +42,8 @@ export const NotificationEventAlertView: FC<NotificationEventAlertViewProps> = (
         onClose();
     };
 
-    const subtitleKey = details.closed ? 'notification.hotel.event.ended.hostedBy' : 'notification.hotel.event.hostedBy';
+    const prefix = details.closed ? 'notification.hotel.event.ended' : 'notification.hotel.event';
+    const showImage = item.imageUrl && item.imageUrl.length > 0 && !imageFailed;
 
     return (
         <LayoutNotificationAlertView
@@ -51,23 +53,35 @@ export const NotificationEventAlertView: FC<NotificationEventAlertViewProps> = (
             {...rest}
             type="hotel-event"
         >
-            <div className="hotel-event-hero">
-                <div className="hotel-event-hero-lights" />
-                <div className="hotel-event-room">{details.roomName}</div>
-                {(details.username.length > 0 || details.time.length > 0) && (
-                    <div className="hotel-event-hosted-by">
-                        {LocalizeText(subtitleKey, ['USERNAME', 'TIME'], [details.username, details.time])}
-                    </div>
-                )}
-            </div>
             <div className="hotel-event-body">
-                {details.look.length > 0 && (
-                    <div className="hotel-event-avatar-wrap shrink-0">
-                        <LayoutAvatarImageView figure={details.look} direction={2} classNames={['hotel-event-avatar']} />
-                        <div className="hotel-event-avatar-shadow" />
+                <div className="hotel-event-figure shrink-0">
+                    {showImage && (
+                        <img alt={details.roomName} className="hotel-event-promo" src={item.imageUrl} onError={() => setImageFailed(true)} />
+                    )}
+                    {/* No promo image configured: the host the server sent stands in for it. */}
+                    {!showImage && details.look.length > 0 && (
+                        <>
+                            <LayoutAvatarImageView figure={details.look} direction={2} classNames={['hotel-event-avatar']} />
+                            <div className="hotel-event-avatar-shadow" />
+                        </>
+                    )}
+                </div>
+                <div className="hotel-event-details">
+                    <div className="hotel-event-headline">{LocalizeText(prefix + '.headline')}</div>
+                    <div className="hotel-event-intro">
+                        <span className="hotel-event-host">{details.username}</span>{' '}
+                        {LocalizeText(prefix + '.intro')}
                     </div>
-                )}
-                <div className="hotel-event-message">{details.message}</div>
+                    {details.roomName.length > 0 && (
+                        <div className="hotel-event-room">
+                            <span className="hotel-event-room-label">{LocalizeText('notification.hotel.event.roomLabel')}</span>{' '}
+                            <span className="hotel-event-room-name">{details.roomName}</span>
+                        </div>
+                    )}
+                    {details.message.length > 0 && <div className="hotel-event-message">{details.message}</div>}
+                    {details.username.length > 0 && <div className="hotel-event-signature">- {details.username}</div>}
+                    <div className="hotel-event-moderated">{LocalizeText('notification.hotel.event.moderated')}</div>
+                </div>
             </div>
             <div className="hotel-event-actions">
                 {item.clickUrl && item.clickUrl.length > 0 ? (
