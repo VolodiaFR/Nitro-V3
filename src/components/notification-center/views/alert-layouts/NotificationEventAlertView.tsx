@@ -75,12 +75,20 @@ export const NotificationEventAlertView: FC<NotificationEventAlertViewProps> = (
                     {details.roomName.length > 0 && (
                         <div className="hotel-event-room">
                             <span className="hotel-event-room-label">{LocalizeText('notification.hotel.event.roomLabel')}</span>{' '}
-                            <span className="hotel-event-room-name">{details.roomName}</span>
+                            <span className="hotel-event-room-name" title={details.roomName}>
+                                {details.roomName}
+                            </span>
                         </div>
                     )}
                     {details.message.length > 0 && <div className="hotel-event-message">{details.message}</div>}
-                    {details.username.length > 0 && <div className="hotel-event-signature">- {details.username}</div>}
-                    <div className="hotel-event-moderated">{LocalizeText('notification.hotel.event.moderated')}</div>
+                    <div className="hotel-event-footer">
+                        {/* The host is already named in the line above, so the signature
+                            carries the time instead of repeating it. */}
+                        {details.time.length > 0 && (
+                            <span className="hotel-event-at">{LocalizeText(prefix + '.at', ['TIME'], [details.time])}</span>
+                        )}
+                        <span className="hotel-event-moderated">{LocalizeText('notification.hotel.event.moderated')}</span>
+                    </div>
                 </div>
             </div>
             <div className="hotel-event-actions">

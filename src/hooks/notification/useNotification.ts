@@ -73,6 +73,19 @@ export const getAutoCloseSeconds = (options: Map<string, string>): number => {
     return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
 };
 
+/**
+ * Alert types that only ever show one window: a second announcement replaces the
+ * first instead of stacking on top of it. A closing announcement replaces the
+ * opening one it refers to, which is why they share the group.
+ */
+const SINGLE_ALERT_GROUPS: string[][] = [['hotel.event', 'hotel.event.ended']];
+
+export const prependSingleAlert = (alerts: NotificationAlertItem[], item: NotificationAlertItem): NotificationAlertItem[] => {
+    const group = SINGLE_ALERT_GROUPS.find((types) => types.includes(item.alertType));
+
+    return [item, ...(group ? alerts.filter((value) => !group.includes(value.alertType)) : alerts)];
+};
+
 export const prependSingleBubble = (alerts: NotificationBubbleItem[], item: NotificationBubbleItem): NotificationBubbleItem[] => {
     const shouldReplace = item.notificationType === NotificationBubbleType.CLUBGIFT || item.notificationType === NotificationBubbleType.SOUNDBOARD;
 
@@ -142,7 +155,7 @@ const useNotificationStore = () => {
                 data
             );
 
-            setAlerts((prevValue) => [alertItem, ...prevValue]);
+            setAlerts((prevValue) => prependSingleAlert(prevValue, alertItem));
         },
         []
     );
