@@ -9,7 +9,7 @@ export const GetAlertLayout = (item: NotificationAlertItem, onClose: () => void)
     if (!item) return null;
 
     const key = item.id;
-    const props = { item, onClose };
+    const props = { item, onClose, autoCloseSeconds: item.timeoutSeconds };
 
     switch (item.alertType) {
         case NotificationAlertType.NITRO:

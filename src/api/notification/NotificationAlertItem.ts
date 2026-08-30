@@ -10,6 +10,7 @@ export class NotificationAlertItem {
     private _clickUrlText: string;
     private _title: string;
     private _imageUrl: string;
+    private _timeoutSeconds: number;
 
     constructor(
         messages: string[],
@@ -17,7 +18,8 @@ export class NotificationAlertItem {
         clickUrl: string = null,
         clickUrlText: string = null,
         title: string = null,
-        imageUrl: string = null
+        imageUrl: string = null,
+        timeoutSeconds: number = null
     ) {
         NotificationAlertItem.ITEM_ID += 1;
 
@@ -28,6 +30,7 @@ export class NotificationAlertItem {
         this._clickUrlText = clickUrlText;
         this._title = title;
         this._imageUrl = imageUrl;
+        this._timeoutSeconds = timeoutSeconds;
     }
 
     public get id(): number {
@@ -52,6 +55,13 @@ export class NotificationAlertItem {
 
     public get clickUrlText(): string {
         return this._clickUrlText;
+    }
+
+    /**
+     * Seconds after which the alert closes itself, or null when it waits for the user.
+     */
+    public get timeoutSeconds(): number {
+        return this._timeoutSeconds;
     }
 
     public get title(): string {

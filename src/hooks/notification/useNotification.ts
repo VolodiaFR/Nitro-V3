@@ -62,6 +62,17 @@ const getTimeZeroPadded = (time: number) => {
 let modDisclaimerTimeout: ReturnType<typeof setTimeout> = null;
 const recentBadgeNotifications = new Set<string>();
 
+/**
+ * Reads the "timeout" the server (or ui-config) sent with a notification: the number
+ * of seconds after which the alert closes on its own. Anything that is not a positive
+ * number of seconds leaves the alert open until the user dismisses it.
+ */
+export const getAutoCloseSeconds = (options: Map<string, string>): number => {
+    const seconds = parseInt(options.get('timeout'), 10);
+
+    return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+};
+
 export const prependSingleBubble = (alerts: NotificationBubbleItem[], item: NotificationBubbleItem): NotificationBubbleItem[] => {
     const shouldReplace = item.notificationType === NotificationBubbleType.CLUBGIFT || item.notificationType === NotificationBubbleType.SOUNDBOARD;
 
@@ -106,12 +117,20 @@ const useNotificationStore = () => {
     };
 
     const simpleAlert = useCallback(
-        (message: string, type: string = null, clickUrl: string = null, clickUrlText: string = null, title: string = null, imageUrl: string = null) => {
+        (
+            message: string,
+            type: string = null,
+            clickUrl: string = null,
+            clickUrlText: string = null,
+            title: string = null,
+            imageUrl: string = null,
+            timeoutSeconds: number = null
+        ) => {
             if (!title || !title.length) title = LocalizeText('notifications.broadcast.title');
 
             if (!type || !type.length) type = NotificationAlertType.DEFAULT;
 
-            const alertItem = new NotificationAlertItem([cleanText(message)], type, clickUrl, clickUrlText, title, imageUrl);
+            const alertItem = new NotificationAlertItem([cleanText(message)], type, clickUrl, clickUrlText, title, imageUrl, timeoutSeconds);
 
             setAlerts((prevValue) => [alertItem, ...prevValue]);
         },
@@ -151,11 +170,12 @@ const useNotificationStore = () => {
         const linkTitle = getNotificationPart(options, type, 'linkTitle', false);
         const linkUrl = getNotificationPart(options, type, 'linkUrl', false);
         const image = getNotificationImageUrl(options, type);
+        const autoCloseSeconds = getAutoCloseSeconds(options);
 
         if (options.get('display') === 'BUBBLE') {
             showSingleBubble(LocalizeText(message), NotificationBubbleType.INFO, image, linkUrl);
         } else {
-            simpleAlert(LocalizeText(message), type, linkUrl, linkTitle, title, image);
+            simpleAlert(LocalizeText(message), type, linkUrl, linkTitle, title, image, autoCloseSeconds);
         }
 
         if (options.get('sound')) PlaySound(options.get('sound'));
