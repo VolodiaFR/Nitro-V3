@@ -19,6 +19,7 @@ import {
     useInventoryFurni,
     useInventoryPrefixes,
     useInventoryTrade,
+    useWiredTrading,
     useInventoryUnseenTracker,
     useMessageEvent,
     useNitroEvent
@@ -28,6 +29,7 @@ import { InventoryBotView } from './views/bot/InventoryBotView';
 import { InventoryFurnitureDeleteView } from './views/furniture/InventoryFurnitureDeleteView';
 import { InventoryFurnitureView } from './views/furniture/InventoryFurnitureView';
 import { InventoryTradeView } from './views/furniture/InventoryTradeView';
+import { InventoryWiredTradeView } from './views/furniture/InventoryWiredTradeView';
 import { FILTER_EVERYTHING, FILTER_FLOOR, FILTER_WALL, InventoryCategoryFilterView } from './views/InventoryCategoryFilterView';
 import { InventoryPetView } from './views/pet/InventoryPetView';
 import { InventoryPrefixView } from './views/prefix/InventoryPrefixView';
@@ -57,6 +59,7 @@ export const InventoryView: FC<{}> = (props) => {
     const [searchValue, setSearchValue] = useState('');
     const [filterType, setFilterType] = useState<string>(FILTER_EVERYTHING);
     const { isTrading = false, stopTrading = null } = useInventoryTrade();
+    const { isOpen: isWiredTrading = false } = useWiredTrading();
     const { getCount = null } = useInventoryUnseenTracker();
     const { groupItems = [] } = useInventoryFurni();
     const { badgeCodes = [] } = useInventoryBadges();
@@ -176,8 +179,10 @@ export const InventoryView: FC<{}> = (props) => {
     }, []);
 
     useEffect(() => {
-        if (!isVisible && isTrading) setIsVisible(true);
-    }, [isVisible, isTrading]);
+        // A wired contract opens its negotiation without anyone asking for the inventory, so the
+        // window has to show itself the same way a trade does.
+        if (!isVisible && (isTrading || isWiredTrading)) setIsVisible(true);
+    }, [isVisible, isTrading, isWiredTrading]);
 
     if (!isVisible) return null;
 
@@ -190,7 +195,7 @@ export const InventoryView: FC<{}> = (props) => {
                 uniqueKey="inventory"
             >
                 <NitroCardHeaderView headerText={LocalizeText('inventory.title')} onCloseClick={onClose} />
-                {!isTrading && (
+                {!isTrading && !isWiredTrading && (
                     <>
                         <NitroCardTabsView classNames={['nitro-inventory-tabs-shell']}>
                             {TABS.map((name, index) => {
@@ -231,6 +236,11 @@ export const InventoryView: FC<{}> = (props) => {
                 {isTrading && (
                     <div className="nitro-inventory-body flex flex-col overflow-hidden p-2 h-full">
                         <InventoryTradeView cancelTrade={onClose} />
+                    </div>
+                )}
+                {!isTrading && isWiredTrading && (
+                    <div className="nitro-inventory-body flex flex-col overflow-hidden p-2 h-full">
+                        <InventoryWiredTradeView />
                     </div>
                 )}
             </NitroCardView>

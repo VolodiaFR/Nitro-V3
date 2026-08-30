@@ -2255,6 +2255,67 @@ body {
         border-bottom: 1px solid #b0b0b0;
     }
 
+    /* Locking sits above the capacity row, the way the official window stacks them. */
+    .nitro-chest__locking {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 12px;
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #b0b0b0;
+    }
+
+    .nitro-chest__option {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .nitro-chest__option input:disabled {
+        cursor: default;
+    }
+
+    .nitro-chest__info-button {
+        width: 16px;
+        height: 16px;
+        margin-left: auto;
+        border: 1px solid #7a4a1c;
+        border-radius: 50%;
+        background: #f7e6cf;
+        color: #7a4a1c;
+        font-size: 10px;
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    .nitro-chest__capacity-input {
+        width: 84px;
+        height: 22px;
+        padding: 0 6px;
+        font-size: 11px;
+    }
+
+    .nitro-chest__rules {
+        margin: 0;
+        padding-left: 18px;
+        list-style: disc;
+    }
+
+    .nitro-chest__upgrade-preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        flex: 0 0 64px;
+    }
+
+    .nitro-chest__upgrade-error {
+        color: #b03030;
+    }
+
     .nitro-chest__btn--footer {
         min-width: 73px;
         height: 30px;
