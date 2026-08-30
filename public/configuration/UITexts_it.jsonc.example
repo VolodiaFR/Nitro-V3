@@ -72,6 +72,8 @@
     "notification.hotel.event.title": "Evento nell'hotel!",
     "notification.hotel.event.message": "%USERNAME% ha aperto un evento in %ROOMNAME% (%TIME%):\r\r%MESSAGE%",
     "notification.hotel.event.linkTitle": "Vai alla stanza",
+    "notification.hotel.event.hostedBy": "aperto da %USERNAME% alle %TIME%",
+    "notification.hotel.event.ended.hostedBy": "chiuso da %USERNAME% alle %TIME%",
     "notification.hotel.event.ended.title": "Evento concluso",
     "notification.hotel.event.ended.message": "L'evento in %ROOMNAME% e' finito. Grazie a tutti quelli che sono passati!",
 

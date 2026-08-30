@@ -124,13 +124,23 @@ const useNotificationStore = () => {
             clickUrlText: string = null,
             title: string = null,
             imageUrl: string = null,
-            timeoutSeconds: number = null
+            timeoutSeconds: number = null,
+            data: Map<string, string> = null
         ) => {
             if (!title || !title.length) title = LocalizeText('notifications.broadcast.title');
 
             if (!type || !type.length) type = NotificationAlertType.DEFAULT;
 
-            const alertItem = new NotificationAlertItem([cleanText(message)], type, clickUrl, clickUrlText, title, imageUrl, timeoutSeconds);
+            const alertItem = new NotificationAlertItem(
+                [cleanText(message)],
+                type,
+                clickUrl,
+                clickUrlText,
+                title,
+                imageUrl,
+                timeoutSeconds,
+                data
+            );
 
             setAlerts((prevValue) => [alertItem, ...prevValue]);
         },
@@ -175,7 +185,7 @@ const useNotificationStore = () => {
         if (options.get('display') === 'BUBBLE') {
             showSingleBubble(LocalizeText(message), NotificationBubbleType.INFO, image, linkUrl);
         } else {
-            simpleAlert(LocalizeText(message), type, linkUrl, linkTitle, title, image, autoCloseSeconds);
+            simpleAlert(LocalizeText(message), type, linkUrl, linkTitle, title, image, autoCloseSeconds, options);
         }
 
         if (options.get('sound')) PlaySound(options.get('sound'));

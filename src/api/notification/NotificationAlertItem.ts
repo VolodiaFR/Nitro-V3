@@ -11,6 +11,7 @@ export class NotificationAlertItem {
     private _title: string;
     private _imageUrl: string;
     private _timeoutSeconds: number;
+    private _data: Map<string, string>;
 
     constructor(
         messages: string[],
@@ -19,7 +20,8 @@ export class NotificationAlertItem {
         clickUrlText: string = null,
         title: string = null,
         imageUrl: string = null,
-        timeoutSeconds: number = null
+        timeoutSeconds: number = null,
+        data: Map<string, string> = null
     ) {
         NotificationAlertItem.ITEM_ID += 1;
 
@@ -31,6 +33,7 @@ export class NotificationAlertItem {
         this._title = title;
         this._imageUrl = imageUrl;
         this._timeoutSeconds = timeoutSeconds;
+        this._data = data;
     }
 
     public get id(): number {
@@ -55,6 +58,14 @@ export class NotificationAlertItem {
 
     public get clickUrlText(): string {
         return this._clickUrlText;
+    }
+
+    /**
+     * The placeholders the notification was sent with, for layouts that lay them
+     * out themselves instead of reading the one rendered paragraph.
+     */
+    public get data(): Map<string, string> {
+        return this._data;
     }
 
     /**

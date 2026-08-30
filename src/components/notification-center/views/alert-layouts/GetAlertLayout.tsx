@@ -2,6 +2,7 @@ import { NotificationAlertItem, NotificationAlertType } from '../../../../api';
 import { NitroInfoAlertView } from './NitroInfoAlertView';
 import { NitroSystemAlertView } from './NitroSystemAlertView';
 import { NotificationDefaultAlertView } from './NotificationDefaultAlertView';
+import { EVENT_ALERT_TYPES, NotificationEventAlertView } from './NotificationEventAlertView';
 import { isFurniDataAlert, NotificationFurniDataAlertView } from './NotificationFurniDataAlertView';
 import { NotificationSeachAlertView } from './NotificationSearchAlertView';
 
@@ -10,6 +11,8 @@ export const GetAlertLayout = (item: NotificationAlertItem, onClose: () => void)
 
     const key = item.id;
     const props = { item, onClose, autoCloseSeconds: item.timeoutSeconds };
+
+    if (EVENT_ALERT_TYPES.includes(item.alertType)) return <NotificationEventAlertView key={key} {...props} />;
 
     switch (item.alertType) {
         case NotificationAlertType.NITRO:
