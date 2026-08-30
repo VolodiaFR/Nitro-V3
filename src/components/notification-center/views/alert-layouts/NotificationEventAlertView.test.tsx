@@ -31,6 +31,22 @@ describe('Hotel event card details', () => {
 
     it('falls back to the rendered paragraph when no placeholders came through', () => {
         expect(getEventDetails(eventItem(null)).message).toBe('fallback paragraph');
+        expect(getEventDetails(eventItem(new Map())).message).toBe('fallback paragraph');
+    });
+
+    it('leaves the message empty when the event was announced without one', () => {
+        const details = getEventDetails(
+            eventItem(
+                new Map([
+                    ['ROOMNAME', 'Piazza'],
+                    ['USERNAME', 'tester'],
+                    ['MESSAGE', '']
+                ])
+            )
+        );
+
+        expect(details.message).toBe('');
+        expect(details.roomName).toBe('Piazza');
     });
 
     it('knows a closing announcement from an opening one', () => {

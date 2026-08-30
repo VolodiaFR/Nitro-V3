@@ -15,7 +15,11 @@ export const EVENT_ALERT_TYPES = ['hotel.event', 'hotel.event.ended'];
 export const getEventDetails = (item: NotificationAlertItem) => {
     const data = item.data;
     const closed = item.alertType === 'hotel.event.ended';
-    const message = (data && data.get('MESSAGE')) || '';
+    // The message is optional, so an empty one is a real answer and not a reason to
+    // fall back. Only a notification that carries no placeholders at all - an older
+    // emulator, or a replayed one - falls back to the paragraph the localised text
+    // produced.
+    const hasPlaceholders = !!(data && data.size);
 
     return {
         closed,
@@ -23,10 +27,7 @@ export const getEventDetails = (item: NotificationAlertItem) => {
         username: (data && data.get('USERNAME')) || '',
         roomName: (data && data.get('ROOMNAME')) || '',
         time: (data && data.get('TIME')) || '',
-        // The card owns the layout, so it shows the message on its own. Without the
-        // placeholders - an older emulator, or a replayed notification - it falls
-        // back to the paragraph the localised text produced.
-        message: message.length ? message : item.messages.join(' ')
+        message: hasPlaceholders ? data.get('MESSAGE') || '' : item.messages.join(' ')
     };
 };
 
