@@ -26,6 +26,10 @@ export const GroupBadgeCreatorView: FC<GroupBadgeCreatorViewProps> = (props) => 
         if (property === 'key') setSelectedIndex(-1);
     };
 
+    // Every symbol slot offers the full symbol list. The picker briefly filtered
+    // symbols per slot on their _part1/_part2 name suffixes, but those suffixes are
+    // render layers of a single symbol, not categories — the filter just hid most
+    // symbols from most slots.
     const getAvailableSymbols = () => groupCustomize?.badgeSymbols || [];
 
     if (!groupCustomize || !badgeParts || !badgeParts.length) return null;
@@ -78,7 +82,7 @@ export const GroupBadgeCreatorView: FC<GroupBadgeCreatorViewProps> = (props) => 
                     );
                 })}
             {selectedIndex >= 0 && (
-                <Grid columnCount={5} gap={1}>
+                <Grid className="nitro-group-badge-part-picker" columnCount={5} fullHeight={false} gap={1}>
                     {badgeParts[selectedIndex].type === GroupBadgePart.SYMBOL && (
                         <Column center pointer className="bg-muted rounded p-1" onClick={(event) => setPartProperty(selectedIndex, 'key', 0)}>
                             <Flex center className="relative w-[40px] h-[40px] bg-no-repeat bg-center group-badge">
