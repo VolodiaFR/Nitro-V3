@@ -4846,3 +4846,57 @@
     border-color: #b4514b;
     background: #ffe9e6;
 }
+
+/* Bundle layout (single_bundle / room_bundle): main hero item + framed "What's Included" container */
+.nitro-catalog-bundle-main-item {
+    display: flex;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: 52px;
+    height: 52px;
+    padding: 4px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: #e4e7df;
+}
+
+.nitro-catalog-bundle-main-item > .nitro-catalog-grid-offer-icon {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+.nitro-catalog-bundle-frame {
+    box-sizing: border-box;
+    padding: 8px;
+    border: 1px solid #8a8882;
+    border-radius: 4px;
+    background: #d9d9d5;
+    box-shadow: inset 1px 1px #ffffff, inset -1px -1px #b0aea8;
+}
+
+/* Show at most 5 rows of items; scroll when the bundle holds more. Rows are pinned
+   to the tile height and top-aligned so a partly-filled grid doesn't stretch. */
+.nitro-catalog-bundle-frame .nitro-catalog-layout-bundle-grid {
+    height: calc(var(--nitro-grid-column-min-height, 40px) * 5 + 2rem);
+    grid-template-rows: none !important;
+    grid-auto-rows: var(--nitro-grid-column-min-height, 40px);
+    align-content: start;
+}
+
+/* Gift + Buy share one line at the bottom of the bundle's left column. */
+.nitro-catalog-bundle-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+
+.nitro-catalog-bundle-actions > .nitro-catalog-standard-button {
+    flex: 1 1 0;
+    width: auto !important;
+    min-width: 0 !important;
+}

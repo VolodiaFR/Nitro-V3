@@ -1,6 +1,6 @@
 import { MouseEventType } from '@nitrots/nitro-renderer';
 import { FC, KeyboardEvent, MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { CatalogType, GetConfigurationValue, IPurchasableOffer, Offer, ProductTypeEnum } from '../../../../../api';
+import { CatalogType, GetConfigurationValue, GetProductIconUrl, IPurchasableOffer, Offer, ProductTypeEnum } from '../../../../../api';
 import { LayoutAvatarImageView, LayoutGridItem, LayoutGridItemProps } from '../../../../../common';
 import { isAirBaseCatalogOffer } from './catalogAirGrid.helpers';
 
@@ -56,21 +56,8 @@ export const CatalogOfferTileView: FC<CatalogOfferTileViewProps> = (props) => {
 
     const resolvedIconUrl = useMemo(() => {
         if (!offer || offer.pricingModel === Offer.PRICING_MODEL_BUNDLE) return null;
-        const product = offer.product;
-        if (!product) return null;
-        if (product.productType === ProductTypeEnum.FLOOR || product.productType === ProductTypeEnum.WALL) {
-            const className = product.furnitureData?.className;
-            if (className?.length) {
-                let param = '';
-                if (product.productType === ProductTypeEnum.WALL && product.extraParam?.length) param = `_${product.extraParam}`;
-                else if (product.productType === ProductTypeEnum.FLOOR && product.furnitureData?.hasIndexedColor && product.furnitureData.colorIndex > 0) {
-                    param = `_${product.furnitureData.colorIndex}`;
-                }
-                const configuredIconUrl = GetConfigurationValue<string>('furni.asset.icon.url', '');
-                if (configuredIconUrl?.length) return configuredIconUrl.replace('%libname%', className).replace('%param%', param);
-            }
-        }
-        return typeof product.getIconUrl === 'function' ? (product.getIconUrl(offer) ?? null) : null;
+
+        return GetProductIconUrl(offer.product, offer);
     }, [offer]);
 
     const prices = useMemo(() => {
