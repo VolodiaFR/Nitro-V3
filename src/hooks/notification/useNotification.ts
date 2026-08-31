@@ -2,6 +2,7 @@ import {
     AchievementNotificationMessageEvent,
     ActivityPointNotificationMessageEvent,
     BadgeReceivedEvent,
+    ChestNotificationEvent,
     ClubGiftNotificationEvent,
     ClubGiftSelectedEvent,
     ConnectionErrorEvent,
@@ -61,6 +62,30 @@ const getTimeZeroPadded = (time: number) => {
 let modDisclaimerTimeout: ReturnType<typeof setTimeout> = null;
 const recentBadgeNotifications = new Set<string>();
 
+/**
+ * Reads the "timeout" the server (or ui-config) sent with a notification: the number
+ * of seconds after which the alert closes on its own. Anything that is not a positive
+ * number of seconds leaves the alert open until the user dismisses it.
+ */
+export const getAutoCloseSeconds = (options: Map<string, string>): number => {
+    const seconds = parseInt(options.get('timeout'), 10);
+
+    return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+};
+
+/**
+ * Alert types that only ever show one window: a second announcement replaces the
+ * first instead of stacking on top of it. A closing announcement replaces the
+ * opening one it refers to, which is why they share the group.
+ */
+const SINGLE_ALERT_GROUPS: string[][] = [['hotel.event', 'hotel.event.ended']];
+
+export const prependSingleAlert = (alerts: NotificationAlertItem[], item: NotificationAlertItem): NotificationAlertItem[] => {
+    const group = SINGLE_ALERT_GROUPS.find((types) => types.includes(item.alertType));
+
+    return [item, ...(group ? alerts.filter((value) => !group.includes(value.alertType)) : alerts)];
+};
+
 export const prependSingleBubble = (alerts: NotificationBubbleItem[], item: NotificationBubbleItem): NotificationBubbleItem[] => {
     const shouldReplace = item.notificationType === NotificationBubbleType.CLUBGIFT || item.notificationType === NotificationBubbleType.SOUNDBOARD;
 
@@ -105,14 +130,32 @@ const useNotificationStore = () => {
     };
 
     const simpleAlert = useCallback(
-        (message: string, type: string = null, clickUrl: string = null, clickUrlText: string = null, title: string = null, imageUrl: string = null) => {
+        (
+            message: string,
+            type: string = null,
+            clickUrl: string = null,
+            clickUrlText: string = null,
+            title: string = null,
+            imageUrl: string = null,
+            timeoutSeconds: number = null,
+            data: Map<string, string> = null
+        ) => {
             if (!title || !title.length) title = LocalizeText('notifications.broadcast.title');
 
             if (!type || !type.length) type = NotificationAlertType.DEFAULT;
 
-            const alertItem = new NotificationAlertItem([cleanText(message)], type, clickUrl, clickUrlText, title, imageUrl);
+            const alertItem = new NotificationAlertItem(
+                [cleanText(message)],
+                type,
+                clickUrl,
+                clickUrlText,
+                title,
+                imageUrl,
+                timeoutSeconds,
+                data
+            );
 
-            setAlerts((prevValue) => [alertItem, ...prevValue]);
+            setAlerts((prevValue) => prependSingleAlert(prevValue, alertItem));
         },
         []
     );
@@ -150,11 +193,12 @@ const useNotificationStore = () => {
         const linkTitle = getNotificationPart(options, type, 'linkTitle', false);
         const linkUrl = getNotificationPart(options, type, 'linkUrl', false);
         const image = getNotificationImageUrl(options, type);
+        const autoCloseSeconds = getAutoCloseSeconds(options);
 
         if (options.get('display') === 'BUBBLE') {
             showSingleBubble(LocalizeText(message), NotificationBubbleType.INFO, image, linkUrl);
         } else {
-            simpleAlert(LocalizeText(message), type, linkUrl, linkTitle, title, image);
+            simpleAlert(LocalizeText(message), type, linkUrl, linkTitle, title, image, autoCloseSeconds, options);
         }
 
         if (options.get('sound')) PlaySound(options.get('sound'));
@@ -307,6 +351,26 @@ const useNotificationStore = () => {
         const badgeImage = GetSessionDataManager().getBadgeUrl(parser.data.badgeCode);
 
         showSingleBubble(badgeName, NotificationBubbleType.BADGE_RECEIVED, badgeImage, parser.data.badgeCode);
+    });
+
+    useMessageEvent<ChestNotificationEvent>(ChestNotificationEvent, (event) => {
+        const parser = event.getParser();
+        const key = CHEST_NOTIFICATION_KEYS[parser.reason];
+
+        if (!key) return;
+
+        // A chest with no name of its own is still "your chest", so the message falls back rather
+        // than announcing an empty string.
+        const chestName = parser.chestName || LocalizeText('wiredchests.notification.unnamed');
+
+        showSingleBubble(
+            LocalizeText(
+                key,
+                ['chest', 'name', 'amount'],
+                [chestName, parser.actorName, String(parser.amount)],
+            ),
+            NotificationBubbleType.INFO,
+        );
     });
 
     useMessageEvent<BadgeReceivedEvent>(BadgeReceivedEvent, (event) => {
@@ -643,6 +707,15 @@ const useNotificationStore = () => {
         closeConfirm
     };
 };
+
+/** Reasons a chest tells its owner something, in the order the server numbers them. */
+const CHEST_NOTIFICATION_KEYS = [
+    'wiredchests.notification.full',
+    'wiredchests.notification.donation',
+    'wiredchests.notification.withdraw',
+    'wiredchests.notification.empty',
+    'wiredchests.notification.wired',
+];
 
 export const useNotificationState = () => {
     const { alerts, bubbleAlerts, confirms } = useSharedHook(useNotificationStore);

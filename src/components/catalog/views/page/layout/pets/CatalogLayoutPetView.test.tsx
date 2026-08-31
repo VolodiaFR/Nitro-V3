@@ -1,7 +1,7 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SendMessageComposer } from '../../../../../../api';
-import { useCatalogData, useCatalogUiState, useMessageEvent, useSellablePetPalette, useUiEvent } from '../../../../../../hooks';
+import { useCatalogData, useCatalogUiState, useMessageEvent, useNitroEvent, useSellablePetPalette, useUiEvent } from '../../../../../../hooks';
 import { CatalogLayoutPetView } from './CatalogLayoutPetView';
 
 const composerTypes = vi.hoisted(() => {
@@ -24,14 +24,24 @@ const composerTypes = vi.hoisted(() => {
     return { ApproveNameMessageComposer, PurchaseFromCatalogComposer };
 });
 
+const petAssetState = vi.hoisted(() => ({ colorsReady: true, downloadAsset: vi.fn() }));
+
 vi.mock('@nitrots/nitro-renderer', () => ({
     ApproveNameMessageComposer: composerTypes.ApproveNameMessageComposer,
     ApproveNameMessageEvent: class {},
     ColorConverter: { int2rgb: (color: number) => `#${color.toString(16).padStart(6, '0')}` },
-    GetRoomEngine: () => ({
-        getPetColorResult: (_type: number, paletteId: number) => ({ primaryColor: paletteId, secondaryColor: paletteId + 1 })
+    GetRoomContentLoader: () => ({
+        downloadAsset: petAssetState.downloadAsset,
+        getPetNameForType: (type: number) => `pettype_${type}`
     }),
-    PurchaseFromCatalogComposer: composerTypes.PurchaseFromCatalogComposer
+    GetRoomEngine: () => ({
+        getPetColorResult: (_type: number, paletteId: number) =>
+            petAssetState.colorsReady ? { primaryColor: paletteId, secondaryColor: paletteId + 1 } : null
+    }),
+    PurchaseFromCatalogComposer: composerTypes.PurchaseFromCatalogComposer,
+    RoomContentLoadedEvent: class {
+        public static RCLE_SUCCESS = 'RCLE_SUCCESS';
+    }
 }));
 
 vi.mock('../../../../../../api', () => ({
@@ -66,6 +76,7 @@ vi.mock('../../../../../../hooks', () => ({
     useCatalogData: vi.fn(),
     useCatalogUiState: vi.fn(),
     useMessageEvent: vi.fn(),
+    useNitroEvent: vi.fn(),
     useSellablePetPalette: vi.fn(),
     useUiEvent: vi.fn()
 }));
@@ -100,6 +111,7 @@ const roomPreviewer = {
 };
 
 let approveNameHandler: ((event: { getParser: () => { result: number } }) => void) | null = null;
+let contentLoadedHandler: ((event: { contentType: string }) => void) | null = null;
 const uiEventHandlers = new Map<string, () => void>();
 
 afterEach(cleanup);
@@ -107,10 +119,15 @@ afterEach(cleanup);
 beforeEach(() => {
     vi.clearAllMocks();
     approveNameHandler = null;
+    contentLoadedHandler = null;
     uiEventHandlers.clear();
+    petAssetState.colorsReady = true;
     vi.mocked(useCatalogUiState).mockReturnValue({ setCurrentOffer: vi.fn(), setPurchaseOptions: vi.fn() } as any);
     vi.mocked(useMessageEvent).mockImplementation((_event: unknown, handler: any) => {
         approveNameHandler = handler;
+    });
+    vi.mocked(useNitroEvent).mockImplementation((_type: any, handler: any) => {
+        contentLoadedHandler = handler;
     });
     vi.mocked(useUiEvent).mockImplementation((event: any, handler: any) => {
         uiEventHandlers.set(event, handler);
@@ -134,6 +151,27 @@ describe('pet catalog layout', () => {
         expect(screen.getByTestId('pet-image')).toHaveAttribute('data-type-id', '8');
         expect(screen.getByTestId('pet-image')).toHaveAttribute('data-direction', '3');
         expect(screen.getByTestId('pet-image')).toHaveAttribute('data-scale', '2');
+    });
+
+    it('downloads the pet asset and shows the palettes once its colors arrive for new pets', async () => {
+        petAssetState.colorsReady = false;
+        const currentOffer = offer(8);
+        vi.mocked(useCatalogData).mockReturnValue({ currentOffer, roomPreviewer } as any);
+        vi.mocked(useSellablePetPalette).mockReturnValue({ data: { palettes: [palette(8, 10)] } } as any);
+
+        render(<CatalogLayoutPetView page={{ ...page, offers: [currentOffer] } as any} hideNavigation={() => undefined} />);
+
+        expect(screen.queryByTestId('pet-image')).not.toBeInTheDocument();
+        expect(petAssetState.downloadAsset).toHaveBeenCalledWith('pettype_8');
+
+        petAssetState.colorsReady = true;
+        act(() => contentLoadedHandler?.({ contentType: 'pettype_9' }));
+        expect(screen.queryByTestId('pet-image')).not.toBeInTheDocument();
+
+        act(() => contentLoadedHandler?.({ contentType: 'pettype_8' }));
+
+        expect(await screen.findByTestId('pet-image')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'catalog.pets.choose.color 1' })).toBeInTheDocument();
     });
 
     it('renders the legacy breed menu and colors with the fifteen-character name field', async () => {

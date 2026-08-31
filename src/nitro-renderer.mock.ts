@@ -300,6 +300,7 @@ export class UserPermissionsEvent extends MessageEvent {}
 export class AchievementNotificationMessageEvent extends MessageEvent {}
 export class ActivityPointNotificationMessageEvent extends MessageEvent {}
 export class BadgeReceivedEvent extends MessageEvent {}
+export class ChestNotificationEvent extends MessageEvent {}
 export class ClubGiftNotificationEvent extends MessageEvent {}
 export class ClubGiftSelectedEvent extends MessageEvent {}
 export class ConnectionErrorEvent extends MessageEvent {}

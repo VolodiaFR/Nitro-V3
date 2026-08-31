@@ -1169,3 +1169,15 @@
     appearance: none;
     margin: 0;
 }
+
+/* Badge editor part picker: cap the symbol/base grid at 8 rows and scroll the
+   rest. Each tile is 48px tall (40px badge + 2x4px padding) with 4px gaps, so
+   8 rows + 7 gaps = 412px. The rows template/height overrides undo the Grid
+   component's h-full + 1fr stretched rows so tiles keep their natural height. */
+.nitro-group-badge-part-picker {
+    max-height: 412px;
+    overflow-y: auto;
+    grid-template-rows: none !important;
+    grid-auto-rows: max-content;
+    align-content: start;
+}
