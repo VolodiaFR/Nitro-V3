@@ -1,6 +1,6 @@
 import { GetAvatarRenderManager, GetSessionDataManager, Vector3d } from '@nitrots/nitro-renderer';
 import { FC, useEffect } from 'react';
-import { FurniCategory, Offer, ProductTypeEnum } from '../../../../../api';
+import { FurniCategory, GetProductIconUrl, Offer, ProductTypeEnum } from '../../../../../api';
 import { AutoGrid, Column, LayoutGridItem, LayoutRoomPreviewerView } from '../../../../../common';
 import { useCatalogData, useCatalogUiState } from '../../../../../hooks';
 
@@ -150,7 +150,13 @@ export const CatalogViewProductWidgetView: FC<{ height?: number }> = (props) => 
                 <AutoGrid fullWidth className="nitro-catalog-layout-bundle-grid" columnCount={4}>
                     {currentOffer.products.length > 0 &&
                         currentOffer.products.map((product, index) => {
-                            return <LayoutGridItem key={index} itemCount={product.productCount} itemImage={product.getIconUrl(currentOffer)} />;
+                            const iconUrl = GetProductIconUrl(product, currentOffer);
+
+                            return (
+                                <LayoutGridItem key={index} itemCount={product.productCount}>
+                                    {iconUrl && <img alt="" className="nitro-catalog-grid-offer-icon" draggable={false} src={iconUrl} />}
+                                </LayoutGridItem>
+                            );
                         })}
                 </AutoGrid>
             </Column>
