@@ -2,8 +2,10 @@ import {
     ApproveNameMessageComposer,
     ApproveNameMessageEvent,
     ColorConverter,
+    GetRoomContentLoader,
     GetRoomEngine,
     PurchaseFromCatalogComposer,
+    RoomContentLoadedEvent,
     SellablePetPaletteData
 } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -11,7 +13,7 @@ import { FaCheck, FaTimes } from 'react-icons/fa';
 import { DispatchUiEvent, GetPetAvailableColors, GetPetIndexFromLocalization, LocalizeText, SendMessageComposer } from '../../../../../../api';
 import { LayoutPetImageView } from '../../../../../../common';
 import { CatalogPurchasedEvent, CatalogPurchaseFailureEvent } from '../../../../../../events';
-import { useCatalogData, useCatalogUiState, useMessageEvent, useSellablePetPalette, useUiEvent } from '../../../../../../hooks';
+import { useCatalogData, useCatalogUiState, useMessageEvent, useNitroEvent, useSellablePetPalette, useUiEvent } from '../../../../../../hooks';
 import { CatalogScrollAreaView } from '../../common/CatalogScrollAreaView';
 import { CatalogAddOnBadgeWidgetView } from '../../widgets/CatalogAddOnBadgeWidgetView';
 import { CatalogTotalPriceWidget } from '../../widgets/CatalogTotalPriceWidget';
@@ -47,21 +49,43 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
     const breed = (currentOffer?.product?.productData?.type as unknown as string) ?? '';
     const { data: petPalette = null } = useSellablePetPalette(breed);
     const legacyPet = isLegacyPetType(petIndex);
+    const [petAssetRefreshKey, setPetAssetRefreshKey] = useState(0);
+    const petTypeName = !legacyPet && petIndex >= 0 ? (GetRoomContentLoader().getPetNameForType(petIndex) ?? null) : null;
 
     const sellablePalettes = useMemo(
         () => filterPetPalettes(petIndex, petPalette?.palettes ?? []),
         [petIndex, petPalette]
     );
 
-    const newPetChoices = useMemo(
-        () =>
-            legacyPet
-                ? []
-                : buildNewPetPaletteChoices(petIndex, sellablePalettes, (type, paletteId) =>
-                      GetRoomEngine().getPetColorResult(type, paletteId)
-                  ),
-        [legacyPet, petIndex, sellablePalettes]
+    // New pets read their swatch colors from the pet's downloaded .nitro asset; until the
+    // pet has been seen in a room that asset isn't in memory and getPetColorResult returns
+    // null for every palette, leaving the page empty.
+    useEffect(() => {
+        if (!petTypeName) return;
+
+        GetRoomContentLoader().downloadAsset(petTypeName);
+    }, [petTypeName]);
+
+    useNitroEvent<RoomContentLoadedEvent>(
+        RoomContentLoadedEvent.RCLE_SUCCESS,
+        (event) => {
+            if (event.contentType !== petTypeName) return;
+
+            setPetAssetRefreshKey((key) => key + 1);
+        },
+        !!petTypeName
     );
+
+    const newPetChoices = useMemo(() => {
+        if (legacyPet) return [];
+
+        // petAssetRefreshKey re-runs this lookup once the pet asset finishes downloading
+        void petAssetRefreshKey;
+
+        return buildNewPetPaletteChoices(petIndex, sellablePalettes, (type, paletteId) =>
+            GetRoomEngine().getPetColorResult(type, paletteId)
+        );
+    }, [legacyPet, petAssetRefreshKey, petIndex, sellablePalettes]);
 
     const selectablePalettes = useMemo(
         () => (legacyPet ? sellablePalettes : newPetChoices.map((choice) => choice.palette)),
