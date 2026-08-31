@@ -1431,6 +1431,14 @@
             "title": ""
         },
         "notification.feed.enabled": false,
+        "notification.hotel.event": {
+            "image": "${image.library.url}web_promo_small/spromo_Games_Bundle.png",
+            "sound": "messenger_new_thread"
+        },
+        "notification.hotel.event.ended": {
+            "image": "${image.library.url}web_promo_small/spromo_Games_Bundle.png",
+            "sound": "messenger_new_thread"
+        },
         "notification.floorplan_editor.error": {
             "display": "POP_UP"
         },
