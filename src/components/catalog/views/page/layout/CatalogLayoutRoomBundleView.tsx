@@ -19,6 +19,7 @@ export const CatalogLayoutRoomBundleView: FC<CatalogLayoutProps> = (props) => {
         <>
             <CatalogFirstProductSelectorWidgetView />
             <Grid>
+                {/* Left: main item (1), price (3), teaser image (4) and purchase */}
                 <Column gap={1} overflow="hidden" size={5}>
                     <Flex alignItems="center" gap={2}>
                         {mainIconUrl && (
@@ -26,7 +27,9 @@ export const CatalogLayoutRoomBundleView: FC<CatalogLayoutProps> = (props) => {
                                 <img alt="" className="nitro-catalog-grid-offer-icon" draggable={false} src={mainIconUrl} />
                             </div>
                         )}
-                        <CatalogSimplePriceWidgetView />
+                        <div className="nitro-catalog-bundle-price">
+                            <CatalogSimplePriceWidgetView />
+                        </div>
                     </Flex>
                     {!!page.localization.getText(1) && (
                         <Text center small overflow="auto">
@@ -37,9 +40,6 @@ export const CatalogLayoutRoomBundleView: FC<CatalogLayoutProps> = (props) => {
                         {!!page.localization.getImage(1) && <img alt="" className="grow! min-h-0 w-full h-full object-contain object-center" src={page.localization.getImage(1)} />}
                         <CatalogAddOnBadgeWidgetView className="bg-muted rounded bottom-0 inset-s-0" position="absolute" />
                     </Column>
-                    <div className="nitro-catalog-bundle-actions">
-                        <CatalogPurchaseWidgetView />
-                    </div>
                 </Column>
                 {/* Right: "What's Included" header + framed container with all bundle items (2) */}
                 <Column gap={1} overflow="hidden" size={7}>
@@ -48,6 +48,10 @@ export const CatalogLayoutRoomBundleView: FC<CatalogLayoutProps> = (props) => {
                         <CatalogBundleGridWidgetView fullWidth className="nitro-catalog-layout-bundle-grid" columnCount={4} />
                     </Column>
                 </Column>
+                {/* Full-width purchase footer spanning both columns */}
+                <div className="col-span-12 nitro-catalog-bundle-actions">
+                    <CatalogPurchaseWidgetView />
+                </div>
             </Grid>
         </>
     );
