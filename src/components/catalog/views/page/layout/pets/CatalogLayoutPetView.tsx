@@ -24,6 +24,7 @@ import {
     filterPetPalettes,
     getPetNameMaxLength,
     isLegacyPetType,
+    PetPaletteLike,
 } from './petCatalog.helpers';
 
 interface PendingPetPurchase {
@@ -50,16 +51,25 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
     const { data: petPalette = null } = useSellablePetPalette(breed);
     const legacyPet = isLegacyPetType(petIndex);
     const [petAssetRefreshKey, setPetAssetRefreshKey] = useState(0);
-    const petTypeName = !legacyPet && petIndex >= 0 ? (GetRoomContentLoader().getPetNameForType(petIndex) ?? null) : null;
+    const petTypeName = petIndex >= 0 ? (GetRoomContentLoader().getPetNameForType(petIndex) ?? null) : null;
 
     const sellablePalettes = useMemo(
         () => filterPetPalettes(petIndex, petPalette?.palettes ?? []),
         [petIndex, petPalette]
     );
 
-    // New pets read their swatch colors from the pet's downloaded .nitro asset; until the
-    // pet has been seen in a room that asset isn't in memory and getPetColorResult returns
-    // null for every palette, leaving the page empty.
+    const legacyBreeds = useMemo(() => {
+        if (!legacyPet) return [];
+
+        void petAssetRefreshKey;
+
+        const existing = sellablePalettes.filter(
+            (palette) => !!GetRoomEngine().getPetColorResult(petIndex, palette.paletteId)
+        );
+
+        return existing.length ? existing : sellablePalettes;
+    }, [legacyPet, petAssetRefreshKey, petIndex, sellablePalettes]);
+
     useEffect(() => {
         if (!petTypeName) return;
 
@@ -79,17 +89,28 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
     const newPetChoices = useMemo(() => {
         if (legacyPet) return [];
 
-        // petAssetRefreshKey re-runs this lookup once the pet asset finishes downloading
         void petAssetRefreshKey;
 
-        return buildNewPetPaletteChoices(petIndex, sellablePalettes, (type, paletteId) =>
-            GetRoomEngine().getPetColorResult(type, paletteId)
-        );
+        let palettes: PetPaletteLike[] = sellablePalettes as unknown as PetPaletteLike[];
+
+        if (!palettes.length) {
+            const derived: PetPaletteLike[] = [];
+
+            for (let paletteId = 0; paletteId <= 128; paletteId++) {
+                if (GetRoomEngine().getPetColorResult(petIndex, paletteId)) {
+                    derived.push({ breedId: paletteId, paletteId, rare: false, sellable: true, type: petIndex });
+                }
+            }
+
+            palettes = derived;
+        }
+
+        return buildNewPetPaletteChoices(petIndex, palettes, (type, paletteId) => GetRoomEngine().getPetColorResult(type, paletteId));
     }, [legacyPet, petAssetRefreshKey, petIndex, sellablePalettes]);
 
     const selectablePalettes = useMemo(
-        () => (legacyPet ? sellablePalettes : newPetChoices.map((choice) => choice.palette)),
-        [legacyPet, newPetChoices, sellablePalettes]
+        () => (legacyPet ? legacyBreeds : newPetChoices.map((choice) => choice.palette)),
+        [legacyPet, legacyBreeds, newPetChoices]
     );
 
     const legacyColors = useMemo(
@@ -256,7 +277,7 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
                                 ))}
                             </CatalogScrollAreaView>
                         </div>
-                        {sellablePalettes.length > 1 && (
+                        {selectablePalettes.length > 1 && (
                             <label className="nitro-catalog-pet-breed-selector">
                                 <span>{LocalizeText('catalog.pets.choose.breed')}</span>
                                 <select
@@ -264,7 +285,7 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
                                     disabled={controlsDisabled}
                                     onChange={(event) => setSelectedPaletteIndex(Number(event.target.value))}
                                 >
-                                    {sellablePalettes.map((palette, index) => (
+                                    {selectablePalettes.map((palette, index) => (
                                         <option key={palette.paletteId} value={index}>
                                             {LocalizeText(`pet.breed.${petIndex}.${palette.breedId}`)}
                                         </option>

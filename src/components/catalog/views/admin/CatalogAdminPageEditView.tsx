@@ -6,7 +6,7 @@ import { useCatalogStudio } from '../../admin/studio/useCatalogStudio';
 import { IEditingPageDetails, IPageEditData, useCatalogAdmin } from '../../CatalogAdminContext';
 import { parseCatalogTabLabel } from '../../useCatalogWindowWidth';
 import { CatalogIconView } from '../catalog-icon/CatalogIconView';
-import { CATALOG_STUDIO_LAYOUT_CODES, isCatalogStudioLayoutCode } from '../page/layout/catalogLayoutRegistry';
+import { CATALOG_STUDIO_LAYOUT_CODES, isCatalogStudioLayoutCode, isReadOnlyCatalogAdminLayout } from '../page/layout/catalogLayoutRegistry';
 import { claimCatalogAdminHydration } from './CatalogAdminFormHydration';
 import { CatalogAdminModalView } from './CatalogAdminModalView';
 import { createCatalogAdminPageDetailsFromSnapshot } from './CatalogAdminPageState';
@@ -117,6 +117,8 @@ export const CatalogAdminPageEditView: FC<{}> = () => {
     const editingRootPage = catalogAdmin?.editingRootPage ?? false;
     const editingPageNode = catalogAdmin?.editingPageNode ?? null;
     const editingPageDetails = catalogAdmin?.editingPageDetails ?? null;
+
+    const isReadOnlyPage = isReadOnlyCatalogAdminLayout(editingPageDetails?.layout);
     const creatingPage = catalogAdmin?.creatingPage ?? false;
     const requestPageDetails = catalogAdmin?.requestPageDetails;
     const loading = catalogAdmin?.loading ?? false;
@@ -388,6 +390,15 @@ export const CatalogAdminPageEditView: FC<{}> = () => {
                                 </span>
                             </div>
                         </div>
+
+                        {isReadOnlyPage && (
+                            <div className="nitro-catalog-admin-form-note is-readonly">
+                                {localizeWithFallback(
+                                    'catalog.admin.page.readonly',
+                                    `This page uses the "${editingPageDetails?.layout}" layout, whose offers are generated per user. Only these page settings are editable — there are no offers to manage.`
+                                )}
+                            </div>
+                        )}
 
                         <section className="nitro-catalog-admin-form-section">
                             <div className="nitro-catalog-admin-section-title">{localizeWithFallback('catalog.admin.page.section.identity', 'Identity')}</div>
