@@ -13,8 +13,6 @@
     --catalog-standard-select-outer: #82d1ed;
     --catalog-standard-bc: #ff8d00;
     --catalog-standard-bc-outer: #ffb53c;
-    /* Quantity stepper +/- sprites, kept identical to origin/main so the
-       glyphs stay put through hover/active/disabled states. */
     --habbo-stepper-plus: url("../../assets/images/catalog/buttons/plus.png");
     --habbo-stepper-plus-hover: url("../../assets/images/catalog/buttons/plus_hover.png");
     --habbo-stepper-plus-pressed: url("../../assets/images/catalog/buttons/plus_pressed.png");
@@ -4829,7 +4827,6 @@
     padding-left: 16px;
 }
 
-/* The row became a button so a problem can carry you to the page it names. */
 .nitro-catalog-admin-validation-group-body .nitro-catalog-admin-validation-row {
     width: 100%;
     font: inherit;
@@ -4847,7 +4844,6 @@
     background: #ffe9e6;
 }
 
-/* Bundle layout (single_bundle / room_bundle): main hero item + framed "What's Included" container */
 .nitro-catalog-bundle-main-item {
     display: flex;
     flex-shrink: 0;
@@ -4879,8 +4875,6 @@
     box-shadow: inset 1px 1px #ffffff, inset -1px -1px #b0aea8;
 }
 
-/* Show at most 5 rows of items; scroll when the bundle holds more. Rows are pinned
-   to the tile height and top-aligned so a partly-filled grid doesn't stretch. */
 .nitro-catalog-bundle-frame .nitro-catalog-layout-bundle-grid {
     height: calc(var(--nitro-grid-column-min-height, 40px) * 5 + 2rem);
     grid-template-rows: none !important;
@@ -4888,17 +4882,16 @@
     align-content: start;
 }
 
-/* Currency sits at the right of the top row on the classic golden credits panel. */
 .nitro-catalog-bundle-price {
     display: inline-flex;
     align-items: center;
     box-sizing: border-box;
     margin-inline-start: auto;
-    padding: 2px 8px;
-    border: 3px solid #000000;
+    padding: 3px 10px;
+    border: 1px solid #000000;
     border-radius: 10px;
-    background: linear-gradient(180deg, #cbab5b 0%, #b8933f 55%, #a9853a 100%);
-    box-shadow: inset 0 2px 0 #ddc079, inset 0 -2px 0 #8f7130;
+    background: #a58d57;
+    box-shadow: inset 0 0 0 2px #e3c47c;
 }
 
 .nitro-catalog-bundle-price > div {
@@ -4906,7 +4899,26 @@
     background: transparent !important;
 }
 
-/* Gift + Buy share one line at the bottom of the bundle's left column. */
+.nitro-catalog-bundle-details {
+    color: #6b6b6b;
+    line-height: 1.2;
+}
+
+.nitro-catalog-bundle-header-spacer {
+    visibility: hidden;
+    white-space: nowrap;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.nitro-catalog-bundle-price.nitro-catalog-bundle-price--room {
+    padding: 3px 10px;
+    border: 1px solid #000000;
+    border-radius: 9px;
+    background: #b7b6ae;
+    box-shadow: inset 0 0 0 2px #ffffff, inset 0 6px 0 rgba(255, 255, 255, 0.25), inset 0 -4px 0 rgba(0, 0, 0, 0.12);
+}
+
 .nitro-catalog-bundle-actions {
     display: flex;
     flex-direction: row;
