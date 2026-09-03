@@ -11,6 +11,7 @@ const PET_PACKAGE_PREVIEW: Record<string, { typeId: number; paletteId: number }>
     velociraptor_egg: { typeId: 34, paletteId: 0 },
     pterosaur_egg: { typeId: 33, paletteId: 0 },
     petbox_epic: { typeId: 32, paletteId: 0 },
+    cowbox: { typeId: 35, paletteId: 5 },
     cowbox_gold: { typeId: 35, paletteId: 28 }
 };
 
