@@ -13,6 +13,8 @@
     --catalog-standard-select-outer: #82d1ed;
     --catalog-standard-bc: #ff8d00;
     --catalog-standard-bc-outer: #ffb53c;
+    /* Quantity stepper +/- sprites, kept identical to origin/main so the
+       glyphs stay put through hover/active/disabled states. */
     --habbo-stepper-plus: url("../../assets/images/catalog/buttons/plus.png");
     --habbo-stepper-plus-hover: url("../../assets/images/catalog/buttons/plus_hover.png");
     --habbo-stepper-plus-pressed: url("../../assets/images/catalog/buttons/plus_pressed.png");
@@ -4827,6 +4829,7 @@
     padding-left: 16px;
 }
 
+/* The row became a button so a problem can carry you to the page it names. */
 .nitro-catalog-admin-validation-group-body .nitro-catalog-admin-validation-row {
     width: 100%;
     font: inherit;
@@ -4844,6 +4847,7 @@
     background: #ffe9e6;
 }
 
+/* Bundle layout (single_bundle / room_bundle): main hero item + framed "What's Included" container */
 .nitro-catalog-bundle-main-item {
     display: flex;
     flex-shrink: 0;
@@ -4875,6 +4879,8 @@
     box-shadow: inset 1px 1px #ffffff, inset -1px -1px #b0aea8;
 }
 
+/* Show at most 5 rows of items; scroll when the bundle holds more. Rows are pinned
+   to the tile height and top-aligned so a partly-filled grid doesn't stretch. */
 .nitro-catalog-bundle-frame .nitro-catalog-layout-bundle-grid {
     height: calc(var(--nitro-grid-column-min-height, 40px) * 5 + 2rem);
     grid-template-rows: none !important;
@@ -4882,12 +4888,14 @@
     align-content: start;
 }
 
+/* Currency sits at the right of the top row on the classic golden credits panel. */
 .nitro-catalog-bundle-price {
     display: inline-flex;
     align-items: center;
     box-sizing: border-box;
     margin-inline-start: auto;
     padding: 3px 10px;
+    /* 1px black outer edge, then a 2px #e3c47c ring, then the #a58d57 face. */
     border: 1px solid #000000;
     border-radius: 10px;
     background: #a58d57;
@@ -4899,11 +4907,16 @@
     background: transparent !important;
 }
 
+/* page_text_details sits at the top of a room bundle (e.g. "Also available in the Credit
+   page") — small, muted and left-aligned, above both columns. */
 .nitro-catalog-bundle-details {
     color: #6b6b6b;
     line-height: 1.2;
 }
 
+/* Invisible one-line stand-in for the "What's included" header in the left column: it
+   reserves the header's height so the currency plate lines up with the top of the furni
+   container on the right. Kept to a single line to match the (short) real header. */
 .nitro-catalog-bundle-header-spacer {
     visibility: hidden;
     white-space: nowrap;
@@ -4911,14 +4924,18 @@
     pointer-events: none;
 }
 
+/* Room bundles use the classic grey pixel plate for the currency instead of the golden
+   panel: a white outer edge, a thick black rounded border and a flat grey fill. */
 .nitro-catalog-bundle-price.nitro-catalog-bundle-price--room {
     padding: 3px 10px;
+    /* 1px black outer edge, then a 2px white ring, then the grey plate face. */
     border: 1px solid #000000;
     border-radius: 9px;
     background: #b7b6ae;
     box-shadow: inset 0 0 0 2px #ffffff, inset 0 6px 0 rgba(255, 255, 255, 0.25), inset 0 -4px 0 rgba(0, 0, 0, 0.12);
 }
 
+/* Gift + Buy share one line at the bottom of the bundle's left column. */
 .nitro-catalog-bundle-actions {
     display: flex;
     flex-direction: row;
