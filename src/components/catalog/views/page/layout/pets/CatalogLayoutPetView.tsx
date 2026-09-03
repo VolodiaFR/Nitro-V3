@@ -9,11 +9,11 @@ import {
     SellablePetPaletteData
 } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FaCheck, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaLock, FaTimes } from 'react-icons/fa';
 import { DispatchUiEvent, GetPetAvailableColors, GetPetIndexFromLocalization, LocalizeText, SendMessageComposer } from '../../../../../../api';
 import { LayoutPetImageView } from '../../../../../../common';
 import { CatalogPurchasedEvent, CatalogPurchaseFailureEvent } from '../../../../../../events';
-import { useCatalogData, useCatalogUiState, useMessageEvent, useNitroEvent, useSellablePetPalette, useUiEvent } from '../../../../../../hooks';
+import { useCatalogData, useCatalogUiState, useMessageEvent, useNitroEvent, useSellablePetPalette, useUiEvent, useUserDataSnapshot } from '../../../../../../hooks';
 import { CatalogScrollAreaView } from '../../common/CatalogScrollAreaView';
 import { CatalogAddOnBadgeWidgetView } from '../../widgets/CatalogAddOnBadgeWidgetView';
 import { CatalogTotalPriceWidget } from '../../widgets/CatalogTotalPriceWidget';
@@ -50,6 +50,13 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
     const breed = (currentOffer?.product?.productData?.type as unknown as string) ?? '';
     const { data: petPalette = null } = useSellablePetPalette(breed);
     const legacyPet = isLegacyPetType(petIndex);
+    const clubLevel = useUserDataSnapshot().clubLevel;
+    const isHc = clubLevel > 0;
+    // A club_only breed is shown to everyone but only selectable/buyable by HC members.
+    const isBreedLocked = (palette: { clubOnly?: boolean } | null | undefined) => !!palette?.clubOnly && !isHc;
+    // Prefer a hotel-provided text; fall back to a readable default when the key is unset.
+    const hcOnlyText = LocalizeText('catalog.pets.breed.hc_only');
+    const hcOnlyLabel = hcOnlyText === 'catalog.pets.breed.hc_only' ? 'Habbo Club only' : hcOnlyText;
     const [petAssetRefreshKey, setPetAssetRefreshKey] = useState(0);
     const petTypeName = petIndex >= 0 ? (GetRoomContentLoader().getPetNameForType(petIndex) ?? null) : null;
 
@@ -61,6 +68,7 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
     const legacyBreeds = useMemo(() => {
         if (!legacyPet) return [];
 
+        // re-run once the pet asset finishes downloading and its palettes are known
         void petAssetRefreshKey;
 
         const existing = sellablePalettes.filter(
@@ -98,7 +106,7 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
 
             for (let paletteId = 0; paletteId <= 128; paletteId++) {
                 if (GetRoomEngine().getPetColorResult(petIndex, paletteId)) {
-                    derived.push({ breedId: paletteId, paletteId, rare: false, sellable: true, type: petIndex });
+                    derived.push({ breedId: paletteId, paletteId, rare: false, sellable: true, type: petIndex, clubOnly: false });
                 }
             }
 
@@ -126,9 +134,10 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
     const purchaseExtraData = useMemo(() => {
         if (!petName || !selectedPalette) return '';
         if (legacyPet && selectedColorIndex < 0) return '';
+        if ((selectedPalette as { clubOnly?: boolean }).clubOnly && !isHc) return '';
 
         return buildPetPurchaseExtraData(petName, petIndex, selectedPalette, selectedColor);
-    }, [legacyPet, petIndex, petName, selectedColor, selectedColorIndex, selectedPalette]);
+    }, [isHc, legacyPet, petIndex, petName, selectedColor, selectedColorIndex, selectedPalette]);
 
     const validationErrorMessage = useMemo(() => {
         const errorKeys: Record<number, string> = {
@@ -285,11 +294,16 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
                                     disabled={controlsDisabled}
                                     onChange={(event) => setSelectedPaletteIndex(Number(event.target.value))}
                                 >
-                                    {selectablePalettes.map((palette, index) => (
-                                        <option key={palette.paletteId} value={index}>
-                                            {LocalizeText(`pet.breed.${petIndex}.${palette.breedId}`)}
-                                        </option>
-                                    ))}
+                                    {selectablePalettes.map((palette, index) => {
+                                        const locked = isBreedLocked(palette);
+
+                                        return (
+                                            <option key={palette.paletteId} disabled={locked} value={index}>
+                                                {LocalizeText(`pet.breed.${petIndex}.${palette.breedId}`)}
+                                                {locked ? ` (${hcOnlyLabel})` : ''}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                             </label>
                         )}
@@ -311,18 +325,22 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
                                             ? `linear-gradient(135deg, ${colors[0]} 0 50%, ${colors[1]} 50% 100%)`
                                             : colors[0]
                                 };
+                                const locked = isBreedLocked(choice.palette);
 
                                 return (
                                     <button
                                         key={choice.palette.paletteId}
-                                        aria-label={`${colorLabel} ${index + 1}`}
+                                        aria-label={locked ? `${colorLabel} ${index + 1} — ${hcOnlyLabel}` : `${colorLabel} ${index + 1}`}
                                         aria-pressed={selectedPaletteIndex === index}
-                                        className="nitro-catalog-pet-color-swatch"
-                                        disabled={controlsDisabled}
+                                        className={`nitro-catalog-pet-color-swatch${locked ? ' nitro-catalog-pet-color-swatch--locked' : ''}`}
+                                        disabled={controlsDisabled || locked}
                                         style={style}
+                                        title={locked ? hcOnlyLabel : undefined}
                                         type="button"
                                         onClick={() => setSelectedPaletteIndex(index)}
-                                    />
+                                    >
+                                        {locked && <FaLock className="nitro-catalog-pet-swatch-lock" />}
+                                    </button>
                                 );
                             })}
                         </CatalogScrollAreaView>
@@ -346,6 +364,11 @@ export const CatalogLayoutPetView: FC<CatalogLayoutProps> = ({ page = null }) =>
                         </span>
                     </label>
                     {approvalResult > 0 && <span className="nitro-catalog-pet-name-error">{validationErrorMessage}</span>}
+                    {isBreedLocked(selectedPalette) && (
+                        <span className="nitro-catalog-pet-hc-note">
+                            <FaLock /> {hcOnlyLabel}
+                        </span>
+                    )}
                     <div className="nitro-catalog-pet-purchase-row">
                         <button
                             className="nitro-catalog-standard-button nitro-catalog-standard-buy-button"

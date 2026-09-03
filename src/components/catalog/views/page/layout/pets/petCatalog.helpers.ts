@@ -4,6 +4,7 @@ export interface PetPaletteLike {
     rare: boolean;
     sellable: boolean;
     type: number;
+    clubOnly?: boolean;
 }
 
 export interface PetColorResultLike {

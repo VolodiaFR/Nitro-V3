@@ -72,13 +72,16 @@ vi.mock('../../../../../../common', () => ({
     LayoutRoomPreviewerView: () => <div data-testid="pet-preview" />
 }));
 
+const userDataState = vi.hoisted(() => ({ clubLevel: 0 }));
+
 vi.mock('../../../../../../hooks', () => ({
     useCatalogData: vi.fn(),
     useCatalogUiState: vi.fn(),
     useMessageEvent: vi.fn(),
     useNitroEvent: vi.fn(),
     useSellablePetPalette: vi.fn(),
-    useUiEvent: vi.fn()
+    useUiEvent: vi.fn(),
+    useUserDataSnapshot: () => ({ clubLevel: userDataState.clubLevel })
 }));
 
 vi.mock('../../../../../../events', () => ({
@@ -122,6 +125,7 @@ beforeEach(() => {
     contentLoadedHandler = null;
     uiEventHandlers.clear();
     petAssetState.colorsReady = true;
+    userDataState.clubLevel = 0;
     vi.mocked(useCatalogUiState).mockReturnValue({ setCurrentOffer: vi.fn(), setPurchaseOptions: vi.fn() } as any);
     vi.mocked(useMessageEvent).mockImplementation((_event: unknown, handler: any) => {
         approveNameHandler = handler;
@@ -151,6 +155,30 @@ describe('pet catalog layout', () => {
         expect(screen.getByTestId('pet-image')).toHaveAttribute('data-type-id', '8');
         expect(screen.getByTestId('pet-image')).toHaveAttribute('data-direction', '3');
         expect(screen.getByTestId('pet-image')).toHaveAttribute('data-scale', '2');
+    });
+
+    it('locks an HC-only breed for a non-HC member', async () => {
+        userDataState.clubLevel = 0;
+        const currentOffer = offer(8);
+        vi.mocked(useCatalogData).mockReturnValue({ currentOffer, roomPreviewer } as any);
+        vi.mocked(useSellablePetPalette).mockReturnValue({ data: { palettes: [{ ...palette(8, 10), clubOnly: true }] } } as any);
+
+        render(<CatalogLayoutPetView page={{ ...page, offers: [currentOffer] } as any} hideNavigation={() => undefined} />);
+
+        const lockedSwatch = await screen.findByRole('button', { name: 'catalog.pets.choose.color 1 — Habbo Club only' });
+        expect(lockedSwatch).toBeDisabled();
+    });
+
+    it('unlocks an HC-only breed for an HC member', async () => {
+        userDataState.clubLevel = 2;
+        const currentOffer = offer(8);
+        vi.mocked(useCatalogData).mockReturnValue({ currentOffer, roomPreviewer } as any);
+        vi.mocked(useSellablePetPalette).mockReturnValue({ data: { palettes: [{ ...palette(8, 10), clubOnly: true }] } } as any);
+
+        render(<CatalogLayoutPetView page={{ ...page, offers: [currentOffer] } as any} hideNavigation={() => undefined} />);
+
+        const swatch = await screen.findByRole('button', { name: 'catalog.pets.choose.color 1' });
+        expect(swatch).not.toBeDisabled();
     });
 
     it('downloads the pet asset and shows the palettes once its colors arrive for new pets', async () => {
