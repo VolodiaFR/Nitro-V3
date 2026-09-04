@@ -47,6 +47,18 @@ const PICKUP_MODE_NONE: number = 0;
 const PICKUP_MODE_EJECT: number = 1;
 const PICKUP_MODE_FULL: number = 2;
 
+function formatPlantDuration(totalSeconds: number): string {
+    const seconds = Math.max(0, Math.floor(totalSeconds));
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (minutes > 0) return `${minutes}m ${secs}s`;
+
+    return `${secs}s`;
+}
+
 function getValidRoomObjectDirection(roomObject: any, isPositive: boolean) {
     if (!roomObject || !roomObject.model) return 0;
 
@@ -95,9 +107,6 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
     const { getValue: getRareValue } = useRareValues();
     const rareValue = useMemo(() => (avatarInfo ? getRareValue(avatarInfo.spriteId) : null), [avatarInfo, getRareValue]);
 
-    // Photos (interaction type external_image) carry their thumbnail URL in
-    // the room object's stuff data; show the actual photo instead of the
-    // generic furni sprite.
     const externalImagePhotoUrl = useMemo(() => {
         if (!avatarInfo || !roomSession) return null;
 
@@ -128,6 +137,11 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
     const [isCrackable, setIsCrackable] = useState(false);
     const [crackableHits, setCrackableHits] = useState(0);
     const [crackableTarget, setCrackableTarget] = useState(0);
+    const [isPlant, setIsPlant] = useState(false);
+    const [plantWaterSeconds, setPlantWaterSeconds] = useState(0);
+    const [plantDeathSeconds, setPlantDeathSeconds] = useState(0);
+    const [plantDead, setPlantDead] = useState(false);
+    const plantClassnames = GetConfigurationValue<string[]>('furni.plant.classnames', []) ?? [];
     const [godMode, setGodMode] = useState(false);
     const [canSeeFurniId, setCanSeeFurniId] = useState(false);
     const [groupName, setGroupName] = useState<string>(null);
@@ -243,6 +257,10 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
         let isCrackable = false;
         let crackableHits = 0;
         let crackableTarget = 0;
+        let isPlant = false;
+        let plantWaterSeconds = 0;
+        let plantDeathSeconds = 0;
+        let plantDead = false;
         let godMode = false;
         let canSeeFurniId = false;
         let furniIsJukebox = false;
@@ -286,9 +304,18 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                 const stuffData = avatarInfo.stuffData as CrackableDataType;
 
                 canUse = true;
-                isCrackable = true;
-                crackableHits = stuffData?.hits ?? 0;
-                crackableTarget = stuffData?.target ?? 0;
+
+                if (roomObjForLocation && plantClassnames.indexOf(roomObjForLocation.type) >= 0) {
+                    isPlant = true;
+                    const rawDeath = stuffData?.target ?? 0;
+                    plantDead = rawDeath < 0;
+                    plantWaterSeconds = Math.max(0, stuffData?.hits ?? 0);
+                    plantDeathSeconds = plantDead ? 0 : rawDeath;
+                } else {
+                    isCrackable = true;
+                    crackableHits = stuffData?.hits ?? 0;
+                    crackableTarget = stuffData?.target ?? 0;
+                }
             } else if (avatarInfo.extraParam === RoomWidgetEnumItemExtradataParameter.JUKEBOX) {
                 const playlist = GetSoundManager().musicController.getRoomItemPlaylist();
 
@@ -357,6 +384,10 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
         setIsCrackable(isCrackable);
         setCrackableHits(crackableHits);
         setCrackableTarget(crackableTarget);
+        setIsPlant(isPlant);
+        setPlantWaterSeconds(plantWaterSeconds);
+        setPlantDeathSeconds(plantDeathSeconds);
+        setPlantDead(plantDead);
         setGodMode(godMode);
         setCanSeeFurniId(canSeeFurniId);
         setGroupName(null);
@@ -386,6 +417,19 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
 
         setItemLocation({ x: item.x, y: item.y, z: item.z });
         setFurniLocationZ(item.z);
+
+        if (isPlant) {
+            const data = item.data as CrackableDataType;
+
+            if (data) {
+                const rawDeath = data.target ?? 0;
+                const dead = rawDeath < 0;
+
+                setPlantDead(dead);
+                setPlantWaterSeconds(Math.max(0, data.hits ?? 0));
+                setPlantDeathSeconds(dead ? 0 : rawDeath);
+            }
+        }
     });
 
     useEffect(() => {
@@ -394,6 +438,17 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
         setSongName(songInfo?.name ?? '');
         setSongCreator(songInfo?.creator ?? '');
     }, [songId]);
+
+    useEffect(() => {
+        if (!isPlant || plantDead) return;
+
+        const handle = setInterval(() => {
+            setPlantWaterSeconds((seconds) => (seconds > 0 ? seconds - 1 : 0));
+            setPlantDeathSeconds((seconds) => (seconds > 0 ? seconds - 1 : 0));
+        }, 1000);
+
+        return () => clearInterval(handle);
+    }, [isPlant, plantDead]);
 
     const onFurniSettingChange = useCallback(
         (index: number, value: string) => {
@@ -448,8 +503,6 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
 
     const hasBrandingOffsets = isBranded && furniKeys.indexOf('offsetX') >= 0;
 
-    // Persist the position from the editor: rebuild the branding map with the
-    // new offsets and send it (same path as Save), then reflect it in the fields.
     const savePositionEditor = useCallback(
         (x: number, y: number, z: number, scale: number, alpha: number) => {
             const map = new Map<string, string>();
@@ -476,7 +529,6 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                 map.set(key, value);
             }
 
-            // older branding furni may not carry scale/alpha keys yet — always send them
             if (!hasScale) map.set('scale', String(scale));
             if (!hasAlpha) map.set('alpha', String(alpha));
 
@@ -673,6 +725,39 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                                         [(crackableHits ?? 0).toString(), (crackableTarget ?? 0).toString()]
                                     )}
                                 </Text>
+                            </>
+                        )}
+                        {isPlant && (
+                            <>
+                                <hr className="m-0 bg-[#0003] border-0 opacity-[.5] h-px" />
+                                {plantDead ? (
+                                    <Text small wrap variant="danger">
+                                        {LocalizeText('infostand.plant.dead')}
+                                    </Text>
+                                ) : (
+                                    <div className="flex flex-col gap-1">
+                                        <Flex alignItems="center" gap={1} justifyContent="between">
+                                            <Text small wrap variant="white">
+                                                {LocalizeText('infostand.plant.rewater')}
+                                            </Text>
+                                            <Text small wrap variant={plantWaterSeconds > 0 ? 'white' : 'success'}>
+                                                {plantWaterSeconds > 0
+                                                    ? formatPlantDuration(plantWaterSeconds)
+                                                    : LocalizeText('infostand.plant.ready')}
+                                            </Text>
+                                        </Flex>
+                                        <Flex alignItems="center" gap={1} justifyContent="between">
+                                            <Text small wrap variant="white">
+                                                {LocalizeText('infostand.plant.dies')}
+                                            </Text>
+                                            <Text small wrap variant={plantDeathSeconds > 0 ? 'white' : 'danger'}>
+                                                {plantDeathSeconds > 0
+                                                    ? formatPlantDuration(plantDeathSeconds)
+                                                    : LocalizeText('infostand.plant.needswater')}
+                                            </Text>
+                                        </Flex>
+                                    </div>
+                                )}
                             </>
                         )}
                         {avatarInfo.groupId > 0 && (
@@ -974,7 +1059,9 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                 )}
                 {pickupMode !== PICKUP_MODE_NONE && (
                     <Button variant="dark" onClick={(event) => processButtonAction('pickup')}>
-                        {LocalizeText(pickupMode === PICKUP_MODE_EJECT ? 'infostand.button.eject' : 'infostand.button.pickup')}
+                        {isPlant && plantDead
+                            ? LocalizeText('generic.delete')
+                            : LocalizeText(pickupMode === PICKUP_MODE_EJECT ? 'infostand.button.eject' : 'infostand.button.pickup')}
                     </Button>
                 )}
                 {canUse && (
