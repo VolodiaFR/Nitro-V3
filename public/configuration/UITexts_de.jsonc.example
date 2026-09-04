@@ -3,6 +3,11 @@
     // UITexts — Deutsch (de). Vollständiger UI-Textsatz (630 Keys),
     // parallel zu UITexts_en.jsonc. Platzhalter (%...%) unverändert lassen.
     // ------------------------------------------------------------------
+    "infostand.plant.rewater": "Erneut gießen in",
+    "infostand.plant.dies": "Stirbt in",
+    "infostand.plant.ready": "Bereit",
+    "infostand.plant.needswater": "Braucht Wasser!",
+    "infostand.plant.dead": "Deine Pflanze ist tot",
     "friendlist.search": "Freunde suchen",
     "widget.buildheight.title": "Bauhöhe",
     "widget.buildheight.description": "Lege die Stapelhöhe für Möbel fest, die du platzierst.",
