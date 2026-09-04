@@ -3,6 +3,11 @@
     // UITexts — English (en). Full UI text set (630 keys),
     // parallel to UITexts_it.jsonc. Placeholders (%...%) kept verbatim.
     // ------------------------------------------------------------------
+    "infostand.plant.rewater": "Re-water in",
+    "infostand.plant.dies": "Dies in",
+    "infostand.plant.ready": "Ready",
+    "infostand.plant.needswater": "Needs water!",
+    "infostand.plant.dead": "Your plant is dead",
     "friendlist.search": "Search friends",
     "purse.seasonal.currency.101": "cash",
     "widget.chooser.checkall": "Select furniture",
