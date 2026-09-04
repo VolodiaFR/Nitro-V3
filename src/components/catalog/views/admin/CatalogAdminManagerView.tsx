@@ -28,6 +28,7 @@ import { CatalogStudioTransferPanel } from '../../admin/studio/CatalogStudioTran
 import { useCatalogStudio } from '../../admin/studio/useCatalogStudio';
 import { useCatalogAdmin } from '../../CatalogAdminContext';
 import { parseCatalogTabLabel } from '../../useCatalogWindowWidth';
+import { isReadOnlyCatalogAdminLayout } from '../page/layout/catalogLayoutRegistry';
 import { CatalogIconView } from '../catalog-icon/CatalogIconView';
 import {
     buildCatalogAdminDraftTree,
@@ -107,6 +108,11 @@ export const CatalogAdminManagerView: FC<{}> = () => {
     );
     const selectedNode = findNodeByPageId(managerRootNode, selectedPageId);
     const offers = currentPage?.pageId === selectedPageId ? (currentPage.offers ?? []) : [];
+    const selectedPageLayout = useMemo(
+        () => (studio.session?.pages ?? []).find((page) => page.pageId === selectedPageId)?.pageLayout ?? null,
+        [studio.session?.pages, selectedPageId]
+    );
+    const isReadOnlyPage = isReadOnlyCatalogAdminLayout(selectedPageLayout);
     const categoryCount = managerRootNode?.children.length ?? 0;
     const validationCurrent = studio.validation
         ? studio.validation.current && studio.validation.revision === studio.revision
@@ -133,7 +139,6 @@ export const CatalogAdminManagerView: FC<{}> = () => {
         if (currentPage?.pageId != null && currentPage.pageId !== selectedPageId) setSelectedPageId(currentPage.pageId);
     }, [currentPage?.pageId, selectedPageId]);
 
-    // A problem names an entity; the operator wants to be standing on it.
     const handleProblemSelect = useCallback((issue: CatalogStudioValidationIssue) => {
         if (issue.entityType !== 'PAGE') return;
 
@@ -187,7 +192,6 @@ export const CatalogAdminManagerView: FC<{}> = () => {
                     `Moved page #${plan.pageId} ${position} ${nodeName(node)}`
                 );
             } catch {
-                // Invalid drag payload
             }
         },
         [catalogAdmin, managerRootNode]
@@ -214,13 +218,12 @@ export const CatalogAdminManagerView: FC<{}> = () => {
             if (!plan) return;
             catalogAdmin.reorderPage(plan.pageId, plan.newParentId, plan.newIndex, `Moved page #${plan.pageId} to catalog root`);
         } catch {
-            // Invalid drag payload
         }
     }, [catalogAdmin, managerRootNode]);
 
     const reorderOffersToIndex = useCallback(
         (fromIndex: number, toIndex: number) => {
-            if (!catalogAdmin || !currentPage) return;
+            if (!catalogAdmin || !currentPage || isReadOnlyPage) return;
             if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= offers.length || toIndex >= offers.length) return;
 
             const reordered = [...offers];
@@ -236,14 +239,18 @@ export const CatalogAdminManagerView: FC<{}> = () => {
                 currentPage.pageId
             );
         },
-        [catalogAdmin, currentPage, offers, selectedNode, setCurrentPage]
+        [catalogAdmin, currentPage, isReadOnlyPage, offers, selectedNode, setCurrentPage]
     );
 
     const handleOfferDragStart = useCallback((event: React.DragEvent, index: number) => {
+        if (isReadOnlyPage) {
+            event.preventDefault();
+            return;
+        }
         event.stopPropagation();
         event.dataTransfer.setData('application/x-catalog-admin-offer', JSON.stringify({ index }));
         event.dataTransfer.effectAllowed = 'move';
-    }, []);
+    }, [isReadOnlyPage]);
 
     const handleOfferDragOver = useCallback((event: React.DragEvent, index: number) => {
         event.preventDefault();
@@ -268,7 +275,6 @@ export const CatalogAdminManagerView: FC<{}> = () => {
 
                 reorderOffersToIndex(data.index, dropIndex);
             } catch {
-                // Invalid drag payload
             }
         },
         [reorderOffersToIndex]
@@ -328,7 +334,7 @@ export const CatalogAdminManagerView: FC<{}> = () => {
     };
 
     const newOffer = () => {
-        if (!currentPage) return;
+        if (!currentPage || isReadOnlyPage) return;
 
         catalogAdmin.setEditingOffer({
             offerId: -1,
@@ -337,6 +343,8 @@ export const CatalogAdminManagerView: FC<{}> = () => {
     };
 
     const deleteOffer = (offer: IPurchasableOffer) => {
+        if (isReadOnlyPage) return;
+
         const label = offer.localizationName || `#${offer.offerId}`;
         if (confirm(`Delete offer "${label}"?`)) catalogAdmin.deleteOffer(offer.offerId, `Deleted offer: ${label}`);
     };
@@ -456,6 +464,13 @@ export const CatalogAdminManagerView: FC<{}> = () => {
                 </div>
 
                 <div className="nitro-catalog-admin-offers">
+                    {isReadOnlyPage ? (
+                        <div className="nitro-catalog-admin-placeholder is-small">
+                            This page lists each user's own recent purchases ({selectedPageLayout}), so it has no editable
+                            offers. You can still edit the page settings.
+                        </div>
+                    ) : (
+                    <>
                     <div className="nitro-catalog-admin-offers-head">
                         <span className="nitro-catalog-admin-offers-title">Offers ({offers.length})</span>
                         <button className="nitro-catalog-admin-btn is-primary" disabled={!currentPage} onClick={newOffer}>
@@ -556,6 +571,8 @@ export const CatalogAdminManagerView: FC<{}> = () => {
                             );
                         })}
                     </div>
+                    </>
+                    )}
                 </div>
             </div>
         );
@@ -586,7 +603,7 @@ export const CatalogAdminManagerView: FC<{}> = () => {
                     <button className="nitro-catalog-admin-btn" onClick={() => createCategory(selectedNode)}>
                         <FaPlus /> Sub-page
                     </button>
-                    <button className="nitro-catalog-admin-btn" onClick={newOffer}>
+                    <button className="nitro-catalog-admin-btn" disabled={isReadOnlyPage} onClick={newOffer}>
                         <FaPlus /> Offer
                     </button>
                 </div>

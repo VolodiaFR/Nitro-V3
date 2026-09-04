@@ -122,11 +122,8 @@ export const LayoutBadgeImageView: FC<LayoutBadgeImageViewProps> = (props) => {
             if (event.badgeId !== badgeCode) return;
 
             if (isGroup) {
-                const element = await TextureUtils.generateImage(new NitroSprite(event.image));
+                const element = await TextureUtils.generateImage({ target: new NitroSprite(event.image), resolution: 1 });
 
-                // The generated image carries an already-decoded data-URL, so
-                // `onload` may have fired before we attach it and never run.
-                // Set immediately when complete; otherwise wait for load.
                 if (element.complete && element.naturalWidth) setImageElement(element);
                 else element.onload = () => setImageElement(element);
             } else {
@@ -149,7 +146,7 @@ export const LayoutBadgeImageView: FC<LayoutBadgeImageViewProps> = (props) => {
         if (texture && !didSetBadge) {
             if (isGroup) {
                 (async () => {
-                    const element = await TextureUtils.generateImage(new NitroSprite(texture));
+                    const element = await TextureUtils.generateImage({ target: new NitroSprite(texture), resolution: 1 });
 
                     if (element.complete && element.naturalWidth) setImageElement(element);
                     else element.onload = () => setImageElement(element);

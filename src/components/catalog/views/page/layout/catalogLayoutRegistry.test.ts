@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CATALOG_STUDIO_LAYOUT_CODES, getCatalogLayoutDefinition, isCatalogStudioLayoutCode } from './catalogLayoutRegistry';
+import { CATALOG_STUDIO_LAYOUT_CODES, getCatalogLayoutDefinition, isCatalogStudioLayoutCode, isReadOnlyCatalogAdminLayout } from './catalogLayoutRegistry';
 
 const expectedStudioCodes = [
     'default_3x3',
@@ -66,5 +66,12 @@ describe('catalog layout registry', () => {
         expect(getCatalogLayoutDefinition('future_layout')).toBeNull();
         expect(isCatalogStudioLayoutCode('future_layout')).toBe(false);
         expect(isCatalogStudioLayoutCode('recycler')).toBe(true);
+    });
+
+    it('marks runtime-generated layouts as read-only for the admin editor', () => {
+        expect(isReadOnlyCatalogAdminLayout('recent_purchases')).toBe(true);
+        expect(isReadOnlyCatalogAdminLayout('default_3x3')).toBe(false);
+        expect(isReadOnlyCatalogAdminLayout(null)).toBe(false);
+        expect(isReadOnlyCatalogAdminLayout(undefined)).toBe(false);
     });
 });

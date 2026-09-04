@@ -1,6 +1,7 @@
 import './pixiPatch';
 
 import { GetConfiguration } from '@nitrots/nitro-renderer';
+import { derivePetConfig, DerivedPetConfig, PetDefinition } from './api/nitro/PetData';
 import { parseJsonDocument, UiJsonMode } from './json/JsonDocumentParser';
 import { configFileUrl, getClientMode, installSecureFetch } from './secure-assets';
 
@@ -82,6 +83,28 @@ const loadClientMode = async () => {
     }
 };
 
+const loadPetConfig = async (): Promise<DerivedPetConfig | null> => {
+    try {
+        const url = configFileUrl('pets.json', true);
+        const response = await fetch(url);
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const text = await response.text();
+        const parsed = parseJsonDocument(text, resolveJsonMode(), url) as { pets?: unknown } | unknown[];
+        const list = Array.isArray(parsed) ? parsed : (parsed as { pets?: unknown })?.pets;
+        const derived = derivePetConfig(list as PetDefinition[]);
+
+        setBootDebug(derived ? 'boot: pet config loaded' : 'boot: pets.json empty, using config pet.types');
+
+        return derived;
+    } catch (error) {
+        setBootDebug(`boot: pets.json fallback ${error?.message || error}`);
+
+        return null;
+    }
+};
+
 await loadClientMode();
 
 installSecureFetch();
@@ -89,11 +112,13 @@ setBootDebug('boot: secure fetch installed');
 
 const search = new URLSearchParams(window.location.search);
 const clientMode = getClientMode();
+const petConfig = await loadPetConfig();
 
 (window as any).NitroSecureApiUrl = clientMode.apiBaseUrl || window.location.origin;
 (window as any).NitroClientMode = clientMode;
 (window as any).NitroConfig = {
     'config.urls': [configFileUrl('renderer-config.json', true), configFileUrl('ui-config.json', true)],
+    ...(petConfig ?? {}),
     'sso.ticket': search.get('sso') || null,
     'forward.type': search.get('room') ? 2 : -1,
     'forward.id': search.get('room') || 0,

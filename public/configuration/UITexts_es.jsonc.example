@@ -1,5 +1,10 @@
 {
     // UITexts — Spanish (es). Full UI text set (630 keys), parallel to UITexts_it.jsonc. Placeholders (%...%) kept verbatim.
+    "infostand.plant.rewater": "Regar de nuevo en",
+    "infostand.plant.dies": "Muere en",
+    "infostand.plant.ready": "Listo",
+    "infostand.plant.needswater": "¡Necesita agua!",
+    "infostand.plant.dead": "Tu planta está muerta",
     "friendlist.search": "Buscar amigos",
     "widget.buildheight.title": "Altura de construcción",
     "widget.buildheight.description": "Ajusta la altura de apilamiento de los muebles que colocas.",

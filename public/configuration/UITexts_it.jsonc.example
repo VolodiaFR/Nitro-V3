@@ -2,6 +2,11 @@
     // ------------------------------------------------------------------------
     // Friendlist
     // ------------------------------------------------------------------------
+    "infostand.plant.rewater": "Rinnaffia tra",
+    "infostand.plant.dies": "Muore tra",
+    "infostand.plant.ready": "Pronto",
+    "infostand.plant.needswater": "Ha bisogno d'acqua!",
+    "infostand.plant.dead": "La tua pianta è morta",
     "friendlist.search": "Cerca amici",
     "widget.buildheight.title": "Altezza di costruzione",
     "widget.buildheight.description": "Imposta l'altezza di impilamento dei mobili che posizioni.",
@@ -69,6 +74,19 @@
     // Notifications
     // ------------------------------------------------------------------------
     "notification.badge.received": "Nuovo distintivo!",
+    "notification.hotel.event.title": "Evento nell'hotel!",
+    "notification.hotel.event.headline": "Evento Ufficiale",
+    "notification.hotel.event.intro": "ha aperto un evento. Corri a scoprirlo!",
+    "notification.hotel.event.roomLabel": "Nome della stanza:",
+    "notification.hotel.event.moderated": "Questo evento e' moderato dallo Staff dell'hotel.",
+    "notification.hotel.event.ended.headline": "Evento Concluso",
+    "notification.hotel.event.ended.intro": "ha chiuso l'evento. Grazie a tutti quelli che sono passati!",
+    "notification.hotel.event.message": "%USERNAME% ha aperto un evento in %ROOMNAME% (%TIME%):\r\r%MESSAGE%",
+    "notification.hotel.event.linkTitle": "Vai alla stanza",
+    "notification.hotel.event.at": "aperto alle %TIME%",
+    "notification.hotel.event.ended.at": "chiuso alle %TIME%",
+    "notification.hotel.event.ended.title": "Evento concluso",
+    "notification.hotel.event.ended.message": "L'evento in %ROOMNAME% e' finito. Grazie a tutti quelli che sono passati!",
 
     // ------------------------------------------------------------------------
     // Settings widget

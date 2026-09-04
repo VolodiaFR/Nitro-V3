@@ -121,3 +121,8 @@ const studioCodes = new Set<string>(CATALOG_STUDIO_LAYOUT_CODES);
 export const getCatalogLayoutDefinition = (runtimeCode: string): CatalogLayoutDefinition | null => runtimeDefinitions.get(runtimeCode) ?? null;
 
 export const isCatalogStudioLayoutCode = (value: string): value is CatalogStudioLayoutCode => studioCodes.has(value);
+
+const READ_ONLY_ADMIN_LAYOUTS = new Set<string>(['recent_purchases']);
+
+export const isReadOnlyCatalogAdminLayout = (layout: string | null | undefined): boolean =>
+    typeof layout === 'string' && READ_ONLY_ADMIN_LAYOUTS.has(layout);

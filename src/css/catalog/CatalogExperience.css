@@ -584,6 +584,45 @@
     opacity: 0.72;
 }
 
+.nitro-catalog-pet-color-swatch--locked,
+.nitro-catalog-pet-color-swatch--locked:disabled {
+    position: relative;
+    cursor: not-allowed;
+    opacity: 0.85;
+}
+
+.nitro-catalog-pet-color-swatch--locked::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: inherit;
+}
+
+.nitro-catalog-pet-swatch-lock {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    font-size: 10px;
+    color: #ffd24a;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
+    pointer-events: none;
+}
+
+.nitro-catalog-pet-hc-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #b8860b;
+}
+
+.nitro-catalog-pet-hc-note svg {
+    color: #ffb300;
+}
+
 .nitro-catalog-pet-purchase {
     display: flex;
     flex-direction: column;

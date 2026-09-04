@@ -1,5 +1,10 @@
 {
     // UITexts — Arabic (ar). Full UI text set (630 keys), parallel to UITexts_it.jsonc. Placeholders (%...%) kept verbatim.
+    "infostand.plant.rewater": "الري مجددًا خلال",
+    "infostand.plant.dies": "تموت خلال",
+    "infostand.plant.ready": "جاهز",
+    "infostand.plant.needswater": "يحتاج إلى ماء!",
+    "infostand.plant.dead": "نبتتك ماتت",
     "friendlist.search": "البحث عن الأصدقاء",
     "widget.buildheight.title": "ارتفاع البناء",
     "widget.buildheight.description": "اضبط ارتفاع تكديس الأثاث الذي تضعه.",

@@ -367,7 +367,7 @@
     box-sizing: border-box;
     width: 230px;
     height: 410px;
-    padding: 43px 9px 9px;
+    padding: 9px;
     overflow-x: hidden;
     overflow-y: auto;
     border: 1px solid #55534e;
@@ -377,7 +377,7 @@
 
 .nitro-camera-editor__effect-tabs {
     position: absolute;
-    top: 50px;
+    top: 14px;
     left: 28px;
     z-index: 3;
     display: flex;
