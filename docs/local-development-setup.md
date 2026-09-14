@@ -246,6 +246,65 @@ ws.enabled=true
 ws.port=2096
 ```
 
+### `/api/maintenance` (o qualsiasi `/api/...`) `502 (Bad Gateway)`
+
+Vite non è riuscito a raggiungere l'emulatore. In sviluppo ogni chiamata
+`/api/...` viene inoltrata dal proxy di Vite (vedi `vite.config.mjs`) alla
+porta WebSocket dell'emulatore, e il 502 è la risposta di Vite quando quella
+connessione fallisce. La causa reale è nel terminale di `yarn start`:
+
+```txt
+[vite] http proxy error: /api/maintenance
+Error: connect ECONNREFUSED 127.0.0.1:2096
+```
+
+Il target del proxy è, in quest'ordine: la variabile d'ambiente
+`AUTH_PROXY_TARGET`, poi `"api.url"` di `public/configuration/renderer-config.json`,
+poi `http://127.0.0.1:2096`. Ogni chiamata fallita stampa anche una riga
+`[octane] /api proxy: ... failed (ECONNREFUSED)` con il target usato.
+
+Controlla, in quest'ordine:
+
+- l'emulatore è avviato e nel log compare
+  `WebSocket server started on 0.0.0.0:2096 (SSL: false)`;
+- `ws.host` è `0.0.0.0` (o `127.0.0.1`), non solo l'IP della LAN;
+- `"api.url"` in `renderer-config.json` punta all'indirizzo e alla porta reali
+  dell'emulatore (il proxy lo segue);
+- se quella riga dice `SSL: true` (una coppia `ssl/cert.pem` + `privkey.pem`
+  accanto all'emulatore), la porta parla TLS e il target deve essere `https://...`.
+
+Per cambiare il target per un singolo avvio:
+
+```sh
+# Windows cmd
+set AUTH_PROXY_TARGET=http://192.168.0.8:2096 && yarn start
+# PowerShell
+$env:AUTH_PROXY_TARGET='http://192.168.0.8:2096'; yarn start
+# Linux / macOS
+AUTH_PROXY_TARGET=http://192.168.0.8:2096 yarn start
+```
+
+`crypto.ws.enabled` e `crypto.ws.signing.enabled` riguardano solo la sessione
+WebSocket dopo l'upgrade; non toccano mai queste chiamate HTTP.
+Il `net::ERR_ABORTED` accanto al 502 è la pagina di login che annulla la
+richiesta allo smontaggio ed è innocuo.
+
+### La camminata sembra a scatti o cambia velocità
+
+`system.fps.max` in `renderer-config.json` limita il render loop, e il client
+usava 24 come default quando la chiave mancava. Pixi allora esegue i tick a
+33/50 ms alternati su uno schermo a 60 Hz: gli avatar avanzano a passi
+irregolari e l'animazione della camminata viene campionata in modo
+irregolare. Il default ora è `0` (la frequenza dello schermo); impostalo
+esplicitamente se il tuo config è precedente:
+
+```json
+"system.fps.max": 0
+```
+
+Lato server una stanza esegue un tick ogni 500 ms e un avatar avanza di una
+casella per tick (due con `:fastwalk`), che il client interpola in 500 ms.
+
 ### Custom badges `401 Unauthorized`
 
 È normale se non sei loggato o se apri Octane da un host diverso.

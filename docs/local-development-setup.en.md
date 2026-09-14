@@ -246,6 +246,66 @@ ws.enabled=true
 ws.port=2096
 ```
 
+### `/api/maintenance` (or any `/api/...`) `502 (Bad Gateway)`
+
+Vite could not reach the emulator. In development every `/api/...` call is
+forwarded by the Vite proxy (see `vite.config.mjs`) to the emulator's
+WebSocket port, and a 502 is Vite's answer when that connection fails. The
+real cause is printed in the `yarn start` terminal as:
+
+```txt
+[vite] http proxy error: /api/maintenance
+Error: connect ECONNREFUSED 127.0.0.1:2096
+```
+
+The proxy target is, in this order: the `AUTH_PROXY_TARGET` environment
+variable, then `"api.url"` from `public/configuration/renderer-config.json`,
+then `http://127.0.0.1:2096`. Every failed call also prints a one-line
+`[octane] /api proxy: ... failed (ECONNREFUSED)` diagnosis with the target.
+
+Check, in this order:
+
+- the emulator is running and its log shows
+  `WebSocket server started on 0.0.0.0:2096 (SSL: false)`;
+- `ws.host` is `0.0.0.0` (or `127.0.0.1`), not only the LAN IP;
+- `"api.url"` in `renderer-config.json` points at the emulator's real
+  address and port (the proxy follows it);
+- if that log line says `SSL: true` (an `ssl/cert.pem` + `privkey.pem` pair
+  next to the emulator), the port speaks TLS and the target must be
+  `https://...`.
+
+To override the target for one run:
+
+```sh
+# Windows cmd
+set AUTH_PROXY_TARGET=http://192.168.0.8:2096 && yarn start
+# PowerShell
+$env:AUTH_PROXY_TARGET='http://192.168.0.8:2096'; yarn start
+# Linux / macOS
+AUTH_PROXY_TARGET=http://192.168.0.8:2096 yarn start
+```
+
+`crypto.ws.enabled` and `crypto.ws.signing.enabled` only apply to the
+WebSocket session after the upgrade; they never affect these HTTP calls.
+The `net::ERR_ABORTED` next to the 502 is the login page cancelling the
+probe on unmount and is harmless.
+
+### Walking looks choppy or the speed seems to change
+
+`system.fps.max` in `renderer-config.json` caps the render loop, and the
+client used to default it to 24 when the key was missing. Pixi then ticks
+at an alternating 33/50 ms on a 60 Hz display, so avatars move in uneven
+steps and the walk animation is sampled irregularly. The default is now
+`0` (the display's refresh rate); set it explicitly if your config predates
+this:
+
+```json
+"system.fps.max": 0
+```
+
+Server-side, a room ticks every 500 ms and an avatar moves one tile per
+tick (two with `:fastwalk`), which the client interpolates over 500 ms.
+
 ### Custom badges `401 Unauthorized`
 
 This is normal if you are not logged in or if you open Octane from a different host.

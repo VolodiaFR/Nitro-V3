@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import sirv from 'sirv';
+import stripJsonComments from 'strip-json-comments';
 import { isValidJsonMode } from './scripts/json-mode.mjs';
 
 const legacyRendererRoot = resolve(import.meta.dirname, '..', 'renderer');
@@ -57,6 +58,43 @@ const octaneAssetsServer = () => ({
         }
     }
 });
+
+// Where the dev server forwards /api/* (login, maintenance, auth). The
+// emulator serves that HTTP API on its WebSocket port. Resolution order:
+//   1. AUTH_PROXY_TARGET (cmd: set AUTH_PROXY_TARGET=...; PowerShell:
+//      $env:AUTH_PROXY_TARGET='...'; the `VAR=value yarn start` form is
+//      Unix-only),
+//   2. "api.url" in public/configuration/renderer-config.json(c) — the same
+//      address the client itself is configured with,
+//   3. http://127.0.0.1:2096 (127.0.0.1 rather than localhost: Node may
+//      resolve localhost to ::1 while the emulator listens on IPv4 only).
+const readConfiguredApiUrl = () =>
+{
+    const configurationRoot = resolve(import.meta.dirname, 'public', 'configuration');
+
+    for(const fileName of [ 'renderer-config.json', 'renderer-config.jsonc' ])
+    {
+        const filePath = resolve(configurationRoot, fileName);
+
+        if(!existsSync(filePath)) continue;
+
+        try
+        {
+            const parsed = JSON.parse(stripJsonComments(readFileSync(filePath, 'utf8'), { trailingCommas: true }));
+            const apiUrl = (typeof parsed['api.url'] === 'string') ? parsed['api.url'].trim() : '';
+
+            if(/^https?:\/\//i.test(apiUrl)) return apiUrl.replace(/\/+$/, '');
+        }
+        catch
+        {
+            // Unparseable local config: the client reports that itself.
+        }
+    }
+
+    return '';
+};
+
+const authProxyTarget = process.env.AUTH_PROXY_TARGET || readConfiguredApiUrl() || 'http://127.0.0.1:2096';
 
 if(!existsSync(rendererRoot))
 {
@@ -131,9 +169,31 @@ export default defineConfig({
             ]
         },
         proxy: {
+            // Dev-only. Every failure to reach the emulator (not running, bound
+            // to another host, TLS on the port) surfaces in the browser as a
+            // 502 on /api/..., so the real cause is printed here instead.
             '/api': {
-                target: process.env.AUTH_PROXY_TARGET || 'http://localhost:2096',
+                target: authProxyTarget,
                 changeOrigin: true,
+                // Allow an https:// target with the emulator's self-signed
+                // ssl/cert.pem.
+                secure: false,
+                configure(proxy)
+                {
+                    proxy.on('error', (error, req) =>
+                    {
+                        const code = error?.code || error?.message || 'error';
+                        const hint = (code === 'ECONNREFUSED')
+                            ? 'nothing is listening there: start the emulator, or check ws.host / ws.port in its config.ini'
+                            : (/EPROTO|wrong version|ssl|tls/i.test(String(error?.message)))
+                                ? 'the port speaks TLS (emulator log says "SSL: true"): use an https:// target'
+                                : 'see the stack above';
+
+                        console.error(
+                            `[octane] /api proxy: ${ req?.url || '' } -> ${ authProxyTarget } failed (${ code }); ${ hint }. ` +
+                            'Override the target with AUTH_PROXY_TARGET or "api.url" in public/configuration/renderer-config.json.');
+                    });
+                }
             }
         }
     },
