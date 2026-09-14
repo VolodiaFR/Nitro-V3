@@ -258,19 +258,31 @@ connessione fallisce. La causa reale è nel terminale di `yarn start`:
 Error: connect ECONNREFUSED 127.0.0.1:2096
 ```
 
+Il target del proxy è, in quest'ordine: la variabile d'ambiente
+`AUTH_PROXY_TARGET`, poi `"api.url"` di `public/configuration/renderer-config.json`,
+poi `http://127.0.0.1:2096`. Ogni chiamata fallita stampa anche una riga
+`[octane] /api proxy: ... failed (ECONNREFUSED)` con il target usato.
+
 Controlla, in quest'ordine:
 
 - l'emulatore è avviato e nel log compare
   `WebSocket server started on 0.0.0.0:2096 (SSL: false)`;
 - `ws.host` è `0.0.0.0` (o `127.0.0.1`), non solo l'IP della LAN;
+- `"api.url"` in `renderer-config.json` punta all'indirizzo e alla porta reali
+  dell'emulatore (il proxy lo segue);
 - se quella riga dice `SSL: true` (una coppia `ssl/cert.pem` + `privkey.pem`
-  accanto all'emulatore), la porta parla TLS e deve farlo anche il proxy:
+  accanto all'emulatore), la porta parla TLS e il target deve essere `https://...`.
 
-  ```sh
-  AUTH_PROXY_TARGET=https://127.0.0.1:2096 yarn start
-  ```
+Per cambiare il target per un singolo avvio:
 
-- per puntare il proxy a un'altra macchina, imposta `AUTH_PROXY_TARGET` allo stesso modo.
+```sh
+# Windows cmd
+set AUTH_PROXY_TARGET=http://192.168.0.8:2096 && yarn start
+# PowerShell
+$env:AUTH_PROXY_TARGET='http://192.168.0.8:2096'; yarn start
+# Linux / macOS
+AUTH_PROXY_TARGET=http://192.168.0.8:2096 yarn start
+```
 
 `crypto.ws.enabled` e `crypto.ws.signing.enabled` riguardano solo la sessione
 WebSocket dopo l'upgrade; non toccano mai queste chiamate HTTP.

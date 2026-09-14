@@ -2,7 +2,7 @@ import { GetAvatarRenderManager, GetConfiguration } from '@octane/renderer';
 import { FC, useActionState, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { FaDice } from 'react-icons/fa';
-import { ClearRememberLogin, GetConfigurationValue, GetRememberLogin, persistAccessTokenFromPayload, StoreRememberLoginFromPayload } from '../../api';
+import { ClearRememberLogin, GetConfigurationValue, GetOptionalConfigurationValue, GetRememberLogin, persistAccessTokenFromPayload, StoreRememberLoginFromPayload } from '../../api';
 import flagEn from '../../assets/images/flag_icon/flag_icon_en.png';
 import flagEs from '../../assets/images/flag_icon/flag_icon_es.png';
 import flagFr from '../../assets/images/flag_icon/flag_icon_fr.png';
@@ -421,23 +421,46 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
     }, [healthUrl, healthMethod]);
 
     useEffect(() => {
-        let url = GetConfigurationValue<string>('login.maintenance.endpoint', '');
+        let url = interpolate(GetConfigurationValue<string>('login.maintenance.endpoint', ''));
+        let source = 'login.maintenance.endpoint';
 
         if (!url) {
+            const apiUrl = interpolate(GetConfigurationValue<string>('api.url', '')).replace(/\/+$/, '');
+
             try {
-                url = new URL('/api/maintenance', new URL(loginUrl, window.location.href)).toString();
+                if (/^https?:\/\//i.test(apiUrl)) {
+                    url = `${apiUrl}/api/maintenance`;
+                    source = `derived from api.url "${apiUrl}"`;
+                } else {
+                    url = new URL('/api/maintenance', new URL(loginUrl, window.location.href)).toString();
+                    source = `derived from login.endpoint "${loginUrl}"`;
+                }
             } catch {
                 return;
             }
         }
 
         const controller = new AbortController();
+        const reportProbeFailure = (detail: string) => {
+            if (!import.meta.env.DEV) return;
+
+            const raw = (key: string) => JSON.stringify(GetOptionalConfigurationValue<unknown>(key, undefined));
+
+            console.warn(
+                `[LoginView] maintenance probe ${url} (${source}) failed: ${detail}\n` +
+                `  config.urls=${raw('config.urls')}\n` +
+                `  login.maintenance.endpoint=${raw('login.maintenance.endpoint')} login.endpoint=${raw('login.endpoint')} api.url=${raw('api.url')}`);
+        };
 
         (async () => {
             try {
                 const response = await fetch(url, { credentials: 'omit', signal: controller.signal });
 
-                if (!response.ok) return;
+                if (!response.ok) {
+                    reportProbeFailure(`HTTP ${response.status}`);
+
+                    return;
+                }
 
                 const payload = (await response.json()) as { enabled?: unknown; message?: unknown };
 
@@ -447,8 +470,8 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
                     enabled: payload.enabled === true,
                     message: typeof payload.message === 'string' ? payload.message : ''
                 });
-            } catch {
-                // Offline or older emulator without the route: no banner.
+            } catch (error) {
+                if (!controller.signal.aborted) reportProbeFailure(String((error as Error)?.message ?? error));
             }
         })();
 

@@ -258,19 +258,32 @@ real cause is printed in the `yarn start` terminal as:
 Error: connect ECONNREFUSED 127.0.0.1:2096
 ```
 
+The proxy target is, in this order: the `AUTH_PROXY_TARGET` environment
+variable, then `"api.url"` from `public/configuration/renderer-config.json`,
+then `http://127.0.0.1:2096`. Every failed call also prints a one-line
+`[octane] /api proxy: ... failed (ECONNREFUSED)` diagnosis with the target.
+
 Check, in this order:
 
 - the emulator is running and its log shows
   `WebSocket server started on 0.0.0.0:2096 (SSL: false)`;
 - `ws.host` is `0.0.0.0` (or `127.0.0.1`), not only the LAN IP;
+- `"api.url"` in `renderer-config.json` points at the emulator's real
+  address and port (the proxy follows it);
 - if that log line says `SSL: true` (an `ssl/cert.pem` + `privkey.pem` pair
-  next to the emulator), the port speaks TLS and the proxy must too:
+  next to the emulator), the port speaks TLS and the target must be
+  `https://...`.
 
-  ```sh
-  AUTH_PROXY_TARGET=https://127.0.0.1:2096 yarn start
-  ```
+To override the target for one run:
 
-- to point the proxy at another machine, set `AUTH_PROXY_TARGET` the same way.
+```sh
+# Windows cmd
+set AUTH_PROXY_TARGET=http://192.168.0.8:2096 && yarn start
+# PowerShell
+$env:AUTH_PROXY_TARGET='http://192.168.0.8:2096'; yarn start
+# Linux / macOS
+AUTH_PROXY_TARGET=http://192.168.0.8:2096 yarn start
+```
 
 `crypto.ws.enabled` and `crypto.ws.signing.enabled` only apply to the
 WebSocket session after the upgrade; they never affect these HTTP calls.
