@@ -7,7 +7,6 @@ export * from './LayoutFurniIconImageView';
 export * from './LayoutFurniImageView';
 export * from './LayoutGiftTagView';
 export * from './LayoutGridItem';
-export * from './LayoutHabbiconImageView';
 export * from './LayoutImage';
 export * from './LayoutItemCountView';
 export * from './LayoutLoadingSpinnerView';

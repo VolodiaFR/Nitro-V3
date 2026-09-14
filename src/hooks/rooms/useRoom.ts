@@ -1,6 +1,5 @@
 import {
     ColorConverter,
-    ConfigurationItemStatesEvent,
     GetDesiredResolution,
     GetRenderer,
     GetRoomEngine,
@@ -38,21 +37,6 @@ import {
 import { useMessageEvent, useOctaneEvent, useUiEvent } from '../events';
 import { useWiredFurniOpacity } from './useWiredFurniOpacity';
 
-/** The four AIR 13 `ConfigurationItemStates` (1508) room flags. */
-export interface RoomConfigurationItemStates {
-    isHanditemControlBlocked: boolean;
-    chooserDisabled: boolean;
-    freeFurniMovementsEnabled: boolean;
-    invisibleFurni: boolean;
-}
-
-export const DEFAULT_CONFIGURATION_ITEM_STATES: RoomConfigurationItemStates = {
-    isHanditemControlBlocked: false,
-    chooserDisabled: false,
-    freeFurniMovementsEnabled: false,
-    invisibleFurni: false
-};
-
 const getViewportSize = () => {
     const viewport = window.visualViewport;
 
@@ -65,9 +49,6 @@ const getViewportSize = () => {
 const useRoomState = () => {
     const [roomSession, setRoomSession] = useState<IRoomSession>(null);
     const [isHandItemBlocked, setIsHandItemBlocked] = useState(false);
-    // AIR 13 ConfigurationItemStates (1508): the room flags class_1902 forwards
-    // to the room engine. `chooserDisabled` is what gates the `:chooser` command.
-    const [configurationItemStates, setConfigurationItemStates] = useState<RoomConfigurationItemStates>(DEFAULT_CONFIGURATION_ITEM_STATES);
     const [roomBackground, setRoomBackground] = useState<OctaneSprite>(null);
     const [roomFilter, setRoomFilter] = useState<OctaneAdjustmentFilter>(null);
     const [originalRoomBackgroundColor, setOriginalRoomBackgroundColor] = useState(0);
@@ -161,19 +142,6 @@ const useRoomState = () => {
                 setIsHandItemBlocked(false);
                 return;
         }
-    });
-
-    useMessageEvent<ConfigurationItemStatesEvent>(ConfigurationItemStatesEvent, (event) => {
-        const parser = event.getParser();
-
-        if (!parser) return;
-
-        setConfigurationItemStates({
-            isHanditemControlBlocked: parser.isHanditemControlBlocked,
-            chooserDisabled: parser.chooserDisabled,
-            freeFurniMovementsEnabled: parser.freeFurniMovementsEnabled,
-            invisibleFurni: parser.invisibleFurni
-        });
     });
 
     useMessageEvent<HanditemBlockStateMessageEvent>(HanditemBlockStateMessageEvent, (event) => {
@@ -373,7 +341,6 @@ const useRoomState = () => {
             setRoomBackground(null);
             setRoomFilter(null);
             setOriginalRoomBackgroundColor(0);
-            setConfigurationItemStates(DEFAULT_CONFIGURATION_ITEM_STATES);
 
             window.removeEventListener('resize', resize);
             viewport?.removeEventListener('resize', resize);
@@ -381,7 +348,7 @@ const useRoomState = () => {
         };
     }, [roomSession]);
 
-    return { roomSession, isHandItemBlocked, configurationItemStates };
+    return { roomSession, isHandItemBlocked };
 };
 
 export const useRoom = () => useSharedHook(useRoomState);

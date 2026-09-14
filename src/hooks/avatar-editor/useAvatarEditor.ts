@@ -64,8 +64,6 @@ const useAvatarEditorState = () => {
     const selectedColorParts = useMemo(() => {
         const colorSets: { [index: string]: IPartColor[] } = {};
 
-        if (!activeModel) return colorSets;
-
         for (const setType of Object.keys(selectedColors)) {
             if (!selectedColors[setType]) continue;
 
@@ -89,7 +87,7 @@ const useAvatarEditorState = () => {
         (setType: string, partId: number) => {
             if (!setType || !setType.length) return;
 
-            const category = activeModel?.find((category) => category.setType === setType);
+            const category = activeModel.find((category) => category.setType === setType);
 
             if (!category || !category.partItems || !category.partItems.length) return;
 
@@ -125,7 +123,7 @@ const useAvatarEditorState = () => {
         (setType: string, paletteId: number, colorId: number) => {
             if (!setType || !setType.length) return;
 
-            const category = activeModel?.find((category) => category.setType === setType);
+            const category = activeModel.find((category) => category.setType === setType);
 
             if (!category || !category.colorItems || !category.colorItems.length) return;
 

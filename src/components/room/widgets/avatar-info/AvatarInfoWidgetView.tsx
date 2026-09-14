@@ -21,7 +21,6 @@ import {
 import { Column, LayoutFurniIconImageView } from '../../../../common';
 import { useAvatarInfoWidget, useOctaneEvent, useRoom, useUiEvent } from '../../../../hooks';
 import { AvatarInfoPetTrainingPanelView } from './AvatarInfoPetTrainingPanelView';
-import { PetBreedingWidgetView } from './breeding/PetBreedingWidgetView';
 import { AvatarInfoRentableBotChatView } from './AvatarInfoRentableBotChatView';
 import { AvatarInfoUseProductConfirmView } from './AvatarInfoUseProductConfirmView';
 import { AvatarInfoUseProductView } from './AvatarInfoUseProductView';
@@ -269,7 +268,6 @@ export const AvatarInfoWidgetView: FC<{}> = (props) => {
             {rentableBotChatEvent && <AvatarInfoRentableBotChatView chatEvent={rentableBotChatEvent} onClose={() => setRentableBotChatEvent(null)} />}
             {confirmingProduct && <AvatarInfoUseProductConfirmView item={confirmingProduct} onClose={() => updateConfirmingProduct(null)} />}
             <AvatarInfoPetTrainingPanelView />
-            <PetBreedingWidgetView />
         </>
     );
 };

@@ -5,16 +5,6 @@ import furniVariableIcon from '../../../../assets/images/wired/var/icon_source_f
 import userVariableIcon from '../../../../assets/images/wired/var/icon_source_user.png';
 import { Text } from '../../../../common';
 import { useWired, useWiredTools } from '../../../../hooks';
-import {
-    ARRAY_VARIABLE_CONTEXT,
-    ARRAY_VARIABLE_FURNI,
-    ARRAY_VARIABLE_USER,
-    ArrayAddressEditor,
-    collectWiredArrayDefinitions,
-    createArrayAddress,
-    validAddress,
-    WiredArrayAddressData
-} from '../WiredArrayControls';
 import { WiredFurniSelectionSourceRow } from '../WiredFurniSelectionSourceRow';
 import { FURNI_SOURCES, sortWiredSourceOptions, USER_SOURCES, useAvailableUserSources } from '../WiredSourcesSelector';
 import { WiredVariablePicker } from '../WiredVariablePicker';
@@ -22,7 +12,6 @@ import {
     buildWiredVariablePickerEntries,
     createFallbackVariableEntry,
     flattenWiredVariablePickerEntries,
-    getCustomVariableItemId,
     normalizeVariableTokenFromWire
 } from '../WiredVariablePickerData';
 import { WiredConditionBaseView } from './WiredConditionBaseView';
@@ -38,12 +27,6 @@ interface IVariableDefinition {
     hasValue: boolean;
     itemId: number;
     name: string;
-    valueShape?: 'single' | 'array';
-    arrayFormat?: 'simple' | 'record';
-    arrayMode?: 'list' | 'slots';
-    maxEntries?: number;
-    fields?: { id: number; name: string; order: number }[];
-    permanent?: boolean;
 }
 
 const TARGET_USER = 0;
@@ -53,8 +36,6 @@ const SOURCE_TRIGGER = 0;
 const SOURCE_SELECTED = 100;
 const QUANTIFIER_ALL = 0;
 const QUANTIFIER_ANY = 1;
-const ARRAY_EXISTS = 0;
-const ARRAY_ENTRY_EXISTS = 1;
 
 const TARGET_BUTTONS: Array<{ key: ConditionVariableTargetType; icon: string; disabled?: boolean }> = [
     { key: 'furni', icon: furniVariableIcon },
@@ -120,8 +101,6 @@ export const WiredConditionHasVariableView: FC<WiredConditionHasVariableViewProp
     const [userSource, setUserSource] = useState(SOURCE_TRIGGER);
     const [furniSource, setFurniSource] = useState(SOURCE_TRIGGER);
     const [quantifier, setQuantifier] = useState(QUANTIFIER_ALL);
-    const [arrayExistenceMode, setArrayExistenceMode] = useState(ARRAY_EXISTS);
-    const [arrayAddress, setArrayAddress] = useState<WiredArrayAddressData>(createArrayAddress);
 
     const availableUserSources = useAvailableUserSources(trigger, USER_SOURCES);
     const orderedUserSources = useMemo(() => sortWiredSourceOptions(availableUserSources, 'users'), [availableUserSources]);
@@ -129,21 +108,6 @@ export const WiredConditionHasVariableView: FC<WiredConditionHasVariableViewProp
     const variableDefinitions = useMemo(
         () => getTargetDefinitions(targetType, userVariableDefinitions, furniVariableDefinitions, contextVariableDefinitions),
         [contextVariableDefinitions, furniVariableDefinitions, targetType, userVariableDefinitions]
-    );
-    const arrayDefinitions = useMemo(
-        () => collectWiredArrayDefinitions(furniVariableDefinitions, [], userVariableDefinitions, contextVariableDefinitions),
-        [contextVariableDefinitions, furniVariableDefinitions, userVariableDefinitions]
-    );
-    const arrayVariableType = targetType === 'furni' ? ARRAY_VARIABLE_FURNI : targetType === 'context' ? ARRAY_VARIABLE_CONTEXT : ARRAY_VARIABLE_USER;
-    const arrayDefinition = useMemo(
-        () =>
-            arrayDefinitions.find(
-                (definition) =>
-                    definition.variableType === arrayVariableType &&
-                    definition.itemId === getCustomVariableItemId(variableToken) &&
-                    definition.valueShape === 'array'
-            ),
-        [arrayDefinitions, arrayVariableType, variableToken]
     );
     const variableEntries = useMemo(() => buildWiredVariablePickerEntries(targetType, 'condition', variableDefinitions), [targetType, variableDefinitions]);
     const resolvedVariableEntries = useMemo(() => {
@@ -167,16 +131,8 @@ export const WiredConditionHasVariableView: FC<WiredConditionHasVariableViewProp
     }, [orderedFurniSources, orderedUserSources, targetType]);
 
     const sourceValue = targetType === 'furni' ? furniSource : targetType === 'user' ? userSource : SOURCE_TRIGGER;
-    const addressNeedsFurni =
-        !!arrayDefinition &&
-        arrayExistenceMode === ARRAY_ENTRY_EXISTS &&
-        arrayAddress.mode === 1 &&
-        arrayAddress.variableType === ARRAY_VARIABLE_FURNI &&
-        arrayAddress.variableSource === SOURCE_SELECTED;
     const requiresFurni =
-        (targetType === 'furni' && furniSource === SOURCE_SELECTED) || addressNeedsFurni
-            ? WiredFurniType.STUFF_SELECTION_OPTION_BY_ID
-            : WiredFurniType.STUFF_SELECTION_OPTION_NONE;
+        targetType === 'furni' && furniSource === SOURCE_SELECTED ? WiredFurniType.STUFF_SELECTION_OPTION_BY_ID : WiredFurniType.STUFF_SELECTION_OPTION_NONE;
     const selectionLimit = trigger?.maximumItemSelectionCount ?? 0;
 
     useEffect(() => {
@@ -189,16 +145,7 @@ export const WiredConditionHasVariableView: FC<WiredConditionHasVariableViewProp
         const nextQuantifier = intData.length > 3 && intData[3] === QUANTIFIER_ANY ? QUANTIFIER_ANY : QUANTIFIER_ALL;
 
         setTargetType(nextTargetType);
-        const stringParts = (trigger.stringData || '').split('\t', 2);
-        let arrayData: { existenceMode?: number; address?: Partial<WiredArrayAddressData> } = {};
-        try {
-            arrayData = stringParts[1] ? JSON.parse(stringParts[1]) : {};
-        } catch {
-            arrayData = {};
-        }
-        setVariableToken(normalizeVariableTokenFromWire(stringParts[0] || ''));
-        setArrayExistenceMode(arrayData.existenceMode === ARRAY_ENTRY_EXISTS ? ARRAY_ENTRY_EXISTS : ARRAY_EXISTS);
-        setArrayAddress({ ...createArrayAddress(), ...(arrayData.address ?? {}) });
+        setVariableToken(normalizeVariableTokenFromWire(trigger.stringData || ''));
         setUserSource(nextUserSource);
         setFurniSource(nextFurniSource);
         setQuantifier(nextQuantifier);
@@ -212,22 +159,19 @@ export const WiredConditionHasVariableView: FC<WiredConditionHasVariableViewProp
     }, [orderedUserSources, targetType, userSource]);
 
     const save = () => {
-        setStringParam(`${variableToken}\t${JSON.stringify({ existenceMode: arrayExistenceMode, address: arrayAddress, metadataVersion: 1 })}`);
+        setStringParam(variableToken);
         setIntParams([getTargetValue(targetType), userSource, furniSource, quantifier]);
 
         if (requiresFurni <= WiredFurniType.STUFF_SELECTION_OPTION_NONE) setFurniIds([]);
     };
 
-    const validate = () =>
-        !!variableToken.length && (!arrayDefinition || arrayExistenceMode === ARRAY_EXISTS || validAddress(arrayAddress, arrayDefinition, arrayDefinitions));
+    const validate = () => !!variableToken.length;
 
     const handleTargetChange = (nextTargetType: ConditionVariableTargetType) => {
         if (nextTargetType === targetType) return;
 
         setTargetType(nextTargetType);
         setVariableToken('');
-        setArrayExistenceMode(ARRAY_EXISTS);
-        setArrayAddress(createArrayAddress());
     };
 
     return (
@@ -304,22 +248,6 @@ export const WiredConditionHasVariableView: FC<WiredConditionHasVariableViewProp
                     selectedToken={variableToken}
                     onSelect={(entry) => setVariableToken(entry.token)}
                 />
-                {arrayDefinition && (
-                    <div className="flex flex-col gap-1">
-                        <Text bold>Check</Text>
-                        <select
-                            className="form-select form-select-sm"
-                            value={arrayExistenceMode}
-                            onChange={(event) => setArrayExistenceMode(Number(event.target.value))}
-                        >
-                            <option value={ARRAY_EXISTS}>Array exists</option>
-                            <option value={ARRAY_ENTRY_EXISTS}>Entry exists</option>
-                        </select>
-                        {arrayExistenceMode === ARRAY_ENTRY_EXISTS && (
-                            <ArrayAddressEditor definitions={arrayDefinitions} label="Index" value={arrayAddress} onChange={setArrayAddress} />
-                        )}
-                    </div>
-                )}
             </div>
         </WiredConditionBaseView>
     );

@@ -3,6 +3,7 @@ import {
     GetCustomRoomFilterMessageComposer,
     GetGuestRoomMessageComposer,
     GetSessionDataManager,
+    NavigatorSearchComposer,
     RemoveOwnRoomRightsRoomMessageComposer,
     RoomControllerLevel,
     RoomMuteComposer,
@@ -11,7 +12,7 @@ import {
     UpdateHomeRoomMessageComposer
 } from '@octane/renderer';
 import { FC, useEffect, useState } from 'react';
-import { DispatchUiEvent, GetConfigurationValue, GetGroupInformation, LocalizeText, ReportType, SendMessageComposer } from '../../../api';
+import { DispatchUiEvent, GetGroupInformation, LocalizeText, ReportType, SendMessageComposer } from '../../../api';
 import weblinkIcon from '../../../assets/images/navigator/air/icon-weblink.png';
 import removeRightsIcon from '../../../assets/images/navigator/air/remove-rights.png';
 import {
@@ -81,10 +82,8 @@ export const NavigatorRoomInfoView: FC<NavigatorRoomInfoViewProps> = (props) => 
                 return;
             }
             case 'navigator_search_tag':
-                // TagRenderer.tagProcedure -> HabboNewNavigator.performTagSearch:
-                // performSearch("hotel_view", "tag:" + tag) and open the navigator.
-                if (!value) return;
-                CreateLinkEvent(`navigator/tag/${value}`);
+                CreateLinkEvent(`navigator/search/${value}`);
+                SendMessageComposer(new NavigatorSearchComposer('hotel_view', `tag:${value}`));
                 return;
             case 'open_room_thumbnail_camera':
                 DispatchUiEvent(new RoomWidgetThumbnailEvent(RoomWidgetThumbnailEvent.TOGGLE_THUMBNAIL));
@@ -138,13 +137,6 @@ export const NavigatorRoomInfoView: FC<NavigatorRoomInfoViewProps> = (props) => 
 
     if (!navigatorData?.enteredGuestRoom) return null;
 
-    // RoomInfoViewCtrl.as shows the ranking row only for a positive rank,
-    // and only hotels that compute one switch it on.
-    const showRanking = GetConfigurationValue<boolean>('room.ranking.enabled', false) && navigatorData.enteredGuestRoom.ranking > 0;
-    // TagRenderer.refreshTags renders at most four "#tag" chips (hash tags on),
-    // placed between the ranking row and the description.
-    const roomTags = (navigatorData.enteredGuestRoom.tags ?? []).filter((tag) => !!tag).slice(0, 4);
-
     return (
         <OctaneCardView
             className="octane-room-info min-w-0 w-[min(236px,calc(100vw-16px))] max-w-[calc(100vw-16px)] max-h-[calc(100vh-16px)]"
@@ -175,26 +167,6 @@ export const NavigatorRoomInfoView: FC<NavigatorRoomInfoViewProps> = (props) => 
                     <Text small bold variant="muted">{LocalizeText('navigator.roomrating')}</Text>
                     <Text small>{navigatorData.currentRoomRating}</Text>
                 </Flex>
-                {showRanking && (
-                    <Flex alignItems="center" gap={1} className="octane-room-info__meta octane-room-info__ranking">
-                        <Text small bold variant="muted">{LocalizeText('navigator.roompopup.property.ranking')}</Text>
-                        <Text small>{navigatorData.enteredGuestRoom.ranking}</Text>
-                    </Flex>
-                )}
-                {roomTags.length > 0 && (
-                    <div className="octane-room-info__tags" aria-label={LocalizeText('navigator.tags')}>
-                        {roomTags.map((tag) => (
-                            <button
-                                key={tag}
-                                type="button"
-                                className="octane-room-info__tag"
-                                onClick={() => processAction('navigator_search_tag', tag)}
-                            >
-                                #{tag}
-                            </button>
-                        ))}
-                    </div>
-                )}
                 <Text className="octane-room-info__description">{navigatorData.enteredGuestRoom.description}</Text>
                 <LayoutRoomThumbnailView
                     className="octane-room-info__thumbnail"

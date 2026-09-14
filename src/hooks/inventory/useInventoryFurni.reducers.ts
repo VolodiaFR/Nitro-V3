@@ -2,7 +2,6 @@ import {
     CreateLinkEvent,
     FurnitureListAddOrUpdateEvent,
     FurnitureListItemParser,
-    FurnitureListRemoveMultipleEvent,
     FurnitureListRemovedEvent
 } from '@octane/renderer';
 import {
@@ -147,24 +146,8 @@ export const applyMergedFurnitureList = (state: GroupItem[], fragment: Map<numbe
     return newValue;
 };
 
-export const applyFurnitureListRemoved = (state: GroupItem[], event: FurnitureListRemovedEvent): GroupItem[] =>
-    removeFurnitureItemIds(state, [event.getParser().itemId]);
-
-/**
- * `FurniListRemoveMultiple` (2813): the official inventory drops the whole batch
- * in one pass (`HabboInventory.onFurniListRemoveMultiple`) instead of handling
- * one `FurniListRemove` per item.
- */
-export const applyFurnitureListRemoveMultiple = (state: GroupItem[], event: FurnitureListRemoveMultipleEvent): GroupItem[] =>
-    removeFurnitureItemIds(state, event.getParser().stripIds ?? []);
-
-const removeFurnitureItemIds = (state: GroupItem[], itemIds: number[]): GroupItem[] => {
-    if (!itemIds.length) return state;
-
-    return itemIds.reduce((current, itemId) => removeFurnitureItemId(current, itemId), state);
-};
-
-const removeFurnitureItemId = (state: GroupItem[], itemId: number): GroupItem[] => {
+export const applyFurnitureListRemoved = (state: GroupItem[], event: FurnitureListRemovedEvent): GroupItem[] => {
+    const parser = event.getParser();
     const newValue = [...state];
 
     let index = 0;
@@ -176,7 +159,7 @@ const removeFurnitureItemId = (state: GroupItem[], itemId: number): GroupItem[] 
         // this state updater twice (StrictMode / React Compiler purity checks). GroupItem.remove
         // reassigns the group's internal items, so mutating the input directly makes the second
         // pass a no-op (item already gone), React keeps that result, and the furni lingers.
-        if (!originalGroup.getItemById(itemId)) {
+        if (!originalGroup.getItemById(parser.itemId)) {
             index++;
 
             continue;
@@ -186,7 +169,7 @@ const removeFurnitureItemId = (state: GroupItem[], itemId: number): GroupItem[] 
         // reassigns the clone's own _items array (CloneObject shares the reference, but remove
         // copies-then-reassigns), so the original group keeps its items across a re-invocation.
         const group = CloneObject(originalGroup);
-        const item = group.remove(itemId);
+        const item = group.remove(parser.itemId);
 
         if (item && getPlacingItemId() === item.ref) {
             queueMicrotask(() => {

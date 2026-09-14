@@ -9,7 +9,6 @@ import { CatalogLayouGuildCustomFurniView } from './CatalogLayoutGuildCustomFurn
 import { CatalogLayouGuildForumView } from './CatalogLayoutGuildForumView';
 import { CatalogLayouGuildFrontpageView } from './CatalogLayoutGuildFrontpageView';
 import { CatalogLayoutInfoLoyaltyView } from './CatalogLayoutInfoLoyaltyView';
-import { CatalogLayoutInfoRentablesView } from './CatalogLayoutInfoRentablesView';
 import { CatalogLayoutInformationView } from './CatalogLayoutInformationView';
 import { CatalogLayoutPetCustomizationView } from './CatalogLayoutPetCustomizationView';
 import { CatalogLayoutPets2View } from './CatalogLayoutPets2View';
@@ -44,7 +43,6 @@ const layoutRenderers: Record<CatalogLayoutRenderer, FC<CatalogLayoutProps>> = {
     guildFrontpage: CatalogLayouGuildFrontpageView,
     info: CatalogLayoutInformationView,
     infoLoyalty: CatalogLayoutInfoLoyaltyView,
-    infoRentables: CatalogLayoutInfoRentablesView,
     marketplaceOwnItems: CatalogLayoutMarketplaceOwnItemsView,
     marketplacePublicItems: CatalogLayoutMarketplacePublicItemsView,
     petCustomization: CatalogLayoutPetCustomizationView,

@@ -1,10 +1,9 @@
-import { GetGuestRoomMessageComposer, GetRoomEngine, OctaneRenderTexture, RoomEngineEvent, ThumbnailStatusMessageEvent } from '@octane/renderer';
+import { GetGuestRoomMessageComposer, GetRoomEngine, OctaneRenderTexture, ThumbnailStatusMessageEvent } from '@octane/renderer';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { LocalizeText, RefreshRoomThumbnail, SendMessageComposer } from '../../../../api';
 import { LayoutMiniCameraView } from '../../../../common';
 import { RoomWidgetThumbnailEvent } from '../../../../events';
-import { useMessageEvent, useOctaneEvent, useNotification, useRoom, useUiEvent } from '../../../../hooks';
-import { isRoomZoomPhotoReady } from '../room-tools/roomZoom.helpers';
+import { useMessageEvent, useNotification, useRoom, useUiEvent } from '../../../../hooks';
 
 const THUMBNAIL_UPLOAD_TIMEOUT_MS = 10_000;
 
@@ -24,26 +23,12 @@ export const RoomThumbnailWidgetView: FC<{}> = (props) => {
 
     useEffect(() => clearUploadTimeout, [clearUploadTimeout]);
 
-    // Official RoomThumbnailCameraWidget.startTakingPhoto: the thumbnail
-    // camera refuses zoomed-out or flipped rooms with the same alert as the
-    // photo camera.
-    const openCamera = () => {
-        if (!roomSession) return;
-
-        if (!isRoomZoomPhotoReady(roomSession.roomId)) {
-            simpleAlert(LocalizeText('camera.zoom.missing.body'), null, null, null, LocalizeText('camera.zoom.missing.header'));
-            return;
-        }
-
-        clearUploadTimeout();
-        setIsSaving(false);
-        setIsVisible(true);
-    };
-
     useUiEvent([RoomWidgetThumbnailEvent.SHOW_THUMBNAIL, RoomWidgetThumbnailEvent.HIDE_THUMBNAIL, RoomWidgetThumbnailEvent.TOGGLE_THUMBNAIL], (event) => {
         switch (event.type) {
             case RoomWidgetThumbnailEvent.SHOW_THUMBNAIL:
-                openCamera();
+                clearUploadTimeout();
+                setIsSaving(false);
+                setIsVisible(true);
                 return;
             case RoomWidgetThumbnailEvent.HIDE_THUMBNAIL:
                 if (isSaving) return;
@@ -51,18 +36,9 @@ export const RoomThumbnailWidgetView: FC<{}> = (props) => {
                 return;
             case RoomWidgetThumbnailEvent.TOGGLE_THUMBNAIL:
                 if (isSaving) return;
-                if (isVisible) setIsVisible(false);
-                else openCamera();
+                setIsVisible((value) => !value);
                 return;
         }
-    });
-
-    // The official widget destroys itself as soon as the room zooms out or
-    // flips; an upload in flight is left to finish first.
-    useOctaneEvent<RoomEngineEvent>(RoomEngineEvent.ROOM_ZOOMED, (event) => {
-        if (!isVisible || isSaving || !roomSession || event.roomId !== roomSession.roomId) return;
-
-        if (!isRoomZoomPhotoReady(event.roomId)) setIsVisible(false);
     });
 
     const receiveTexture = async (texture: OctaneRenderTexture) => {

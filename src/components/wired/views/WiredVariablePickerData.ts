@@ -1,5 +1,5 @@
 export type WiredVariablePickerTarget = 'user' | 'furni' | 'global' | 'context';
-export type WiredVariablePickerUsage = 'give' | 'remove' | 'change-destination' | 'change-reference' | 'condition' | 'filter-main' | 'echo' | 'trigger';
+export type WiredVariablePickerUsage = 'give' | 'remove' | 'change-destination' | 'change-reference' | 'condition' | 'filter-main' | 'echo';
 
 export interface IWiredVariableDefinitionLike {
     availability: number;
@@ -7,9 +7,6 @@ export interface IWiredVariableDefinitionLike {
     isReadOnly?: boolean;
     itemId: number;
     name: string;
-    /** Set when the server reported a stored array schema it could not parse. */
-    unavailable?: boolean;
-    valueShape?: 'single' | 'array';
 }
 
 export interface IWiredVariablePickerEntry {
@@ -22,7 +19,6 @@ export interface IWiredVariablePickerEntry {
     hasValue: boolean;
     kind: 'internal' | 'custom';
     target: WiredVariablePickerTarget;
-    valueShape?: 'single' | 'array';
     children?: IWiredVariablePickerEntry[];
 }
 
@@ -37,9 +33,6 @@ const INTERNAL_VARIABLE_ALIASES: Record<string, string> = {
     '@position.y': '@position_y',
     '@effect': '@effect_id',
     '@handitems': '@handitem_id',
-    '@handitem': '@handitem_id',
-    '@team.score': '@team_score',
-    '@player.score': '@player_score',
     '@is_mute': '@is_muted',
     '@teams.red.score': '@team_red_score',
     '@teams.green.score': '@team_green_score',
@@ -106,19 +99,18 @@ const INTERNAL_VARIABLES: Record<'user' | 'furni' | 'global' | 'context', IInter
         createInternalMeta('@is_muted', false, true),
         createInternalMeta('@is_trading', false, true),
         createInternalMeta('@is_frozen', false, true),
-        createInternalMeta('@effect_id', true, true),
-        createInternalMeta('@team_score', true, true),
-        createInternalMeta('@player_score', true, true),
+        createInternalMeta('@effect_id', false, true),
+        createInternalMeta('@team_score', false, true),
         createInternalMeta('@team_color', false, true),
         createInternalMeta('@team_type', false, true),
         createInternalMeta('@sign', false, true),
         createInternalMeta('@dance', false, true),
         createInternalMeta('@is_idle', false, true),
-        createInternalMeta('@handitem_id', true, true),
+        createInternalMeta('@handitem_id', false, true),
         createInternalMeta('@position_x', true, true),
         createInternalMeta('@position_y', true, true),
         createInternalMeta('@direction', true, true),
-        createInternalMeta('@altitude', true, true),
+        createInternalMeta('@altitude', false, true),
         createInternalMeta('@favourite_group_id', false, true),
         createInternalMeta('@room_entry.method', false, true),
         createInternalMeta('@room_entry.teleport_id', false, true),
@@ -131,10 +123,10 @@ const INTERNAL_VARIABLES: Record<'user' | 'furni' | 'global' | 'context', IInter
         createInternalMeta('@furni_count', false, true),
         createInternalMeta('@user_count', false, true),
         createInternalMeta('@wired_timer', false, true),
-        createInternalMeta('@team_red_score', true, true),
-        createInternalMeta('@team_green_score', true, true),
-        createInternalMeta('@team_blue_score', true, true),
-        createInternalMeta('@team_yellow_score', true, true),
+        createInternalMeta('@team_red_score', false, true),
+        createInternalMeta('@team_green_score', false, true),
+        createInternalMeta('@team_blue_score', false, true),
+        createInternalMeta('@team_yellow_score', false, true),
         createInternalMeta('@team_red_size', false, true),
         createInternalMeta('@team_green_size', false, true),
         createInternalMeta('@team_blue_size', false, true),
@@ -180,12 +172,6 @@ const getNormalizedInternalTarget = (target: WiredVariablePickerTarget): 'user' 
 
 const getInternalSelectable = (usage: WiredVariablePickerUsage, meta: IInternalVariableMeta) => {
     switch (usage) {
-        case 'give':
-            return ['@effect_id', '@handitem_id', '@has_rights'].includes(meta.key);
-        case 'remove':
-            return meta.key === '@has_rights';
-        case 'trigger':
-            return meta.canUseAsDestination || meta.key === '@has_rights';
         case 'condition':
             return true;
         case 'filter-main':
@@ -202,20 +188,16 @@ const getInternalSelectable = (usage: WiredVariablePickerUsage, meta: IInternalV
 };
 
 const getCustomSelectable = (usage: WiredVariablePickerUsage, definition: IWiredVariableDefinitionLike) => {
-    // a stored schema the server could not parse cannot back any box until it is corrected
-    if (definition.unavailable) return false;
-
     switch (usage) {
-        case 'trigger':
         case 'condition':
         case 'filter-main':
             return true;
         case 'echo':
             return definition.name.includes('.');
         case 'change-reference':
-            return !!definition.hasValue || definition.valueShape === 'array';
+            return !!definition.hasValue;
         case 'change-destination':
-            return (!!definition.hasValue || definition.valueShape === 'array') && !definition.isReadOnly;
+            return !!definition.hasValue && !definition.isReadOnly;
         default:
             return !definition.isReadOnly;
     }
@@ -236,7 +218,7 @@ const createInternalEntry = (target: WiredVariablePickerTarget, usage: WiredVari
     displayLabel: meta.key,
     searchableText: meta.key,
     selectable: getInternalSelectable(usage, meta),
-    hasValue: usage === 'give' && meta.key === '@has_rights' ? false : meta.canUseAsReference,
+    hasValue: meta.canUseAsReference,
     kind: 'internal',
     target
 });
@@ -245,25 +227,17 @@ const createCustomEntry = (
     target: WiredVariablePickerTarget,
     usage: WiredVariablePickerUsage,
     definition: IWiredVariableDefinitionLike
-): IWiredVariablePickerEntry => {
-    const isCaptureProjection = definition.itemId < 0;
-    const token = isCaptureProjection
-        ? `${INTERNAL_TOKEN_PREFIX}${normalizeInternalVariableKey(definition.name)}`
-        : `${CUSTOM_TOKEN_PREFIX}${definition.itemId}`;
-
-    return {
-        id: token,
-        token,
-        label: definition.name,
-        displayLabel: definition.name,
-        searchableText: definition.name,
-        selectable: getCustomSelectable(usage, definition),
-        hasValue: !!definition.hasValue,
-        kind: isCaptureProjection ? 'internal' : 'custom',
-        target,
-        valueShape: definition.valueShape
-    };
-};
+): IWiredVariablePickerEntry => ({
+    id: `${CUSTOM_TOKEN_PREFIX}${definition.itemId}`,
+    token: `${CUSTOM_TOKEN_PREFIX}${definition.itemId}`,
+    label: definition.name,
+    displayLabel: definition.name,
+    searchableText: definition.name,
+    selectable: getCustomSelectable(usage, definition),
+    hasValue: !!definition.hasValue,
+    kind: 'custom',
+    target
+});
 
 const groupEntries = (entries: IWiredVariablePickerEntry[]) => {
     const groupedParents = new Map<string, { exact?: IWiredVariablePickerEntry; children: IWiredVariablePickerEntry[] }>();

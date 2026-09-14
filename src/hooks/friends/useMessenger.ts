@@ -1,27 +1,20 @@
 import {
-    AuthenticatedEvent,
     ConsoleReadReceiptEvent,
     ConsoleTypingComposer,
     FriendIsTypingEvent,
     FriendListUpdateEvent,
     GetSessionDataManager,
     MarkConsoleReadComposer,
-    MessengerMessageAckEvent,
-    MessengerMessageEvent,
-    MessengerMessageFailedEvent,
-    MessengerMessageType,
     NewConsoleMessageEvent,
     RoomInviteErrorEvent,
     RoomInviteEvent,
-    SendMessageComposer as SendMessageComposerPacket,
-    SendMessengerMessageComposer
+    SendMessageComposer as SendMessageComposerPacket
 } from '@octane/renderer';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { registerSharedHook, useSharedHook } from '@/state/useSharedHook';
 import {
     CloneObject,
     LocalizeText,
-    localizeWithFallback,
     MessengerIconState,
     MessengerThread,
     MessengerThreadChat,
@@ -53,8 +46,6 @@ const useMessengerState = () => {
 
     const [typingUserIds, setTypingUserIds] = useState<number[]>([]);
     const typingTimersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
-    const habbiconConfirmationId = useRef(0);
-    const pendingHabbicons = useRef(new Map<number, { thread: MessengerThread; id: number; timer: ReturnType<typeof setTimeout> }>());
     const historyMessageIdsRef = useRef<Map<number, Set<number>>>(new Map());
     const hiddenThreadIdsRef = useRef(hiddenThreadIds);
 
@@ -83,7 +74,7 @@ const useMessengerState = () => {
             thread.setRead();
 
             messageThreadsRef.current = [...messageThreadsRef.current, thread];
-            setMessageThreads((prevValue) => (prevValue.some((existing) => existing.threadId === thread.threadId) ? prevValue : [...prevValue, thread]));
+            setMessageThreads((prevValue) => prevValue.some((existing) => existing.threadId === thread.threadId) ? prevValue : [...prevValue, thread]);
         } else {
             const hiddenIndex = hiddenThreadIdsRef.current.indexOf(thread.threadId);
 
@@ -128,8 +119,7 @@ const useMessengerState = () => {
 
         const ownMessage = senderId === GetSessionDataManager().userId;
 
-        if (ownMessage && messageType === MessengerThreadChat.CHAT && messageText.length <= 255)
-            SendMessageComposer(new SendMessageComposerPacket(thread.participant.id, messageText));
+        if (ownMessage && messageText.length <= 255) SendMessageComposer(new SendMessageComposerPacket(thread.participant.id, messageText));
 
         let addedChatId = -1;
 
@@ -144,7 +134,13 @@ const useMessengerState = () => {
             if (ownMessage && thread.groups.length === 1) PlaySound(SoundNames.MESSENGER_NEW_THREAD);
 
             const isNotification = messageType === MessengerThreadChat.ROOM_INVITE || messageType === MessengerThreadChat.STATUS_NOTIFICATION;
-            const addedChat = thread.addMessage(isNotification ? null : senderId, messageText, secondsSinceSent, extraData, messageType);
+            const addedChat = thread.addMessage(
+                isNotification ? null : senderId,
+                messageText,
+                secondsSinceSent,
+                extraData,
+                messageType
+            );
 
             addedChatId = addedChat?.id || -1;
 
@@ -185,70 +181,6 @@ const useMessengerState = () => {
             });
         });
     };
-
-    const sendHabbiconMessage = (thread: MessengerThread, id: number) => {
-        if (!thread || id <= 0) return;
-
-        const confirmationId = ++habbiconConfirmationId.current;
-        const timer = setTimeout(() => {
-            if (!pendingHabbicons.current.delete(confirmationId)) return;
-            simpleAlert(localizeWithFallback('messenger.habbicon.failed', 'The Habicon could not be sent. Please try again.'));
-        }, 10000);
-        pendingHabbicons.current.set(confirmationId, { thread, id, timer });
-        SendMessageComposer(new SendMessengerMessageComposer(0, thread.participant.id, confirmationId, MessengerMessageType.Habbicon, String(id), ''));
-    };
-
-    const noteHabbiconMessage = (conversationId: number, messageId: number) => {
-        const known = historyMessageIdsRef.current.get(conversationId) ?? new Set<number>();
-        known.add(messageId);
-        historyMessageIdsRef.current.set(conversationId, known);
-    };
-
-    useMessageEvent<AuthenticatedEvent>(AuthenticatedEvent, () => {
-        for (const pending of pendingHabbicons.current.values()) clearTimeout(pending.timer);
-        pendingHabbicons.current.clear();
-    });
-
-    useMessageEvent<MessengerMessageAckEvent>(MessengerMessageAckEvent, (event) => {
-        const parser = event.getParser();
-        const pending = pendingHabbicons.current.get(parser.confirmationId);
-        if (!pending) return;
-
-        clearTimeout(pending.timer);
-        pendingHabbicons.current.delete(parser.confirmationId);
-        noteHabbiconMessage(parser.conversationId, parser.messageId);
-        sendMessage(pending.thread, GetSessionDataManager().userId, String(pending.id), 0, null, MessengerMessageType.Habbicon);
-    });
-
-    useMessageEvent<MessengerMessageFailedEvent>(MessengerMessageFailedEvent, (event) => {
-        const parser = event.getParser();
-        const pending = pendingHabbicons.current.get(parser.confirmationId);
-        if (!pending) return;
-
-        clearTimeout(pending.timer);
-        pendingHabbicons.current.delete(parser.confirmationId);
-        simpleAlert(localizeWithFallback('messenger.habbicon.failed', 'The Habicon could not be sent. Please try again.'));
-    });
-
-    useMessageEvent<MessengerMessageEvent>(MessengerMessageEvent, (event) => {
-        const message = event.getParser().message;
-        if (message.type !== MessengerMessageType.Habbicon) return;
-
-        const thread = getMessageThread(message.senderId);
-        if (!thread) return;
-
-        noteHabbiconMessage(message.conversationId, message.id);
-        sendMessage(thread, message.senderId, message.message, 0, message.metadata, MessengerMessageType.Habbicon);
-        if (thread.threadId === activeThreadId) SendMessageComposer(new MarkConsoleReadComposer(message.senderId));
-    });
-
-    useEffect(
-        () => () => {
-            for (const pending of pendingHabbicons.current.values()) clearTimeout(pending.timer);
-            pendingHabbicons.current.clear();
-        },
-        []
-    );
 
     const sendTypingStatus = (peerId: number, isTyping: boolean) => {
         if (!peerId || peerId <= 0) return;
@@ -341,14 +273,19 @@ const useMessengerState = () => {
                 if (!conversation || !persistentState.historyByConversation[conversation.id]?.loaded) continue;
 
                 const knownMessageIds = historyMessageIdsRef.current.get(conversation.id) ?? new Set<number>();
-                const historyMessages = selectMessages(persistentState, conversation.id).filter(
-                    (message) => message.id > 0 && !knownMessageIds.has(message.id)
-                );
+                const historyMessages = selectMessages(persistentState, conversation.id)
+                    .filter((message) => message.id > 0 && !knownMessageIds.has(message.id));
                 if (!historyMessages.length) continue;
 
                 const thread = CloneObject(currentThread);
                 for (const message of historyMessages) {
-                    thread.addMessage(message.senderId, message.message, Math.max(0, now - message.createdAt), message.metadata || null, message.type);
+                    thread.addMessage(
+                        message.senderId,
+                        message.message,
+                        Math.max(0, now - message.createdAt),
+                        message.metadata || null,
+                        message.type
+                    );
                     knownMessageIds.add(message.id);
                 }
                 thread.setRead();
@@ -372,17 +309,9 @@ const useMessengerState = () => {
 
     useMessageEvent<RoomInviteErrorEvent>(RoomInviteErrorEvent, (event) => {
         const parser = event.getParser();
-        const missed = parser.failedRecipients ?? [];
-
-        if (!missed.length) return;
-
-        // The names read better than the ids, and we have them in the friend list already.
-        const names = missed.map((id) => getFriend?.(id)?.name).filter(Boolean);
 
         simpleAlert(
-            names.length
-                ? localizeWithFallback('friendlist.invite.failed', 'Some friends did not get your invitation: %names%').replace('%names%', names.join(', '))
-                : localizeWithFallback('friendlist.invite.failed.count', 'Some friends did not get your invitation.'),
+            `Received room invite error: ${parser.errorCode},recipients: ${parser.failedRecipients.join(',')}`,
             NotificationAlertType.DEFAULT,
             null,
             null,
@@ -459,13 +388,7 @@ const useMessengerState = () => {
     }, [activeThreadId]);
 
     useEffect(() => {
-        setIconState(
-            selectMessengerIconState(
-                persistentState,
-                visibleThreads.length > 0,
-                visibleThreads.some((thread) => thread.unreadCount > 0)
-            )
-        );
+        setIconState(selectMessengerIconState(persistentState, visibleThreads.length > 0, visibleThreads.some(thread => thread.unreadCount > 0)));
     }, [persistentState, visibleThreads]);
 
     return {
@@ -477,7 +400,6 @@ const useMessengerState = () => {
         setActiveThreadId,
         closeThread,
         sendMessage,
-        sendHabbiconMessage,
         typingUserIds,
         sendTypingStatus
     };

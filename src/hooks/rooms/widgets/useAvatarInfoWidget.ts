@@ -11,9 +11,7 @@ import {
     RoomSessionPetStatusUpdateEvent,
     RoomSessionUserBadgesEvent,
     RoomSessionUserDataUpdateEvent,
-    RoomSessionUserFigureUpdateEvent,
-    WiredClickUserResponseEvent,
-    WiredUserSelectedComposer
+    RoomSessionUserFigureUpdateEvent
 } from '@octane/renderer';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -28,13 +26,11 @@ import {
     IAvatarInfo,
     IsOwnerOfFurniture,
     RoomWidgetUpdateRoomObjectEvent,
-    SendMessageComposer,
     UseProductItem
 } from '../../../api';
-import { useMessageEvent, useOctaneEvent, useUiEvent } from '../../events';
+import { useOctaneEvent, useUiEvent } from '../../events';
 import { useFriends } from '../../friends';
 import { useWired } from '../../wired';
-import { useWiredToolsState } from '../../wired-tools';
 import { useObjectDeselectedEvent, useObjectRollOutEvent, useObjectRollOverEvent, useObjectSelectedEvent } from '../engine';
 import { useRoom } from '../useRoom';
 import { applyFavouriteGroupUpdate, applyUserBadgesUpdate, applyUserFigureUpdate } from './avatarInfo.reducers';
@@ -63,11 +59,6 @@ const useAvatarInfoWidgetState = () => {
     const { friends = [] } = useFriends();
     const { selectObjectForWired = null } = useWired();
     const { roomSession = null } = useRoom();
-    // Official AIR 13: while the room has a "user clicks user" wired trigger the client asks the
-    // server before it opens the menu, so a wired box can swallow the click (WiredEnvironment 347,
-    // userSelected 3122, WiredClickUserResponse).
-    const { wiredEnvironment } = useWiredToolsState();
-    const pendingWiredUserClick = useRef<{ info: IAvatarInfo; roomIndex: number }>(null);
 
     const clearPendingAvatarInfo = () => {
         if (!pendingAvatarInfoTimeout.current) return;
@@ -165,13 +156,6 @@ const useAvatarInfoWidgetState = () => {
 
         if (category !== RoomObjectCategory.UNIT) {
             setAvatarInfo(info);
-            return;
-        }
-
-        if (wiredEnvironment.hasClickUserWired) {
-            pendingWiredUserClick.current = { roomIndex: objectId, info };
-
-            SendMessageComposer(new WiredUserSelectedComposer(objectId));
             return;
         }
 
@@ -341,17 +325,6 @@ const useAvatarInfoWidgetState = () => {
 
     useObjectSelectedEvent((event) => {
         getObjectInfo(event.id, event.category);
-    });
-
-    useMessageEvent<WiredClickUserResponseEvent>(WiredClickUserResponseEvent, (event) => {
-        const parser = event.getParser();
-        const pending = pendingWiredUserClick.current;
-
-        pendingWiredUserClick.current = null;
-
-        if (!parser.openMenu || !pending || pending.roomIndex !== parser.index) return;
-
-        setAvatarInfo(pending.info);
     });
 
     useObjectDeselectedEvent((event) => {

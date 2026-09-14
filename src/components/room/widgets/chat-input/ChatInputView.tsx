@@ -3,30 +3,17 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChatMessageTypeEnum, GetClubMemberLevel, GetConfigurationValue, LocalizeText, RoomWidgetUpdateChatInputContentEvent } from '../../../../api';
 import { Text } from '../../../../common';
-import {
-    useChatCommandSelector,
-    useChatInputWidget,
-    useChatMentions,
-    usePurchasableChatStyles,
-    useRoom,
-    useSessionInfo,
-    useUiEvent
-} from '../../../../hooks';
+import { useChatCommandSelector, useChatInputWidget, useChatMentions, useRoom, useSessionInfo, useUiEvent } from '../../../../hooks';
 import { ChatInputCommandSelectorView } from './ChatInputCommandSelectorView';
 import { ChatInputEmojiSelectorView } from './ChatInputEmojiSelectorView';
 import { ChatInputHabbiconSelectorView } from './ChatInputHabbiconSelectorView';
-import { ChatInputHelpButtonView } from './ChatInputHelpButtonView';
 import { ChatInputMentionSelectorView } from './ChatInputMentionSelectorView';
-import { ChatInputReminderHintView } from './ChatInputReminderHintView';
 import { ChatInputStyleSelectorView } from './ChatInputStyleSelectorView';
-import { markChatReminderDismissed, shouldShowChatReminder } from './chatInputReminder';
 
 export const ChatInputView: FC<{}> = (props) => {
     const [chatValue, setChatValue] = useState<string>('');
     const [portalTarget, setPortalTarget] = useState<HTMLElement>(null);
-    const [showReminder, setShowReminder] = useState<boolean>(() => shouldShowChatReminder(window.localStorage));
     const { chatStyleId = 0, updateChatStyleId = null } = useSessionInfo();
-    const { purchasableChatStyleIds = [] } = usePurchasableChatStyles();
     const {
         selectedUsername = '',
         floodBlocked = false,
@@ -125,18 +112,12 @@ export const ChatInputView: FC<{}> = (props) => {
                 } else {
                     setChatValue('');
                     sendChat(text, chatType, recipientName, chatStyleId);
-
-                    // The first line sent ends the new-user reminder for good.
-                    if (showReminder) {
-                        markChatReminderDismissed(window.localStorage);
-                        setShowReminder(false);
-                    }
                 }
             }
 
             setChatValue(append);
         },
-        [chatModeIdWhisper, chatModeIdShout, chatModeIdSpeak, maxChatLength, chatStyleId, setIsTyping, setIsIdle, sendChat, showReminder]
+        [chatModeIdWhisper, chatModeIdShout, chatModeIdSpeak, maxChatLength, chatStyleId, setIsTyping, setIsIdle, sendChat]
     );
 
     const updateChatInput = useCallback(
@@ -318,14 +299,8 @@ export const ChatInputView: FC<{}> = (props) => {
             if (!style.isHcOnly && !style.isAmbassadorOnly) styleIds.push(style.styleId);
         }
 
-        // RoomChatInputView.as:412-416: a style the account bought is offered even when the
-        // rank, club or ambassador rules above would have left it out.
-        for (const styleId of purchasableChatStyleIds) {
-            if (styleIds.indexOf(styleId) === -1) styleIds.push(styleId);
-        }
-
         return styleIds;
-    }, [purchasableChatStyleIds]);
+    }, []);
 
     useEffect(() => {
         document.body.addEventListener('keydown', onKeyDownEvent);
@@ -371,8 +346,7 @@ export const ChatInputView: FC<{}> = (props) => {
         // left cap via a negative margin. With justify-between, hiding an optional
         // trailing button (habbicons disabled) redistributes the slack between the
         // trigger and the bubble, exposing the cap and opening a gap.
-        <div className="octane-chat-input-container swf-chat-input group relative flex w-full items-center justify-start overflow-visible" data-help-bubble="chat_input">
-            <ChatInputReminderHintView visible={showReminder} />
+        <div className="octane-chat-input-container swf-chat-input relative flex w-full items-center justify-start overflow-visible">
             {commandSelectorVisible && (
                 <ChatInputCommandSelectorView
                     commands={filteredCommands}
@@ -416,7 +390,6 @@ export const ChatInputView: FC<{}> = (props) => {
             )}
             <ChatInputHabbiconSelectorView />
             <ChatInputEmojiSelectorView addChatEmoji={addChatEmoji} />
-            <ChatInputHelpButtonView />
         </div>,
         portalTarget
     );

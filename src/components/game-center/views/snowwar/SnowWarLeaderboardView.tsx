@@ -1,15 +1,9 @@
 import { FC, useEffect, useMemo, useState } from 'react';
 import { GetConfigurationValue, GetSessionDataManager, LocalizeText } from '../../../../api';
-import { LayoutAvatarImageView, LayoutBadgeImageView } from '../../../../common';
-import { SnowWarLeaderboardScope, useSnowWar } from '../../../../hooks';
+import { LayoutAvatarImageView } from '../../../../common';
+import { useSnowWar } from '../../../../hooks';
 
 const PAGE_SIZE = 8;
-
-const SCOPES: [SnowWarLeaderboardScope, string, string][] = [
-    [ 'all', 'snowwar.leaderboard.all', 'High Scores' ],
-    [ 'friends', 'snowwar.leaderboard.friends', "Friends' Scores" ],
-    [ 'group', 'snowwar.leaderboard.groups', 'Group Scores' ],
-];
 
 const localizeWithFallback = (key: string, fallback: string) =>
 {
@@ -31,7 +25,7 @@ export const SnowWarLeaderboardView: FC = () =>
     const [clock, setClock] = useState(Date.now());
     const ownUserId = GetSessionDataManager()?.userId ?? 0;
 
-    useEffect(() => setRowOffset(0), [leaderboard.weekly, leaderboard.scope, leaderboard.currentOffset]);
+    useEffect(() => setRowOffset(0), [leaderboard.weekly, leaderboard.friendsOnly, leaderboard.currentOffset]);
     useEffect(() =>
     {
         if (!leaderboard.weekly) return;
@@ -45,18 +39,14 @@ export const SnowWarLeaderboardView: FC = () =>
         };
     }, [leaderboard.weekly]);
 
-    // AIR LeaderboardTable.getVisibleEntries: the public tables pin the
-    // viewer's own row (their guild's row in the group tables) to the bottom
-    // when it falls outside the visible window.
-    const ownRowId = (leaderboard.scope === 'group') ? leaderboard.favouriteGroupId : ownUserId;
     const visibleEntries = useMemo(() =>
     {
         const page = leaderboard.entries.slice(rowOffset, rowOffset + PAGE_SIZE);
-        const own = leaderboard.entries.find(entry => entry.userId === ownRowId);
-        if (leaderboard.scope !== 'friends' && own && !page.some(entry => entry.userId === ownRowId))
+        const own = leaderboard.entries.find(entry => entry.userId === ownUserId);
+        if (!leaderboard.friendsOnly && own && !page.some(entry => entry.userId === ownUserId))
             return [ ...page.slice(0, PAGE_SIZE - 1), own ];
         return page;
-    }, [leaderboard.entries, leaderboard.scope, ownRowId, rowOffset]);
+    }, [leaderboard.entries, leaderboard.friendsOnly, ownUserId, rowOffset]);
 
     const resetDeadline = useMemo(() => Date.now() + (leaderboard.minutesUntilReset * 60000), [leaderboard.minutesUntilReset]);
     const minutesLeft = Math.max(0, Math.ceil((resetDeadline - clock) / 60000));
@@ -78,7 +68,7 @@ export const SnowWarLeaderboardView: FC = () =>
                         type="button"
                         className={`snowwar-leaderboard__tab ${leaderboard.weekly ? 'is-active' : ''}`}
                         style={{ backgroundImage: `url(${getAssetUrl(leaderboard.weekly ? 'left_blue' : 'left_black')})` }}
-                        onClick={() => requestLeaderboard(true, leaderboard.scope, 0)}>
+                        onClick={() => requestLeaderboard(true, leaderboard.friendsOnly, 0)}>
                         {leaderboard.weekly && leaderboard.currentOffset > 0
                             ? `${leaderboard.year}/${leaderboard.week}`
                             : localizeWithFallback('snowwar.leaderboard.this_week', 'This week')}
@@ -87,7 +77,7 @@ export const SnowWarLeaderboardView: FC = () =>
                         type="button"
                         className={`snowwar-leaderboard__tab ${!leaderboard.weekly ? 'is-active' : ''}`}
                         style={{ backgroundImage: `url(${getAssetUrl(!leaderboard.weekly ? 'right_blue' : 'right_black')})` }}
-                        onClick={() => requestLeaderboard(false, leaderboard.scope, 0)}>
+                        onClick={() => requestLeaderboard(false, leaderboard.friendsOnly, 0)}>
                         {localizeWithFallback('snowwar.leaderboard.all_time', 'All time')}
                     </button>
                 </div>
@@ -106,15 +96,10 @@ export const SnowWarLeaderboardView: FC = () =>
                         <div className="snowwar-leaderboard__empty">{localizeWithFallback('gamecenter.leaderboard_empty', 'No scores yet.')}</div>
                     )}
                     {!leaderboard.loading && visibleEntries.map(entry => (
-                        <div key={`${entry.userId}-${entry.rank}`} className={`snowwar-leaderboard__row ${entry.userId === ownRowId ? 'is-own' : ''}`}>
-                            {entry.userId === ownRowId && <img className="snowwar-leaderboard__highlight" src={getAssetUrl('leaderboard_highlighter')} alt="" />}
+                        <div key={`${entry.userId}-${entry.rank}`} className={`snowwar-leaderboard__row ${entry.userId === ownUserId ? 'is-own' : ''}`}>
+                            {entry.userId === ownUserId && <img className="snowwar-leaderboard__highlight" src={getAssetUrl('leaderboard_highlighter')} alt="" />}
                             <span className="snowwar-leaderboard__rank">{entry.rank}</span>
-                            <span className="snowwar-leaderboard__avatar">
-                                {/* AIR marks group rows with gender "g" and puts the badge code in the figure field. */}
-                                {entry.gender === 'g'
-                                    ? <LayoutBadgeImageView isGroup badgeCode={entry.figure} />
-                                    : <LayoutAvatarImageView figure={entry.figure} gender={entry.gender} direction={2} scale={0.5} />}
-                            </span>
+                            <span className="snowwar-leaderboard__avatar"><LayoutAvatarImageView figure={entry.figure} gender={entry.gender} direction={2} scale={0.5} /></span>
                             <span className="snowwar-leaderboard__name">{entry.name}</span>
                             <span className="snowwar-leaderboard__score">{entry.score}</span>
                             <img className="snowwar-leaderboard__divider" src={getAssetUrl('leaderboard_divider')} alt="" />
@@ -137,14 +122,14 @@ export const SnowWarLeaderboardView: FC = () =>
                             className="snowwar-leaderboard__week snowwar-leaderboard__week--newer"
                             disabled={leaderboard.currentOffset <= 0}
                             style={{ backgroundImage: `url(${getAssetUrl('scroll_left')})` }}
-                            onClick={() => requestLeaderboard(true, leaderboard.scope, leaderboard.currentOffset - 1)}
+                            onClick={() => requestLeaderboard(true, leaderboard.friendsOnly, leaderboard.currentOffset - 1)}
                             aria-label="Newer week" />
                         <button
                             type="button"
                             className="snowwar-leaderboard__week snowwar-leaderboard__week--older"
                             disabled={leaderboard.currentOffset >= leaderboard.maxOffset}
                             style={{ backgroundImage: `url(${getAssetUrl('scroll_right')})` }}
-                            onClick={() => requestLeaderboard(true, leaderboard.scope, leaderboard.currentOffset + 1)}
+                            onClick={() => requestLeaderboard(true, leaderboard.friendsOnly, leaderboard.currentOffset + 1)}
                             aria-label="Older week" />
                         {leaderboard.currentOffset === 0 && (
                             <div className="snowwar-leaderboard__reset">
@@ -157,19 +142,14 @@ export const SnowWarLeaderboardView: FC = () =>
                     </>
                 )}
 
-                {/* AIR snowwar_leaderboard: changeView / changeFriendsView / changeGroupView. */}
-                <div className="snowwar-leaderboard__views">
-                    {SCOPES.map(([ scope, key, fallback ]) => (
-                        <button
-                            key={scope}
-                            type="button"
-                            className={`snowwar-leaderboard__view ${leaderboard.scope === scope ? 'is-active' : ''}`}
-                            disabled={leaderboard.scope === scope}
-                            onClick={() => requestLeaderboard(leaderboard.weekly, scope, leaderboard.currentOffset)}>
-                            {localizeWithFallback(key, fallback)}
-                        </button>
-                    ))}
-                </div>
+                <button
+                    type="button"
+                    className="snowwar-leaderboard__view"
+                    onClick={() => requestLeaderboard(leaderboard.weekly, !leaderboard.friendsOnly, leaderboard.currentOffset)}>
+                    {leaderboard.friendsOnly
+                        ? localizeWithFallback('snowwar.leaderboard.all', 'Everyone')
+                        : localizeWithFallback('snowwar.leaderboard.friends', 'Friends')}
+                </button>
             </div>
         </div>
     );

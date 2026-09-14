@@ -3,7 +3,6 @@ import { LocalizeText, WiredFurniType } from '../../../../api';
 import { Text } from '../../../../common';
 import { useWired } from '../../../../hooks';
 import { OctaneInput } from '../../../../layout';
-import { parseVariableDefinition, serializeVariableDefinition, VariableDefinitionArrayEditor, WiredVariableDefinitionData } from '../WiredArrayControls';
 import { WiredExtraBaseView } from './WiredExtraBaseView';
 
 const AVAILABILITY_ROOM_ACTIVE = 1;
@@ -43,7 +42,7 @@ const handleVariableNameKeyDown = (event: React.KeyboardEvent<HTMLInputElement>,
 
 export const WiredExtraRoomVariableView: FC<{}> = () => {
     const { trigger = null, setIntParams = null, setStringParam = null } = useWired();
-    const [definition, setDefinition] = useState<WiredVariableDefinitionData>(() => parseVariableDefinition(''));
+    const [variableName, setVariableName] = useState('');
     const [availability, setAvailability] = useState(AVAILABILITY_ROOM_ACTIVE);
     const [currentValue, setCurrentValue] = useState(0);
 
@@ -52,9 +51,7 @@ export const WiredExtraRoomVariableView: FC<{}> = () => {
     useEffect(() => {
         if (!trigger) return;
 
-        const nextDefinition = parseVariableDefinition(trigger.stringData);
-
-        setDefinition({ ...nextDefinition, name: normalizeVariableName(nextDefinition.name) });
+        setVariableName(normalizeVariableName(trigger.stringData));
         const nextAvailability = trigger.intData.length > 0 ? trigger.intData[0] : AVAILABILITY_ROOM_ACTIVE;
 
         setAvailability(nextAvailability === AVAILABILITY_PERMANENT || nextAvailability === AVAILABILITY_SHARED ? nextAvailability : AVAILABILITY_ROOM_ACTIVE);
@@ -62,47 +59,23 @@ export const WiredExtraRoomVariableView: FC<{}> = () => {
     }, [trigger]);
 
     const save = () => {
-        setStringParam(serializeVariableDefinition({ ...definition, name: normalizeVariableName(definition.name) }));
+        setStringParam(normalizeVariableName(variableName));
         setIntParams([availability, normalizedCurrentValue]);
     };
 
-    const validate = () => {
-        if (!definition.name.length) return false;
-        if (definition.valueShape !== 'array') return true;
-        if (definition.maxEntries < 1 || definition.maxEntries > (definition.serverMaxEntries ?? 2048)) return false;
-        if (definition.arrayFormat !== 'record') return true;
-
-        const names = definition.fields.map((field) => field.name.toLowerCase());
-
-        return (
-            definition.fields.length >= 1 &&
-            definition.fields.length <= 8 &&
-            definition.fields.every((field) => !!field.name && !['found', 'index', 'length', 'occupied'].includes(field.name.toLowerCase())) &&
-            new Set(names).size === names.length
-        );
-    };
-
     return (
-        <WiredExtraBaseView
-            hasSpecialInput={true}
-            requiresFurni={WiredFurniType.STUFF_SELECTION_OPTION_NONE}
-            save={save}
-            validate={validate}
-            cardStyle={{ width: 400 }}
-        >
+        <WiredExtraBaseView hasSpecialInput={true} requiresFurni={WiredFurniType.STUFF_SELECTION_OPTION_NONE} save={save} cardStyle={{ width: 400 }}>
             <div className="flex flex-col gap-2">
                 <div className="flex flex-col gap-1">
                     <Text>{LocalizeText('wiredfurni.params.variables.variable_name')}</Text>
                     <OctaneInput
                         maxLength={MAX_NAME_LENGTH}
                         type="text"
-                        value={definition.name}
-                        onChange={(event) => setDefinition((current) => ({ ...current, name: normalizeVariableName(event.target.value) }))}
-                        onKeyDown={(event) => handleVariableNameKeyDown(event, (value) => setDefinition((current) => ({ ...current, name: value })))}
+                        value={variableName}
+                        onChange={(event) => setVariableName(normalizeVariableName(event.target.value))}
+                        onKeyDown={(event) => handleVariableNameKeyDown(event, setVariableName)}
                     />
                 </div>
-
-                <VariableDefinitionArrayEditor definition={definition} onChange={setDefinition} />
 
                 <div className="flex flex-col gap-1">
                     <Text>{LocalizeText('wiredfurni.params.variables.availability')}</Text>
@@ -138,12 +111,10 @@ export const WiredExtraRoomVariableView: FC<{}> = () => {
                     </label>
                 </div>
 
-                {definition.valueShape !== 'array' && (
-                    <div className="flex flex-col gap-1">
-                        <Text>{LocalizeText('wiredfurni.params.variables.inspection')}</Text>
-                        <Text>{LocalizeText('wiredfurni.params.variables.inspection.current_value', ['value'], [normalizedCurrentValue.toString()])}</Text>
-                    </div>
-                )}
+                <div className="flex flex-col gap-1">
+                    <Text>{LocalizeText('wiredfurni.params.variables.inspection')}</Text>
+                    <Text>{LocalizeText('wiredfurni.params.variables.inspection.current_value', ['value'], [normalizedCurrentValue.toString()])}</Text>
+                </div>
             </div>
         </WiredExtraBaseView>
     );

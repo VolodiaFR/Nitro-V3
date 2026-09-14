@@ -2,22 +2,29 @@ import { GetRoomEngine, RoomObjectCategory } from '@octane/renderer';
 import { useState } from 'react';
 import { GetRoomSession, RoomObjectItem } from '../../../api';
 import { useUserAddedEvent, useUserRemovedEvent } from '../engine';
-import { getUserChooserType } from './userChooser.helpers';
 
-// The official user chooser lists users, pets and bots and lets the type
-// dropdown narrow the list; the type is kept on the item for that filter.
+const resolveUserType = (userType: number): string => {
+    switch (userType) {
+        case 1:
+            return 'Habbo';
+        case 2:
+            return 'Pet';
+        case 3:
+            return 'Bot';
+        default:
+            return '-';
+    }
+};
+
 const buildUserItem = (roomIndex: number): RoomObjectItem | null => {
     if (roomIndex < 0) return null;
 
     const userData = GetRoomSession()?.userDataManager?.getUserDataByIndex(roomIndex);
 
     if (!userData) return null;
+    if (userData.type !== 1) return null;
 
-    const type = getUserChooserType(userData.type);
-
-    if (!type) return null;
-
-    return new RoomObjectItem(userData.roomIndex, RoomObjectCategory.UNIT, userData.name, 0, '-', type);
+    return new RoomObjectItem(userData.roomIndex, RoomObjectCategory.UNIT, userData.name, 0, '-', resolveUserType(userData.type));
 };
 
 /**

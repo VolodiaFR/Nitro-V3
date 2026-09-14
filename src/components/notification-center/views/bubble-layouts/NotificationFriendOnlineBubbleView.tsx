@@ -12,12 +12,10 @@ import { LayoutAvatarImageView } from '../../../../common';
 interface NotificationFriendOnlineBubbleViewProps {
     item: NotificationBubbleItem;
     onClose: () => void;
-    /** A friend going offline reuses the strip greyed out and without the messenger shortcut. */
-    offline?: boolean;
 }
 
 export const NotificationFriendOnlineBubbleView: FC<NotificationFriendOnlineBubbleViewProps> = (props) => {
-    const { item = null, onClose = null, offline = false } = props;
+    const { item = null, onClose = null } = props;
     const contentWidth = Math.max(43, Math.min(220, (item?.message?.length || 0) * 6 + 30));
     const bubbleWidth = contentWidth + 43;
 
@@ -30,7 +28,7 @@ export const NotificationFriendOnlineBubbleView: FC<NotificationFriendOnlineBubb
     const openMessenger = () => {
         const friendId = Number((item?.linkUrl || '').split('/').pop());
 
-        if (!offline && friendId > 0) OpenMessengerChat(friendId);
+        if (friendId > 0) OpenMessengerChat(friendId);
 
         onClose();
     };
@@ -42,8 +40,7 @@ export const NotificationFriendOnlineBubbleView: FC<NotificationFriendOnlineBubb
             exit={{ opacity: 0, x: 340 }}
             transition={{ duration: 0.3 }}
             className="octane-friendonline-notification"
-            data-testid={offline ? 'friendoffline-bubble' : 'friendonline-bubble'}
-            style={{ width: bubbleWidth, filter: offline ? 'grayscale(1) opacity(0.85)' : undefined }}
+            style={{ width: bubbleWidth }}
             onClick={openMessenger}
         >
             <div className="octane-friendonline-notification__content" style={{ width: contentWidth }}>

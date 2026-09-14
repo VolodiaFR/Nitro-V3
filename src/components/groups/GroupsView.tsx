@@ -3,7 +3,6 @@ import { FC, useEffect, useState } from 'react';
 import { SendMessageComposer, TryVisitRoom } from '../../api';
 import { useGroup, useMessageEvent } from '../../hooks';
 import { GroupCreatorView } from './views/GroupCreatorView';
-import { GroupHcRequiredView } from './views/GroupHcRequiredView';
 import { GroupInformationStandaloneView } from './views/GroupInformationStandaloneView';
 import { GroupManagerView } from './views/GroupManagerView';
 import { GroupMembersView } from './views/GroupMembersView';
@@ -52,7 +51,6 @@ export const GroupsView: FC<{}> = (props) => {
             {!isCreatorVisible && <GroupManagerView />}
             <GroupMembersView />
             <GroupInformationStandaloneView />
-            <GroupHcRequiredView />
         </>
     );
 };

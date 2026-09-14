@@ -1,10 +1,9 @@
-import { CreateLinkEvent, GetRoomEngine, PetRespectComposer, PetType, RoomObjectCategory, RoomObjectOperationType } from '@octane/renderer';
+import { CreateLinkEvent, PetRespectComposer, PetType } from '@octane/renderer';
 import { FC, useCallback, useEffect, useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
-import { ConvertSeconds, GetConfigurationValue, LocalizeText, localizeWithFallback, SendMessageComposer } from '../../../../../api';
+import { ConvertSeconds, GetConfigurationValue, LocalizeText, SendMessageComposer } from '../../../../../api';
 import { Button, Column, Flex, LayoutCounterTimeView, LayoutPetImageView, LayoutRarityLevelView, Text, UserProfileIconView } from '../../../../../common';
 import { useRoom, useSessionInfo } from '../../../../../hooks';
-import { getPetButtons } from './infostandPetButtons.helpers';
 
 // TypeScript interface for AvatarInfoPet
 interface AvatarInfoPet {
@@ -32,8 +31,6 @@ interface AvatarInfoPet {
     maximumTimeToLive?: number;
     rarityLevel?: number;
     isOwner?: boolean;
-    canRemovePet?: boolean;
-    roomIndex?: number;
 }
 
 interface InfoStandWidgetPetViewProps {
@@ -243,17 +240,6 @@ export const InfoStandWidgetPetView: FC<InfoStandWidgetPetViewProps> = ({ avatar
                     case 'pick_up':
                         roomSession?.pickupPet(avatarInfo.id);
                         break;
-                    // The official kick sends the same pickup message as the
-                    // owner's pick up; the server returns the pet to its owner.
-                    case 'kick':
-                        roomSession?.pickupPet(avatarInfo.id);
-                        break;
-                    case 'move':
-                        GetRoomEngine().processRoomObjectOperation(avatarInfo.roomIndex, RoomObjectCategory.UNIT, RoomObjectOperationType.OBJECT_MOVE);
-                        break;
-                    case 'rotate':
-                        GetRoomEngine().processRoomObjectOperation(avatarInfo.roomIndex, RoomObjectCategory.UNIT, RoomObjectOperationType.OBJECT_ROTATE_POSITIVE);
-                        break;
                 }
 
                 if (hideMenu) onClose();
@@ -264,29 +250,7 @@ export const InfoStandWidgetPetView: FC<InfoStandWidgetPetViewProps> = ({ avatar
         [avatarInfo, petRespectRemaining, respectPet, roomSession, onClose]
     );
 
-    const petButtons = getPetButtons({
-        isOwner: !!avatarInfo.isOwner,
-        canRemovePet: !!avatarInfo.canRemovePet,
-        isMonsterplant: avatarInfo.petType === PetType.MONSTERPLANT
-    });
-    const hasRoomIndex = Number.isInteger(avatarInfo.roomIndex) && avatarInfo.roomIndex >= 0;
-
     const buttons = [
-        {
-            action: 'move',
-            label: LocalizeText('infostand.button.move'),
-            condition: petButtons.move && hasRoomIndex
-        },
-        {
-            action: 'rotate',
-            label: LocalizeText('infostand.button.rotate'),
-            condition: petButtons.rotate && hasRoomIndex
-        },
-        {
-            action: 'kick',
-            label: localizeWithFallback('infostand.button.petkick', 'Kick'),
-            condition: petButtons.kick
-        },
         {
             action: 'buyfood',
             label: LocalizeText('infostand.button.buyfood'),
@@ -310,7 +274,7 @@ export const InfoStandWidgetPetView: FC<InfoStandWidgetPetViewProps> = ({ avatar
         {
             action: 'pick_up',
             label: LocalizeText('inventory.pets.pickup'),
-            condition: petButtons.pickUp
+            condition: avatarInfo.isOwner
         },
         {
             action: 'respect',

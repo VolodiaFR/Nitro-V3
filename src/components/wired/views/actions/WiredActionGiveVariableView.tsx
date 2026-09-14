@@ -11,10 +11,10 @@ import { CLICKED_USER_SOURCE, FURNI_SOURCES, sortWiredSourceOptions, USER_SOURCE
 import { WiredVariablePicker } from '../WiredVariablePicker';
 import {
     buildWiredVariablePickerEntries,
+    createCustomVariableToken,
     createFallbackVariableEntry,
     flattenWiredVariablePickerEntries,
     getCustomVariableItemId,
-    isInternalVariableToken,
     normalizeVariableTokenFromWire
 } from '../WiredVariablePickerData';
 import { WiredActionBaseView } from './WiredActionBaseView';
@@ -123,13 +123,17 @@ export const WiredActionGiveVariableView: FC<{}> = () => {
     useEffect(() => {
         if (!trigger) return;
 
-        const savedVariableToken = normalizeVariableTokenFromWire(trigger.stringData || '');
+        const parsedVariableItemId = parseInt((trigger.stringData || '').trim(), 10);
         const nextTargetType = normalizeTargetType(trigger.intData.length > 0 ? trigger.intData[0] : TARGET_USER);
 
         setSelectedTargetType(nextTargetType);
         setSelectedVariableToken(
-            savedVariableToken || normalizeVariableTokenFromWire(
-                nextTargetType === 'user' && (trigger.selectedItems?.length ?? 0) > 0 ? String(trigger.selectedItems[0]) : ''
+            normalizeVariableTokenFromWire(
+                !Number.isNaN(parsedVariableItemId) && parsedVariableItemId > 0
+                    ? String(parsedVariableItemId)
+                    : nextTargetType === 'user' && (trigger.selectedItems?.length ?? 0) > 0
+                      ? String(trigger.selectedItems[0])
+                      : ''
             )
         );
         setOverrideExisting(trigger.intData.length > 1 ? trigger.intData[1] === 1 : false);
@@ -140,7 +144,7 @@ export const WiredActionGiveVariableView: FC<{}> = () => {
 
     useEffect(() => {
         if (!selectedVariableDefinition) return;
-        if (selectedVariableDefinition.hasValue && selectedVariableDefinition.valueShape !== 'array') return;
+        if (selectedVariableDefinition.hasValue) return;
 
         setInitialValueInput('0');
     }, [selectedVariableDefinition]);
@@ -150,12 +154,12 @@ export const WiredActionGiveVariableView: FC<{}> = () => {
         const parsedInitialValue = parseInt(initialValueInput.trim(), 10);
         const variableItemId = getCustomVariableItemId(selectedVariableToken);
 
-        setStringParam(isInternalVariableToken(selectedVariableToken) ? selectedVariableToken : variableItemId ? String(variableItemId) : '');
+        setStringParam(variableItemId ? String(variableItemId) : '');
         setIntParams([targetValue, overrideExisting ? 1 : 0, Number.isFinite(parsedInitialValue) ? parsedInitialValue : 0, userSource, furniSource]);
         setFurniIds(selectedTargetType === 'furni' && furniSource === SOURCE_SELECTED ? [...furniIds] : []);
     };
 
-    const validate = () => !!selectedVariableDefinition?.selectable;
+    const validate = () => getCustomVariableItemId(selectedVariableToken) > 0;
 
     const requiresFurni =
         selectedTargetType === 'furni' ? WiredFurniType.STUFF_SELECTION_OPTION_BY_ID_BY_TYPE_OR_FROM_CONTEXT : WiredFurniType.STUFF_SELECTION_OPTION_NONE;
@@ -235,8 +239,8 @@ export const WiredActionGiveVariableView: FC<{}> = () => {
                         <div className="octane-wired__give-var-input-row">
                             <Text>{LocalizeText('wiredfurni.params.variables.value_settings.initial_value')}</Text>
                             <OctaneInput
-                                className={`octane-wired__give-var-number ${!selectedVariableDefinition?.hasValue || selectedVariableDefinition.valueShape === 'array' ? 'octane-wired__give-var-number--blurred' : ''}`}
-                                readOnly={!selectedVariableDefinition?.hasValue || selectedVariableDefinition.valueShape === 'array'}
+                                className={`octane-wired__give-var-number ${!selectedVariableDefinition?.hasValue ? 'octane-wired__give-var-number--blurred' : ''}`}
+                                readOnly={!selectedVariableDefinition?.hasValue}
                                 type="number"
                                 value={initialValueInput}
                                 onChange={(event) => setInitialValueInput(event.target.value)}
@@ -258,9 +262,7 @@ export const WiredActionGiveVariableView: FC<{}> = () => {
                             <div className="octane-wired__divider" />
 
                             <div className="octane-wired__give-var-section">
-                                <div className="octane-wired__give-var-section-title">
-                                    {localizeWithFallback('wiredfurni.params.sources.merged.title.variables_destination', 'Destinazione variabile:')}
-                                </div>
+                                <div className="octane-wired__give-var-section-title">{localizeWithFallback('wiredfurni.params.sources.merged.title.variables_destination', 'Destinazione variabile:')}</div>
                                 <div className="flex items-center gap-1">
                                     <Button
                                         disabled={resolvedSourceOptions.length <= 1}

@@ -1,8 +1,7 @@
-import { FlatCreatedEvent, NavigatorSearchComposer, NavigatorSearchEvent, NavigatorSearchResultSet, RoomSettingsSavedEvent } from '@octane/renderer';
+import { FlatCreatedEvent, NavigatorSearchComposer, NavigatorSearchEvent, NavigatorSearchResultSet } from '@octane/renderer';
 import { useEffect, useState } from 'react';
 import { SendMessageComposer } from '../../api';
 import { useMessageEvent } from '../events';
-import { shouldReloadRoomListAfterSettingsSaved } from './navigatorEnforceCategory';
 import { useNavigatorUiStore } from './navigatorUiStore';
 
 const NAVIGATOR_USER_COUNT_REFRESH_MS = 15000;
@@ -50,20 +49,10 @@ export const useNavigatorSearch = () => {
 
         setSearchResult(result);
         setIsFetching(false);
-        useNavigatorUiStore.getState().recordSearchContext(result.code, result.data ?? '');
     });
 
     useMessageEvent<FlatCreatedEvent>(FlatCreatedEvent, () => {
         if (!tabCode) return;
-
-        setIsFetching(true);
-        SendMessageComposer(new NavigatorSearchComposer(tabCode, filter));
-    });
-
-    // Official onRoomSettingsSaved -> reloadRoomList(5): saved settings
-    // (name, category, ...) refresh the "my rooms" list while it is open.
-    useMessageEvent<RoomSettingsSavedEvent>(RoomSettingsSavedEvent, () => {
-        if (!tabCode || !shouldReloadRoomListAfterSettingsSaved(isVisible, searchResult?.code ?? tabCode)) return;
 
         setIsFetching(true);
         SendMessageComposer(new NavigatorSearchComposer(tabCode, filter));
