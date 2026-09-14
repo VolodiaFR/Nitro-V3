@@ -246,6 +246,37 @@ ws.enabled=true
 ws.port=2096
 ```
 
+### `/api/maintenance` (or any `/api/...`) `502 (Bad Gateway)`
+
+Vite could not reach the emulator. In development every `/api/...` call is
+forwarded by the Vite proxy (see `vite.config.mjs`) to the emulator's
+WebSocket port, and a 502 is Vite's answer when that connection fails. The
+real cause is printed in the `yarn start` terminal as:
+
+```txt
+[vite] http proxy error: /api/maintenance
+Error: connect ECONNREFUSED 127.0.0.1:2096
+```
+
+Check, in this order:
+
+- the emulator is running and its log shows
+  `WebSocket server started on 0.0.0.0:2096 (SSL: false)`;
+- `ws.host` is `0.0.0.0` (or `127.0.0.1`), not only the LAN IP;
+- if that log line says `SSL: true` (an `ssl/cert.pem` + `privkey.pem` pair
+  next to the emulator), the port speaks TLS and the proxy must too:
+
+  ```sh
+  AUTH_PROXY_TARGET=https://127.0.0.1:2096 yarn start
+  ```
+
+- to point the proxy at another machine, set `AUTH_PROXY_TARGET` the same way.
+
+`crypto.ws.enabled` and `crypto.ws.signing.enabled` only apply to the
+WebSocket session after the upgrade; they never affect these HTTP calls.
+The `net::ERR_ABORTED` next to the 502 is the login page cancelling the
+probe on unmount and is harmless.
+
 ### Custom badges `401 Unauthorized`
 
 This is normal if you are not logged in or if you open Octane from a different host.
