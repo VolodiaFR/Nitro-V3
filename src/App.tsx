@@ -342,7 +342,12 @@ export const App: FC<{}> = (props) => {
                 await GetConfiguration().init();
                 bumpProgress(25, taskLabel('loader.waiting', 'Loading content...'));
 
-                GetTicker().maxFPS = GetConfiguration().getValue<number>('system.fps.max', 24);
+                // 0 = the display's refresh rate. A cap (the old 24 default) makes
+                // Pixi skip whole animation frames: on a 60 Hz display it ticks at an
+                // alternating 33/50 ms, so walking judders and the 24 Hz visual
+                // clock (system.fps.animation) is sampled unevenly. Animation cadence
+                // is time based, so a higher tick rate does not speed anything up.
+                GetTicker().maxFPS = GetConfiguration().getValue<number>('system.fps.max', 0);
                 OctaneLogger.LOG_DEBUG = GetConfiguration().getValue<boolean>('system.log.debug', true);
                 OctaneLogger.LOG_WARN = GetConfiguration().getValue<boolean>('system.log.warn', false);
                 OctaneLogger.LOG_ERROR = GetConfiguration().getValue<boolean>('system.log.error', false);
