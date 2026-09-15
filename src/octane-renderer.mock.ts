@@ -751,3 +751,90 @@ export class SnowWarPlayAgainComposer extends StubClass {}
 export class SnowWarGameChatComposer extends StubClass {}
 export class SnowWarJoinQueueComposer extends StubClass {}
 export class SnowWarLeaveQueueComposer extends StubClass {}
+
+// ---------------------------------------------------------------------------
+// Habbicons and inventory unseen tracking. useHabbiconCatalog and
+// useInventoryUnseenTracker register themselves as shared hooks, so every
+// test that renders inside SharedHookRegistry mounts them and needs these
+// symbols to exist.
+// ---------------------------------------------------------------------------
+
+export class UnseenItemsEvent extends MessageEvent {}
+export class AuthenticatedEvent extends MessageEvent {}
+export class HabbiconActionResultEvent extends MessageEvent {}
+export class HabbiconInfoEvent extends MessageEvent {}
+export class HabbiconShopDataEvent extends MessageEvent {}
+export class UserHabbiconStatusChangedEvent extends MessageEvent {}
+export class UserHabbiconsEvent extends MessageEvent {}
+
+export class BuyHabbiconCollectionComposer extends StubClass {}
+export class BuyHabbiconComposer extends StubClass {}
+export class ClaimHabbiconComposer extends StubClass {}
+export class FavoriteHabbiconComposer extends StubClass {}
+export class GetHabbiconInfoComposer extends StubClass {}
+export class GetHabbiconShopDataComposer extends StubClass {}
+export class UnfavoriteHabbiconComposer extends StubClass {}
+
+export class HabbiconData extends StubClass {}
+export class HabbiconCollectionData extends StubClass {}
+
+export enum HabbiconState {
+    NotOwned = 0,
+    Claimable = 1,
+    Owned = 2,
+    Favorite = 3,
+    Unavailable = 4,
+    Reward = 5
+}
+
+export enum HabbiconAction {
+    Buy = 0,
+    BuyCollection = 1,
+    Claim = 2,
+    Favorite = 3,
+    Unfavorite = 4
+}
+
+export enum HabbiconActionError {
+    None = 0,
+    Unavailable = 1,
+    NotEnoughCredits = 2,
+    NotEnoughActivityPoints = 3,
+    NotEligible = 4,
+    Failed = 5
+}
+
+export class HabbiconAssetManager {
+    private static _instance: HabbiconAssetManager = null;
+
+    public static getInstance(): HabbiconAssetManager {
+        if (!HabbiconAssetManager._instance) HabbiconAssetManager._instance = new HabbiconAssetManager();
+
+        return HabbiconAssetManager._instance;
+    }
+
+    public preload(): Promise<void> {
+        return Promise.resolve();
+    }
+
+    public getNameKey(_habbiconId: number): string {
+        return '';
+    }
+
+    public getDirection(_habbiconId: number): number {
+        return 0;
+    }
+
+    public getPreviewUrl(_habbiconId: number): string {
+        return '';
+    }
+
+    public getCollectionIconUrl(_collectionId: number, _outlined: boolean = false): string {
+        return '';
+    }
+}
+
+// Messenger message kinds: plain text has no enum value, habbicon stickers are 4.
+export enum MessengerMessageType {
+    Habbicon = 4
+}

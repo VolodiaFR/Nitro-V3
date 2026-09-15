@@ -15,6 +15,19 @@ vi.mock('../../../../hooks', () => ({
     useTranslation: vi.fn()
 }));
 
+// The catalog is a shared hook that suspends until its host mounts; these
+// tests render the messenger on its own, so give it a settled, disabled catalog.
+vi.mock('../../../../hooks/habbicons/useHabbiconCatalog', () => ({
+    useHabbiconCatalog: () => ({
+        enabled: false,
+        baseUrl: '',
+        favoriteIds: [],
+        sets: [],
+        setBookVisible: vi.fn(),
+        toggleFavorite: vi.fn()
+    })
+}));
+
 vi.mock('../../../../common/layout/avatarImageCrop', () => ({
     cropTransparentImageUrl: vi.fn(async () => 'data:image/png;base64,cropped')
 }));
