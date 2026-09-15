@@ -290,6 +290,22 @@ WebSocket session after the upgrade; they never affect these HTTP calls.
 The `net::ERR_ABORTED` next to the 502 is the login page cancelling the
 probe on unmount and is harmless.
 
+### Walking looks choppy or the speed seems to change
+
+`system.fps.max` in `renderer-config.json` caps the render loop, and the
+client used to default it to 24 when the key was missing. Pixi then ticks
+at an alternating 33/50 ms on a 60 Hz display, so avatars move in uneven
+steps and the walk animation is sampled irregularly. The default is now
+`0` (the display's refresh rate); set it explicitly if your config predates
+this:
+
+```json
+"system.fps.max": 0
+```
+
+Server-side, a room ticks every 500 ms and an avatar moves one tile per
+tick (two with `:fastwalk`), which the client interpolates over 500 ms.
+
 ### Custom badges `401 Unauthorized`
 
 This is normal if you are not logged in or if you open Octane from a different host.
