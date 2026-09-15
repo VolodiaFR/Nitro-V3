@@ -79,6 +79,8 @@
 .octane-login-view .login-drape {
     top: 0;
     left: 0;
+    width: 190px;
+    height: 220px;
     z-index: 3;
     object-fit: contain;
     object-position: left top;
@@ -112,8 +114,6 @@
     object-position: initial;
 }
 
-/* ─── Foreground Login Card Stack ─── */
-
 .octane-login-view .login-stack {
     position: absolute;
     top: 50%;
@@ -126,9 +126,43 @@
     max-width: calc(100vw - 32px);
     max-height: calc(100vh - 32px);
     padding: 4px;
-    overflow-y: auto;
     z-index: 50;
     pointer-events: auto;
+}
+
+@media (max-width: 900px), (max-height: 640px) {
+    .octane-login-view .login-stack {
+        overflow-y: auto;
+    }
+}
+
+.octane-login-view .login-auth-card,
+.octane-login-view .login-register-card,
+.octane-login-view .login-language-picker,
+.octane-login-view .login-widget-slot {
+    transform: translate(var(--login-drag-x, 0px), var(--login-drag-y, 0px));
+}
+
+.octane-login-view .login-drag-handle {
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.octane-login-view .is-dragging > .login-drag-handle,
+.octane-login-view .is-dragging .login-drag-handle {
+    cursor: grabbing;
+}
+
+.octane-login-view .is-dragging {
+    transition: none;
+}
+
+@media (max-width: 900px) {
+    .octane-login-view .login-drag-handle {
+        cursor: default;
+        touch-action: auto;
+    }
 }
 
 .octane-login-view .login-widgets {
@@ -1032,13 +1066,11 @@
     }
 }
 
-/* ─── Login News Window (Habbo flavour) ─── */
-
 .octane-login-view .login-news-stack {
     position: absolute;
     top: 25%;
     left: 8vw;
-    transform: translateY(-50%);
+    transform: translateY(-50%) translate(var(--login-drag-x, 0px), var(--login-drag-y, 0px));
     display: flex;
     flex-direction: column;
     width: 388px;
@@ -1049,6 +1081,10 @@
 .octane-login-view .news-card-wrapper {
     position: relative;
     animation: news-pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.octane-login-view .login-news-stack.is-dragging .news-card-wrapper > .octane-login-card.octane-news-card {
+    animation: none;
 }
 
 .octane-login-view .news-card-wrapper > .octane-login-card.octane-news-card {
@@ -1065,7 +1101,6 @@
     animation: news-glow 3.2s ease-in-out infinite;
 }
 
-/* Yellow Habbo-style ribbon title */
 .octane-login-card.octane-news-card .card-title.news-ribbon {
     position: absolute;
     top: -14px;
