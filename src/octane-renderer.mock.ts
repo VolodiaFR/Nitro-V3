@@ -197,7 +197,12 @@ class StubClass {
 export class OctaneAlphaFilter extends StubClass {}
 export class OctaneContainer extends StubClass {}
 export class OctaneRectangle {
-    constructor(public x = 0, public y = 0, public width = 0, public height = 0) {}
+    constructor(
+        public x = 0,
+        public y = 0,
+        public width = 0,
+        public height = 0
+    ) {}
 }
 export class OctaneSprite extends StubClass {}
 export class OctaneRenderTexture extends StubClass {}
@@ -254,6 +259,37 @@ export class FlatAccessDeniedMessageEvent extends MessageEvent {}
 export class GenericErrorEvent extends MessageEvent {}
 export class GetGuestRoomResultEvent extends MessageEvent {}
 export class ThumbnailStatusMessageEvent extends MessageEvent {}
+
+// Shared hooks mounted by the registry subscribe even when their feature is
+// disabled. Keep these on the same dispatchable event bus as the room events.
+export class UnseenItemsEvent extends MessageEvent {}
+export class AuthenticatedEvent extends MessageEvent {}
+export class GoToBreedingNestFailureEvent extends MessageEvent {}
+export class UserHabbiconsEvent extends MessageEvent {}
+export class UserHabbiconStatusChangedEvent extends MessageEvent {}
+export class HabbiconShopDataEvent extends MessageEvent {}
+export class HabbiconInfoEvent extends MessageEvent {}
+export class HabbiconActionResultEvent extends MessageEvent {}
+
+export const MessengerMessageType = {
+    Habbicon: 4
+} satisfies Pick<typeof import('@octane/renderer').MessengerMessageType, 'Habbicon'>;
+
+// An empty asset catalogue for jsdom: construction must not fetch images or
+// create Pixi textures. Check the browser boundary against the real SDK types.
+const emptyHabbiconAssets = {
+    preload: async () => {},
+    getNameKey: (_id: number) => '',
+    getDirection: (_id: number) => 0,
+    getCollectionIconUrl: (_id: number, _outlined = false) => '',
+    getPreviewUrl: (_id: number) => ''
+} satisfies Pick<import('@octane/renderer').HabbiconAssetManager, 'preload' | 'getNameKey' | 'getDirection' | 'getCollectionIconUrl' | 'getPreviewUrl'>;
+
+export class HabbiconAssetManager {
+    public static getInstance() {
+        return emptyHabbiconAssets;
+    }
+}
 
 // Mentions system — incoming events extend MessageEvent (they expose
 // getParser()); the request/mark composers are symbol-only constructors.
@@ -408,8 +444,12 @@ export class UserProfileComposer extends StubClass {}
 // verify the renderer/emulator field order without loading Pixi.
 class CatalogStudioComposerStub {
     private readonly data: unknown[];
-    constructor(...args: unknown[]) { this.data = args; }
-    public getMessageArray() { return this.data; }
+    constructor(...args: unknown[]) {
+        this.data = args;
+    }
+    public getMessageArray() {
+        return this.data;
+    }
 }
 
 export class CatalogStudioOpenSessionComposer extends CatalogStudioComposerStub {}
