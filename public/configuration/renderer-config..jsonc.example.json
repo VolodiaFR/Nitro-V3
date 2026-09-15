@@ -45,10 +45,7 @@
   "system.log.events": true,
   "system.log.packets": true,
   "system.fps.animation": 24,
-  // 0 = render at the display's refresh rate (smooth walking). Any cap makes
-  // Pixi drop frames unevenly; if you must limit it, use a divisor of the
-  // refresh rate (e.g. 30). Furni and avatar animation cadence stays time based.
-  "system.fps.max": 0,
+  "system.fps.max": 60,
   "system.pong.manually": true,
   "system.pong.interval.ms": 20000,
   "room.color.skip.transition": true,
@@ -58,6 +55,7 @@
   "habbicons.enabled": true,
 	"habbicons.asset.root": "/habbicons",
 	"habbicons.asset.hash": "default",
+  "chat.emoji.enabled": true,
   "timezone.settings": "Europe/Amsterdam",
   "youtube.publish.disabled": false,
   "user.badges.group.slot.enabled": true,
