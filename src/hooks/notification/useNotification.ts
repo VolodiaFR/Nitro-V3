@@ -9,6 +9,8 @@ import {
     GetLocalizationManager,
     GetRoomEngine,
     GetSessionDataManager,
+    GoToBreedingNestFailureEvent,
+    GoToBreedingNestFailureParser,
     HabboBroadcastMessageEvent,
     HotelClosedAndOpensEvent,
     HotelClosesAndWillOpenAtEvent,
@@ -30,8 +32,6 @@ import {
     WiredRewardResultMessageEvent
 } from '@octane/renderer';
 import { useCallback, useState } from 'react';
-import { AchievementNotificationBubbleItem } from '../../api/notification/AchievementNotificationBubbleItem';
-import { localizeWithFallback } from '../../api/utils/localizeWithFallback';
 import { registerSharedHook, useSharedHook } from '@/state/useSharedHook';
 import {
     GetConfigurationValue,
@@ -48,6 +48,8 @@ import {
     ProductImageUtility,
     TradingNotificationType
 } from '../../api';
+import { AchievementNotificationBubbleItem } from '../../api/notification/AchievementNotificationBubbleItem';
+import { localizeWithFallback } from '../../api/utils/localizeWithFallback';
 import { useMessageEvent } from '../events';
 import { useHotelAlertToastStore } from './hotelAlertToastStore';
 
@@ -455,6 +457,20 @@ const useNotificationStore = () => {
             null,
             null,
             LocalizeText('opening.hours.title')
+        );
+    });
+
+    useMessageEvent<GoToBreedingNestFailureEvent>(GoToBreedingNestFailureEvent, (event) => {
+        const reason = event.getParser().reason;
+        const needsFood = reason === GoToBreedingNestFailureParser.PET_TOO_TIRED_TO_BREED;
+        const page = GetConfigurationValue<string>(`gotobreedingnestfailure.catalogpage.${needsFood ? 'food' : 'nests'}`, '');
+
+        simpleAlert(
+            LocalizeText(`gotobreedingnestfailure.message.${reason}`),
+            NotificationAlertType.DEFAULT,
+            page ? `catalog/open/${page}` : null,
+            page ? LocalizeText(`gotobreedingnestfailure.${needsFood ? 'getfood' : 'getnest'}`) : null,
+            LocalizeText('gotobreedingnestfailure.caption')
         );
     });
 
