@@ -197,7 +197,12 @@ class StubClass {
 export class OctaneAlphaFilter extends StubClass {}
 export class OctaneContainer extends StubClass {}
 export class OctaneRectangle {
-    constructor(public x = 0, public y = 0, public width = 0, public height = 0) {}
+    constructor(
+        public x = 0,
+        public y = 0,
+        public width = 0,
+        public height = 0
+    ) {}
 }
 export class OctaneSprite extends StubClass {}
 export class OctaneRenderTexture extends StubClass {}
@@ -254,6 +259,37 @@ export class FlatAccessDeniedMessageEvent extends MessageEvent {}
 export class GenericErrorEvent extends MessageEvent {}
 export class GetGuestRoomResultEvent extends MessageEvent {}
 export class ThumbnailStatusMessageEvent extends MessageEvent {}
+
+// Shared hooks mounted by the registry subscribe even when their feature is
+// disabled. Keep these on the same dispatchable event bus as the room events.
+export class UnseenItemsEvent extends MessageEvent {}
+export class AuthenticatedEvent extends MessageEvent {}
+export class GoToBreedingNestFailureEvent extends MessageEvent {}
+export class UserHabbiconsEvent extends MessageEvent {}
+export class UserHabbiconStatusChangedEvent extends MessageEvent {}
+export class HabbiconShopDataEvent extends MessageEvent {}
+export class HabbiconInfoEvent extends MessageEvent {}
+export class HabbiconActionResultEvent extends MessageEvent {}
+
+export const MessengerMessageType = {
+    Habbicon: 4
+} satisfies Pick<typeof import('@octane/renderer').MessengerMessageType, 'Habbicon'>;
+
+// An empty asset catalogue for jsdom: construction must not fetch images or
+// create Pixi textures. Check the browser boundary against the real SDK types.
+const emptyHabbiconAssets = {
+    preload: async () => {},
+    getNameKey: (_id: number) => '',
+    getDirection: (_id: number) => 0,
+    getCollectionIconUrl: (_id: number, _outlined = false) => '',
+    getPreviewUrl: (_id: number) => ''
+} satisfies Pick<import('@octane/renderer').HabbiconAssetManager, 'preload' | 'getNameKey' | 'getDirection' | 'getCollectionIconUrl' | 'getPreviewUrl'>;
+
+export class HabbiconAssetManager {
+    public static getInstance() {
+        return emptyHabbiconAssets;
+    }
+}
 
 // Mentions system — incoming events extend MessageEvent (they expose
 // getParser()); the request/mark composers are symbol-only constructors.
@@ -408,8 +444,12 @@ export class UserProfileComposer extends StubClass {}
 // verify the renderer/emulator field order without loading Pixi.
 class CatalogStudioComposerStub {
     private readonly data: unknown[];
-    constructor(...args: unknown[]) { this.data = args; }
-    public getMessageArray() { return this.data; }
+    constructor(...args: unknown[]) {
+        this.data = args;
+    }
+    public getMessageArray() {
+        return this.data;
+    }
 }
 
 export class CatalogStudioOpenSessionComposer extends CatalogStudioComposerStub {}
@@ -751,3 +791,90 @@ export class SnowWarPlayAgainComposer extends StubClass {}
 export class SnowWarGameChatComposer extends StubClass {}
 export class SnowWarJoinQueueComposer extends StubClass {}
 export class SnowWarLeaveQueueComposer extends StubClass {}
+
+// ---------------------------------------------------------------------------
+// Habbicons and inventory unseen tracking. useHabbiconCatalog and
+// useInventoryUnseenTracker register themselves as shared hooks, so every
+// test that renders inside SharedHookRegistry mounts them and needs these
+// symbols to exist.
+// ---------------------------------------------------------------------------
+
+export class UnseenItemsEvent extends MessageEvent {}
+export class AuthenticatedEvent extends MessageEvent {}
+export class HabbiconActionResultEvent extends MessageEvent {}
+export class HabbiconInfoEvent extends MessageEvent {}
+export class HabbiconShopDataEvent extends MessageEvent {}
+export class UserHabbiconStatusChangedEvent extends MessageEvent {}
+export class UserHabbiconsEvent extends MessageEvent {}
+
+export class BuyHabbiconCollectionComposer extends StubClass {}
+export class BuyHabbiconComposer extends StubClass {}
+export class ClaimHabbiconComposer extends StubClass {}
+export class FavoriteHabbiconComposer extends StubClass {}
+export class GetHabbiconInfoComposer extends StubClass {}
+export class GetHabbiconShopDataComposer extends StubClass {}
+export class UnfavoriteHabbiconComposer extends StubClass {}
+
+export class HabbiconData extends StubClass {}
+export class HabbiconCollectionData extends StubClass {}
+
+export enum HabbiconState {
+    NotOwned = 0,
+    Claimable = 1,
+    Owned = 2,
+    Favorite = 3,
+    Unavailable = 4,
+    Reward = 5
+}
+
+export enum HabbiconAction {
+    Buy = 0,
+    BuyCollection = 1,
+    Claim = 2,
+    Favorite = 3,
+    Unfavorite = 4
+}
+
+export enum HabbiconActionError {
+    None = 0,
+    Unavailable = 1,
+    NotEnoughCredits = 2,
+    NotEnoughActivityPoints = 3,
+    NotEligible = 4,
+    Failed = 5
+}
+
+export class HabbiconAssetManager {
+    private static _instance: HabbiconAssetManager = null;
+
+    public static getInstance(): HabbiconAssetManager {
+        if (!HabbiconAssetManager._instance) HabbiconAssetManager._instance = new HabbiconAssetManager();
+
+        return HabbiconAssetManager._instance;
+    }
+
+    public preload(): Promise<void> {
+        return Promise.resolve();
+    }
+
+    public getNameKey(_habbiconId: number): string {
+        return '';
+    }
+
+    public getDirection(_habbiconId: number): number {
+        return 0;
+    }
+
+    public getPreviewUrl(_habbiconId: number): string {
+        return '';
+    }
+
+    public getCollectionIconUrl(_collectionId: number, _outlined: boolean = false): string {
+        return '';
+    }
+}
+
+// Messenger message kinds: plain text has no enum value, habbicon stickers are 4.
+export enum MessengerMessageType {
+    Habbicon = 4
+}

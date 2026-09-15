@@ -11,6 +11,8 @@ import {
     GroupMembershipAcceptComposer,
     GroupMembershipDeclineComposer,
     GroupMembersParser,
+    GroupMembersRefreshEvent,
+    GroupMemberUpdateEvent,
     GroupRank,
     GroupRemoveMemberComposer,
     ILinkEventTracker,
@@ -73,8 +75,6 @@ export const GroupMembersView: FC<{}> = (props) => {
 
         if (member.rank !== GroupRank.ADMIN) SendMessageComposer(new GroupAdminGiveComposer(membersData.groupId, member.id));
         else SendMessageComposer(new GroupAdminTakeComposer(membersData.groupId, member.id));
-
-        refreshMembers();
     };
 
     const acceptMembership = (member: GroupMemberParser) => {
@@ -86,8 +86,6 @@ export const GroupMembersView: FC<{}> = (props) => {
         setTimeout(() => pendingActionsRef.current.delete(key), 2000);
 
         SendMessageComposer(new GroupMembershipAcceptComposer(membersData.groupId, member.id));
-
-        refreshMembers();
     };
 
     const removeMemberOrDeclineMembership = (member: GroupMemberParser) => {
@@ -101,8 +99,6 @@ export const GroupMembersView: FC<{}> = (props) => {
         if (member.rank === GroupRank.REQUESTED) {
             SendMessageComposer(new GroupMembershipDeclineComposer(membersData.groupId, member.id));
 
-            refreshMembers();
-
             return;
         }
 
@@ -112,10 +108,26 @@ export const GroupMembersView: FC<{}> = (props) => {
 
     useMessageEvent<GroupMembersEvent>(GroupMembersEvent, (event) => {
         const parser = event.getParser();
+        const normalizedLevel = !parser.admin && levelId >= 2 && parser.level === 0;
+
+        if (parser.groupId !== groupId || parser.query !== searchQuery || parser.pageIndex !== pageId) return;
+        if (parser.level !== levelId && !normalizedLevel) return;
 
         setMembersData(parser);
         setLevelId(parser.level);
         setTotalPages(Math.ceil(parser.totalMembersCount / parser.pageSize));
+    });
+
+    useMessageEvent<GroupMemberUpdateEvent>(GroupMemberUpdateEvent, (event) => {
+        if (event.getParser().groupId !== groupId) return;
+
+        refreshMembers();
+    });
+
+    useMessageEvent<GroupMembersRefreshEvent>(GroupMembersRefreshEvent, (event) => {
+        if (event.getParser().groupId !== groupId) return;
+
+        refreshMembers();
     });
 
     useMessageEvent<GroupConfirmMemberRemoveEvent>(GroupConfirmMemberRemoveEvent, (event) => {
@@ -129,8 +141,6 @@ export const GroupMembersView: FC<{}> = (props) => {
             ),
             () => {
                 SendMessageComposer(new GroupRemoveMemberComposer(membersData.groupId, parser.userId));
-
-                refreshMembers();
             },
             null
         );
