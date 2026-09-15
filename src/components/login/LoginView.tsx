@@ -11,7 +11,9 @@ import flagNl from '../../assets/images/flag_icon/flag_icon_nl.png';
 import { applyTextTranslationLocale } from '../../hooks/translation/useTranslation';
 import { configFileUrl } from '../../secure-assets';
 import { LoginModal } from './components/LoginModal';
+import { LoginWidgetSlot } from './components/LoginWidgetSlot';
 import { NewsWindow } from './components/NewsWindow';
+import { useDraggableLoginWindow } from './hooks/useDraggableLoginWindow';
 import { RegistrationAvatarWardrobe } from './components/RegistrationAvatarWardrobe';
 import { TurnstileWidget } from './TurnstileWidget';
 import { t } from './utils/i18n';
@@ -230,6 +232,13 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
     const roomTemplatesUrl = GetConfigurationValue<string>('login.room_templates.endpoint', '/api/auth/room-templates');
     const forgotUrl = GetConfigurationValue<string>('login.forgot.endpoint', '/api/auth/forgot-password');
     const newsUrl = interpolate(GetConfigurationValue<string>('login.news.url', ''));
+    const dragHint = t('nitro.login.window.drag_hint', 'Drag to move, double-click to reset');
+    const languageWindowRef = useRef<HTMLDivElement>(null);
+    const authWindowRef = useRef<HTMLDivElement>(null);
+    const registerWindowRef = useRef<HTMLDivElement>(null);
+    const languageWindow = useDraggableLoginWindow('language', languageWindowRef);
+    const authWindow = useDraggableLoginWindow('auth', authWindowRef);
+    const registerWindow = useDraggableLoginWindow('register', registerWindowRef);
     const turnstileSiteKey = GetConfigurationValue<string>('login.turnstile.sitekey', '');
     const rawTurnstileEnabled = GetConfigurationValue<unknown>('login.turnstile.enabled', false);
     const turnstileEnabled =
@@ -733,24 +742,17 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
                         const description = typeof slot.conf.description === 'string' ? slot.conf.description : '';
 
                         return (
-                            <div key={slot.key} className="login-widget-slot" data-widget-type={slot.type}>
-                                {image && <img className="login-widget-image" src={image} alt="" draggable={false} />}
-                                <div className="login-widget-content">
-                                    <div className="login-widget-title">{title}</div>
-                                    {description && <div className="login-widget-description">{description}</div>}
-                                    {btnText && (
-                                        <button
-                                            type="button"
-                                            className="login-widget-button"
-                                            onClick={() => {
-                                                if (btnLink) window.location.href = btnLink;
-                                            }}
-                                        >
-                                            {btnText}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
+                            <LoginWidgetSlot
+                                key={slot.key}
+                                slotKey={String(slot.key)}
+                                type={slot.type}
+                                image={image}
+                                title={title}
+                                description={description}
+                                buttonText={btnText}
+                                buttonLink={btnLink}
+                                dragHint={dragHint}
+                            />
                         );
                     })}
                 </div>
@@ -758,8 +760,12 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
 
             {newsUrl && <NewsWindow newsUrl={newsUrl} />}
 
-            <div className="login-language-picker octane-card-shell">
-                <div className="login-language-header octane-card-header-shell">
+            <div
+                className={`login-language-picker octane-card-shell${languageWindow.dragging ? ' is-dragging' : ''}`}
+                ref={languageWindowRef}
+                style={languageWindow.style}
+            >
+                <div className="login-language-header octane-card-header-shell login-drag-handle" title={dragHint} {...languageWindow.handleProps}>
                     <label className="octane-card-title" htmlFor="login-language-select">
                         {localeApplying ? t('nitro.login.language.loading', 'Loading...') : t('nitro.login.language.title', 'Language')}
                     </label>
@@ -787,8 +793,12 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
             </div>
 
             <div className="login-stack">
-                <div className="octane-login-card octane-card-shell login-auth-card">
-                    <div className="card-title octane-card-header-shell">
+                <div
+                    className={`octane-login-card octane-card-shell login-auth-card${authWindow.dragging ? ' is-dragging' : ''}`}
+                    ref={authWindowRef}
+                    style={authWindow.style}
+                >
+                    <div className="card-title octane-card-header-shell login-drag-handle" title={dragHint} {...authWindow.handleProps}>
                         <span className="octane-card-title">{t('nitro.login.card.title', "What's your Habbo called?")}</span>
                     </div>
                     <form className="card-body octane-card-content-shell" action={submitLoginAction} autoComplete="on">
@@ -858,8 +868,12 @@ export const LoginView: FC<LoginViewProps> = ({ onAuthenticated, isEntering = fa
                     </form>
                 </div>
 
-                <div className="octane-login-card octane-card-shell login-register-card">
-                    <div className="card-title octane-card-header-shell">
+                <div
+                    className={`octane-login-card octane-card-shell login-register-card${registerWindow.dragging ? ' is-dragging' : ''}`}
+                    ref={registerWindowRef}
+                    style={registerWindow.style}
+                >
+                    <div className="card-title octane-card-header-shell login-drag-handle" title={dragHint} {...registerWindow.handleProps}>
                         <span className="octane-card-title">{t('nitro.login.firsttime.title', 'First time here?')}</span>
                     </div>
                     <div className="card-body octane-card-content-shell register-card-body">

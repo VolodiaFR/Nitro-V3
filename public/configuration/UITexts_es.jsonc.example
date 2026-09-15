@@ -343,6 +343,7 @@
     "nitro.login.server.offline.short": "El servidor del juego está desconectado actualmente. Inténtalo de nuevo en breve.",
     "nitro.login.maintenance.title": "Modo mantenimiento",
     "nitro.login.maintenance.notice": "El hotel está en mantenimiento en este momento. Solo el staff puede iniciar sesión ahora.",
+    "nitro.login.window.drag_hint": "Arrastra para mover, doble clic para restablecer",
     "nitro.login.server.offline.long": "El servidor del juego está desconectado actualmente, así que no se pueden crear cuentas nuevas. Inténtalo de nuevo en breve.",
     "nitro.login.server.checking": "Comprobando…",
     "nitro.login.server.retry": "Inténtalo de nuevo",
