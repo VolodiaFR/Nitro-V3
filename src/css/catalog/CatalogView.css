@@ -2241,6 +2241,13 @@
     margin: 0;
 }
 
+/* The selected tile paints an opaque plate through ::before at z-index 0, so the
+   habbicon has to be lifted over it the way the furni icon already is. */
+.octane-catalog-window .octane-catalog-grid-density-standard .layout-grid-item > .octane-catalog-grid-habbicon-icon {
+    position: relative;
+    z-index: 1;
+}
+
 /* AIR gridItem_with_price: multiContainer is painted after the 36px image at
    icon-local x=18/y=21, so the quantity badge sits above its lower-right edge. */
 .octane-catalog-window
