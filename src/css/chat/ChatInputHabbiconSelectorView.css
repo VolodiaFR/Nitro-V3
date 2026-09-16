@@ -790,14 +790,17 @@
 
 .habbicon-hub-reward,
 .habbicon-hub-buy-set {
-    --air-surface-image: url("../../assets/images/habbo-skin/slices/habbicon-reward-panel.png");
-    --air-surface-slice: 3;
-    --air-surface-width: 3px;
     position: absolute;
     width: 116px;
     padding: 9px 8px 8px;
     text-align: center;
     font-size: 11px;
+}
+
+.habbicon-hub-reward {
+    --air-surface-image: url("../../assets/images/habbo-skin/slices/habbicon-reward-panel.png");
+    --air-surface-slice: 3;
+    --air-surface-width: 3px;
 }
 
 .habbicon-hub-reward {
@@ -833,6 +836,7 @@
 .habbicon-hub-buy-set > strong {
     display: block;
     margin-bottom: 8px;
+    font-size: 12px;
 }
 .habbicon-hub-buy-row {
     position: absolute;
@@ -863,7 +867,7 @@
     border-image: var(--habbo-skin-shiny-green) 5 fill / 5px stretch;
     background: transparent;
     border-radius: 0;
-    color: #000;
+    color: #ffffff;
     font:
         12px HabboAirUbuntu,
         sans-serif;

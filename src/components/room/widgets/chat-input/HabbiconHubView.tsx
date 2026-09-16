@@ -236,7 +236,7 @@ export const HabbiconHubView: FC = () => {
                                                 )}
                                             </button>
                                             {activeSet.canBuy && !activeSet.reward.owned && !activeSet.reward.claimable && (
-                                                <div className="habbicon-hub-buy-set air-bitmap-surface">
+                                                <div className="habbicon-hub-buy-set">
                                                     <strong>{localizeWithFallback('habbicon_book.buy_set', 'Buy set')}</strong>
                                                     <div className="habbicon-hub-buy-row">
                                                         <HabbiconPrice {...activeSet} />
