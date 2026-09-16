@@ -12,7 +12,7 @@ import {
     RoomShakingEffect,
     RoomZoomEvent,
     TextureUtils,
-    UseHabbiconComposer
+    TriggerHabbiconComposer
 } from '@octane/renderer';
 import { useCallback } from 'react';
 import { ChatMessageTypeEnum, GetClubMemberLevel, GetConfigurationValue, LocalizeText, SendMessageComposer } from '../../../api';
@@ -120,7 +120,7 @@ export const useChatInputActions = () => {
                     case ':habbicon': {
                         const habbiconId = parseInt(secondPart);
 
-                        if(Number.isFinite(habbiconId) && habbiconId > 0) SendMessageComposer(new UseHabbiconComposer(habbiconId));
+                        if(Number.isFinite(habbiconId) && habbiconId > 0) SendMessageComposer(new TriggerHabbiconComposer(habbiconId));
 
                         return null;
                     }

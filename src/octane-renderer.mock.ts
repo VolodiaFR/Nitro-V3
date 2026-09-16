@@ -269,7 +269,9 @@ export class UserHabbiconsEvent extends MessageEvent {}
 export class UserHabbiconStatusChangedEvent extends MessageEvent {}
 export class HabbiconShopDataEvent extends MessageEvent {}
 export class HabbiconInfoEvent extends MessageEvent {}
-export class HabbiconActionResultEvent extends MessageEvent {}
+export class PurchaseOKMessageEvent extends MessageEvent {}
+export class PurchaseErrorMessageEvent extends MessageEvent {}
+export class PurchaseNotAllowedMessageEvent extends MessageEvent {}
 
 export const MessengerMessageType = {
     Habbicon: 4
@@ -825,13 +827,4 @@ export enum HabbiconAction {
     Claim = 2,
     Favorite = 3,
     Unfavorite = 4
-}
-
-export enum HabbiconActionError {
-    None = 0,
-    Unavailable = 1,
-    NotEnoughCredits = 2,
-    NotEnoughActivityPoints = 3,
-    NotEligible = 4,
-    Failed = 5
 }
