@@ -799,14 +799,6 @@ export class SnowWarLeaveQueueComposer extends StubClass {}
 // symbols to exist.
 // ---------------------------------------------------------------------------
 
-export class UnseenItemsEvent extends MessageEvent {}
-export class AuthenticatedEvent extends MessageEvent {}
-export class HabbiconActionResultEvent extends MessageEvent {}
-export class HabbiconInfoEvent extends MessageEvent {}
-export class HabbiconShopDataEvent extends MessageEvent {}
-export class UserHabbiconStatusChangedEvent extends MessageEvent {}
-export class UserHabbiconsEvent extends MessageEvent {}
-
 export class BuyHabbiconCollectionComposer extends StubClass {}
 export class BuyHabbiconComposer extends StubClass {}
 export class ClaimHabbiconComposer extends StubClass {}
@@ -842,39 +834,4 @@ export enum HabbiconActionError {
     NotEnoughActivityPoints = 3,
     NotEligible = 4,
     Failed = 5
-}
-
-export class HabbiconAssetManager {
-    private static _instance: HabbiconAssetManager = null;
-
-    public static getInstance(): HabbiconAssetManager {
-        if (!HabbiconAssetManager._instance) HabbiconAssetManager._instance = new HabbiconAssetManager();
-
-        return HabbiconAssetManager._instance;
-    }
-
-    public preload(): Promise<void> {
-        return Promise.resolve();
-    }
-
-    public getNameKey(_habbiconId: number): string {
-        return '';
-    }
-
-    public getDirection(_habbiconId: number): number {
-        return 0;
-    }
-
-    public getPreviewUrl(_habbiconId: number): string {
-        return '';
-    }
-
-    public getCollectionIconUrl(_collectionId: number, _outlined: boolean = false): string {
-        return '';
-    }
-}
-
-// Messenger message kinds: plain text has no enum value, habbicon stickers are 4.
-export enum MessengerMessageType {
-    Habbicon = 4
 }
