@@ -135,7 +135,9 @@ export const CatalogOfferTileView: FC<CatalogOfferTileViewProps> = (props) => {
                         }}
                     />
                 )}
-                {product.productType === ProductTypeEnum.HABBICON && <LayoutHabbiconImageView id={product.productClassId} />}
+                {product.productType === ProductTypeEnum.HABBICON && (
+                    <LayoutHabbiconImageView className="octane-catalog-grid-habbicon-icon" id={product.productClassId} />
+                )}
                 {product.productType === ProductTypeEnum.ROBOT && <LayoutAvatarImageView direction={2} figure={product.extraParam} fit />}
                 {offer.clubLevel > 0 && (
                     <span aria-label="Habbo Club" className="octane-catalog-grid-club-level" title="Habbo Club">
