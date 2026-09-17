@@ -8,14 +8,15 @@ import {
     GetHabbiconInfoComposer,
     GetHabbiconShopDataComposer,
     HabbiconAction,
-    HabbiconActionError,
-    HabbiconActionResultEvent,
     HabbiconAssetManager,
     HabbiconCollectionData,
     HabbiconData,
     HabbiconInfoEvent,
     HabbiconShopDataEvent,
     HabbiconState,
+    PurchaseErrorMessageEvent,
+    PurchaseNotAllowedMessageEvent,
+    PurchaseOKMessageEvent,
     RemoveLinkEventTracker,
     UnfavoriteHabbiconComposer,
     UserHabbiconStatusChangedEvent,
@@ -40,6 +41,19 @@ import { useInventoryUnseenTracker } from '../inventory/useInventoryUnseenTracke
 import { useNotification } from '../notification';
 
 type HabbiconPurchase = { id: number; collection: boolean };
+
+// AIR reports habbicon purchases through the catalog PurchaseOK / PurchaseError messages, so only
+// the three purchasing actions wait for a reply; favourites come back as a status change.
+const PURCHASE_ACTIONS = [HabbiconAction.Buy, HabbiconAction.BuyCollection, HabbiconAction.Claim];
+
+const PURCHASE_ERRORS = [
+    'Unavailable',
+    'This Habicon is unavailable.',
+    'You do not have enough credits.',
+    'You do not have enough activity points.',
+    'This Habicon cannot be claimed or purchased yet.',
+    'The action failed. Please try again.'
+];
 
 const useHabbiconCatalogState = () => {
     const enabled = GetConfigurationValue<boolean>('habbicons.enabled', false);
@@ -149,20 +163,20 @@ const useHabbiconCatalogState = () => {
     useMessageEvent<UserHabbiconsEvent>(UserHabbiconsEvent, (event) => {
         const parser = event.getParser();
         if (hasOwnedSnapshot.current) {
-            for (const item of parser.habbicons) notifyAcquisition(item.habbiconId, item.state, statesRef.current.get(item.habbiconId));
+            for (const item of parser.habbicons) notifyAcquisition(item.habbiconId, item.habbiconState, statesRef.current.get(item.habbiconId));
         }
         hasOwnedSnapshot.current = true;
-        statesRef.current = new Map(parser.habbicons.map((item) => [item.habbiconId, item.state]));
+        statesRef.current = new Map(parser.habbicons.map((item) => [item.habbiconId, item.habbiconState]));
         setStates(statesRef.current);
         setRecentIds(parser.recentHabbiconIds);
     });
 
     useMessageEvent<UserHabbiconStatusChangedEvent>(UserHabbiconStatusChangedEvent, (event) => {
-        const { habbiconId, state } = event.getParser();
+        const { habbiconId, habbiconState } = event.getParser();
         const previous = statesRef.current.get(habbiconId);
-        statesRef.current = new Map(statesRef.current).set(habbiconId, state);
+        statesRef.current = new Map(statesRef.current).set(habbiconId, habbiconState);
         setStates(statesRef.current);
-        notifyAcquisition(habbiconId, state, previous);
+        notifyAcquisition(habbiconId, habbiconState, previous);
     });
 
     useMessageEvent<HabbiconShopDataEvent>(HabbiconShopDataEvent, (event) => {
@@ -183,28 +197,27 @@ const useHabbiconCatalogState = () => {
         setStates(statesRef.current);
     });
 
-    useMessageEvent<HabbiconActionResultEvent>(HabbiconActionResultEvent, (event) => {
-        const result = event.getParser();
-        if (pendingRef.current?.action !== result.action || pendingRef.current?.id !== result.id) return;
+    useMessageEvent<PurchaseOKMessageEvent>(PurchaseOKMessageEvent, () => {
+        if (!pendingRef.current) return;
 
         pendingRef.current = null;
         setPending(null);
-        if (result.error === HabbiconActionError.None) {
-            setPurchase(null);
-            setError('');
-        } else {
-            const messages = [
-                'Unavailable',
-                'This Habicon is unavailable.',
-                'You do not have enough credits.',
-                'You do not have enough activity points.',
-                'This Habicon cannot be claimed or purchased yet.',
-                'The action failed. Please try again.'
-            ];
-            setError(localizeWithFallback(`habbicon.error.${result.error}`, messages[result.error] || messages[5]));
-        }
+        setPurchase(null);
+        setError('');
         refresh();
     });
+
+    const purchaseFailed = (code: number) => {
+        if (!pendingRef.current) return;
+
+        pendingRef.current = null;
+        setPending(null);
+        setError(localizeWithFallback(`habbicon.error.${code}`, PURCHASE_ERRORS[code] || PURCHASE_ERRORS[5]));
+    };
+
+    useMessageEvent<PurchaseErrorMessageEvent>(PurchaseErrorMessageEvent, (event) => purchaseFailed(event.getParser().code));
+
+    useMessageEvent<PurchaseNotAllowedMessageEvent>(PurchaseNotAllowedMessageEvent, (event) => purchaseFailed(event.getParser().code));
 
     const sets = useMemo<HabbiconSet[]>(
         () =>
@@ -286,9 +299,11 @@ const useHabbiconCatalogState = () => {
         if (pendingRef.current) return;
 
         setError('');
-        const next = { action, id };
-        pendingRef.current = next;
-        setPending(next);
+        if (PURCHASE_ACTIONS.includes(action)) {
+            const next = { action, id };
+            pendingRef.current = next;
+            setPending(next);
+        }
         const composers = [BuyHabbiconComposer, BuyHabbiconCollectionComposer, ClaimHabbiconComposer, FavoriteHabbiconComposer, UnfavoriteHabbiconComposer];
         SendMessageComposer(new composers[action](id));
     };
