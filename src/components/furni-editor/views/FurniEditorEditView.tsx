@@ -166,6 +166,130 @@ const FIELD_GROUP: Record<EditField, GroupId> = {
     description: 'names'
 };
 
+// Types too generic to be inferred from a classname token: "default" would match
+// half the hotel and "multiheight" is a behaviour, not a name.
+const UNSUGGESTABLE_TYPES = new Set(['default', 'multiheight']);
+
+export const suggestInteractionType = (classname: string, registered: string[]): { type: string; reason: string } | null => {
+    const name = classname.trim().toLowerCase();
+    if (!name) return null;
+    const candidates = registered.filter((type) => !UNSUGGESTABLE_TYPES.has(type.toLowerCase()));
+
+    const exact = candidates.find((type) => type.toLowerCase() === name);
+    if (exact) return { type: exact, reason: 'classname is a registered type' };
+
+    const prefix = candidates
+        .filter((type) => name.startsWith(`${type.toLowerCase()}_`) || name.startsWith(`${type.toLowerCase()}-`))
+        .sort((a, b) => b.length - a.length)[0];
+    if (prefix) return { type: prefix, reason: 'classname starts with it' };
+
+    const tokens = name.split(/[_\-*]/).filter(Boolean);
+    const token = candidates.filter((type) => tokens.includes(type.toLowerCase())).sort((a, b) => b.length - a.length)[0];
+    if (token) return { type: token, reason: 'classname contains it' };
+
+    return null;
+};
+
+interface InteractionTypePickerProps {
+    id: string;
+    value: string;
+    options: string[];
+    className: string;
+    onChange: (value: string) => void;
+}
+
+// A text field with a filtered list underneath: typing narrows the registered
+// types, Enter takes the first match, Escape closes. The stored value is kept
+// as typed even when nothing matches, so an unregistered type stays visible.
+const InteractionTypePicker: FC<InteractionTypePickerProps> = ({ id, value, options, className, onChange }) => {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState<string | null>(null);
+    const shown = query ?? value;
+    const needle = shown.trim().toLowerCase();
+    const matches = useMemo(() => {
+        const list = needle ? options.filter((type) => type.toLowerCase().includes(needle)) : options;
+        return list.slice(0, 12);
+    }, [options, needle]);
+
+    const pick = (type: string) => {
+        onChange(type);
+        setQuery(null);
+        setOpen(false);
+    };
+
+    return (
+        <div className="relative">
+            <input
+                id={id}
+                role="combobox"
+                aria-label={FIELD_LABELS.interactionType}
+                aria-expanded={open}
+                aria-autocomplete="list"
+                aria-controls={`${id}-list`}
+                className={`${className} font-mono pr-7`}
+                value={shown}
+                placeholder="none"
+                spellCheck={false}
+                onFocus={() => setOpen(true)}
+                onBlur={() => {
+                    if (query !== null) onChange(query.trim());
+                    setQuery(null);
+                    setOpen(false);
+                }}
+                onChange={(e) => {
+                    setQuery(e.target.value);
+                    setOpen(true);
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' && matches.length && open) {
+                        e.preventDefault();
+                        pick(matches[0]);
+                    } else if (e.key === 'Escape' && open) {
+                        e.stopPropagation();
+                        setQuery(null);
+                        setOpen(false);
+                    }
+                }}
+            />
+            <span aria-hidden="true" className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none">
+                ▾
+            </span>
+            {open && (
+                <ul
+                    id={`${id}-list`}
+                    role="listbox"
+                    className="absolute z-20 mt-0.5 left-0 right-0 max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-[#ffffff] shadow-lg text-[11px] font-mono py-0.5"
+                >
+                    {!needle && (
+                        <li
+                            role="option"
+                            aria-selected={value === ''}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => pick('')}
+                            className="px-2 py-1 text-slate-400 hover:bg-slate-100 cursor-pointer"
+                        >
+                            none (default behaviour)
+                        </li>
+                    )}
+                    {matches.map((type) => (
+                        <li
+                            key={type}
+                            role="option"
+                            aria-selected={type === value}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => pick(type)}
+                            className={`px-2 py-1 cursor-pointer hover:bg-slate-100 ${type === value ? 'text-primary font-semibold' : 'text-slate-700'}`}
+                        >
+                            {type}
+                        </li>
+                    ))}
+                    {needle && matches.length === 0 && <li className="px-2 py-1 text-amber-700">No registered type matches</li>}
+                </ul>
+            )}
+        </div>
+    );
+};
+
 interface FurniPreviewProps {
     item: FurniDetail;
     width: number;
@@ -439,6 +563,15 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
         return type !== '' && !interactions.some((known) => known.toLowerCase() === type);
     }, [form.interactionType, interactions]);
     const isValid = useMemo(() => Object.keys(validation).length === 0, [validation]);
+
+    // Most classnames carry their interaction type: wired boxes are named after
+    // it, and many furni start with or contain a registered type. Offer that as
+    // a one-click suggestion whenever it differs from what is stored.
+    const suggestedType = useMemo(() => {
+        const match = suggestInteractionType(item.itemName, interactions);
+        if (!match || match.type.toLowerCase() === form.interactionType.trim().toLowerCase()) return null;
+        return match;
+    }, [item.itemName, interactions, form.interactionType]);
 
     const changedByGroup = useMemo(() => {
         const counts: Record<GroupId, number> = { names: 0, behaviour: 0, placement: 0, catalogue: 0, data: 0 };
@@ -1066,21 +1199,24 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                         <Tip field="interactionType" />
                                         {revert('interactionType')}
                                     </label>
-                                    <select
+                                    <InteractionTypePicker
                                         id="furni-editor-interactionType"
-                                        aria-label={FIELD_LABELS.interactionType}
-                                        className="w-full px-2 py-1 text-sm leading-normal rounded-sm border border-[#bbb] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/40 pr-8"
                                         value={form.interactionType}
-                                        onChange={(e) => setField('interactionType', e.target.value)}
-                                    >
-                                        <option value="">none</option>
-                                        {interactionUnregistered && <option value={form.interactionType}>{form.interactionType}</option>}
-                                        {interactions.map((i) => (
-                                            <option key={i} value={i}>
-                                                {i}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        options={interactions}
+                                        className={inputClass('interactionType')}
+                                        onChange={(value) => setField('interactionType', value)}
+                                    />
+                                    {suggestedType && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setField('interactionType', suggestedType.type)}
+                                            title={suggestedType.reason}
+                                            className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-primary bg-primary/10 border border-primary/20 rounded-md px-2 py-0.5 hover:bg-primary/15 transition"
+                                        >
+                                            <span aria-hidden="true">✦</span> Suggested: <span className="font-mono">{suggestedType.type}</span>
+                                            <span className="text-primary/70 font-normal">· {suggestedType.reason}</span>
+                                        </button>
+                                    )}
                                     {interactionUnregistered && (
                                         <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-md px-2 py-0.5">
                                             <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]" />

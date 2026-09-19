@@ -247,6 +247,38 @@ describe('FurniEditorEditView', () => {
         expect(within(preview).getByLabelText('Footprint 4 by 3').children).toHaveLength(12);
     });
 
+    it('suggests the interaction type the classname points at, and applies it in one click', () => {
+        renderView({
+            item: { ...item, itemName: 'wf_trg_enter_room', interactionType: 'default' },
+            interactions: ['default', 'gate', 'wf_trg_enter_room', 'teleport']
+        });
+
+        const suggestion = screen.getByRole('button', { name: /Suggested: wf_trg_enter_room/ });
+        fireEvent.click(suggestion);
+
+        expect(screen.getByLabelText('Interaction type')).toHaveValue('wf_trg_enter_room');
+        expect(screen.queryByRole('button', { name: /Suggested:/ })).toBeNull();
+    });
+
+    it('filters the registered types while typing and takes the first match on Enter', () => {
+        renderView({ interactions: ['default', 'gate', 'guild_gate', 'teleport'] });
+
+        const picker = screen.getByLabelText('Interaction type');
+        fireEvent.focus(picker);
+        fireEvent.change(picker, { target: { value: 'gat' } });
+
+        const list = screen.getByRole('listbox');
+        expect(
+            within(list)
+                .getAllByRole('option')
+                .map((o) => o.textContent)
+        ).toEqual(['gate', 'guild_gate']);
+
+        fireEvent.keyDown(picker, { key: 'Enter' });
+        expect(picker).toHaveValue('gate');
+        expect(screen.getByRole('button', { name: 'Save (1)' })).toBeEnabled();
+    });
+
     it('resets every field to the stored values with one click', () => {
         renderView();
 
