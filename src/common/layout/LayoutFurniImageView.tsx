@@ -2,6 +2,7 @@ import { GetRoomEngine, IGetImageListener, ImageResult, TextureUtils, Vector3d }
 import { CSSProperties, FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ProductTypeEnum } from '../../api';
 import { Base, BaseProps } from '../Base';
+import { PIXEL_ART_RENDERING } from './PixelArtRendering';
 
 interface LayoutFurniImageViewProps extends BaseProps<HTMLDivElement> {
     productType: string;
@@ -50,7 +51,7 @@ export const LayoutFurniImageView: FC<LayoutFurniImageViewProps> = (props) => {
         if (scale !== 1) {
             newStyle.transform = `scale(${scale})`;
 
-            if (!(scale % 1)) newStyle.imageRendering = 'pixelated';
+            if (!(scale % 1)) newStyle.imageRendering = PIXEL_ART_RENDERING;
         }
 
         if (Object.keys(style).length) newStyle = { ...newStyle, ...style };

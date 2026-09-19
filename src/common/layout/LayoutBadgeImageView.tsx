@@ -11,6 +11,7 @@ import {
     LocalizeText
 } from '../../api';
 import { Base, BaseProps } from '../Base';
+import { PIXEL_ART_RENDERING } from './PixelArtRendering';
 
 export interface LayoutBadgeImageViewProps extends BaseProps<HTMLDivElement> {
     badgeCode: string;
@@ -92,7 +93,7 @@ export const LayoutBadgeImageView: FC<LayoutBadgeImageViewProps> = (props) => {
             if (scale !== 1) {
                 newStyle.transform = `scale(${scale})`;
 
-                if (!(scale % 1)) newStyle.imageRendering = 'pixelated';
+                if (!(scale % 1)) newStyle.imageRendering = PIXEL_ART_RENDERING;
 
                 newStyle.width = imageElement.width * scale;
                 newStyle.height = imageElement.height * scale;

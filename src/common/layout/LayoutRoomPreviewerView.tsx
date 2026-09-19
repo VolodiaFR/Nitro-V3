@@ -1,5 +1,6 @@
 import { GetRenderer, GetTicker, OctaneLogger, RoomPreviewer, TextureUtils } from '@octane/renderer';
 import { FC, useEffect, useRef } from 'react';
+import { PIXEL_ART_RENDERING } from './PixelArtRendering';
 
 export const LayoutRoomPreviewerView: FC<{
     roomPreviewer: RoomPreviewer;
@@ -176,7 +177,7 @@ export const LayoutRoomPreviewerView: FC<{
                 ref={canvasRef}
                 aria-hidden="true"
                 className="shadow-room-previewer-canvas"
-                style={{ display: 'block', width: '100%', height: '100%', imageRendering: 'pixelated' }}
+                style={{ display: 'block', width: '100%', height: '100%', imageRendering: PIXEL_ART_RENDERING }}
             />
         </div>
     );

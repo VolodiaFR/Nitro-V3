@@ -1,6 +1,7 @@
 import { GetRoomEngine, TextureUtils, Vector3d } from '@octane/renderer';
 import { CSSProperties, FC, useEffect, useMemo, useRef, useState } from 'react';
 import { Base, BaseProps } from '../Base';
+import { PIXEL_ART_RENDERING } from './PixelArtRendering';
 
 interface LayoutRoomObjectImageViewProps extends BaseProps<HTMLDivElement> {
     roomId: number;
@@ -35,7 +36,7 @@ export const LayoutRoomObjectImageView: FC<LayoutRoomObjectImageViewProps> = (pr
         if (scale !== 1) {
             newStyle.transform = `scale(${scale})`;
 
-            if (!(scale % 1)) newStyle.imageRendering = 'pixelated';
+            if (!(scale % 1)) newStyle.imageRendering = PIXEL_ART_RENDERING;
         }
 
         if (Object.keys(style).length) newStyle = { ...newStyle, ...style };
