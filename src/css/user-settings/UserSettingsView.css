@@ -35,7 +35,7 @@
     font-size: 12px;
     font-weight: 400;
     line-height: 17px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .user-settings-window.air-settings-window--audio {
@@ -73,7 +73,7 @@
     border-image-width: 8px;
     border-image-repeat: stretch;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .air-settings-window > :not(.air-settings-window__chrome) {
@@ -166,7 +166,7 @@
     text-overflow: ellipsis;
     text-shadow: none;
     white-space: nowrap;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .air-settings-button:hover {
@@ -267,7 +267,7 @@
     background-repeat: no-repeat;
     box-shadow: none;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .air-settings-volume-row__speaker--off {
@@ -305,7 +305,7 @@
     height: 20px;
     background: url('../../assets/images/user-settings/air/slider-base.png') no-repeat 0 0;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .air-settings-volume-row input[type='range'] {
@@ -344,7 +344,7 @@
     border-radius: 0;
     background: url('../../assets/images/user-settings/air/slider-button.png') no-repeat 0 0;
     box-shadow: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .air-settings-volume-row input[type='range']::-moz-range-track {
@@ -361,7 +361,7 @@
     border-radius: 0;
     background: url('../../assets/images/user-settings/air/slider-button.png') no-repeat 0 0;
     box-shadow: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .air-settings-check-row,
@@ -408,7 +408,7 @@
     background-repeat: no-repeat !important;
     box-shadow: none !important;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .air-settings-checkbox:checked {

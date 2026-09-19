@@ -31,7 +31,6 @@
     --octane-card-muted: var(--habbo-text-muted, #666666);
     --octane-card-focus: #ffd95a;
     --octane-card-radius: 6px;
-    /* Air frame style 3 DropShadowFilter: distance 4, alpha 0.349 */
     --octane-card-shadow: 0 4px 4px rgba(0, 0, 0, 0.349);
 }
 
@@ -166,7 +165,7 @@
     background: transparent !important;
     box-shadow: none !important;
     filter: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 
     clip-path: polygon(
         6px 0, calc(100% - 6px) 0, calc(100% - 6px) 1px,
@@ -322,9 +321,6 @@
     max-height: 35px;
     align-items: flex-end;
     padding: 3px 3px 0 !important;
-    /* The tab-3 bitmaps have opaque white pixels outside their rounded top
-       corners (and a white bottom row), so the shelf they sit on is white in
-       the source skin; on a grey shelf those pixels show as white notches. */
     background: #fff;
     border-bottom: 1px solid #000;
     border-left: 0;
@@ -512,10 +508,6 @@
     }
 }
 
-/* Do NOT make the inner wrapper relative: if it were, the close button
-   (position:absolute) would anchor to it, which is only as wide as the content
-   area (header minus 38px padding per side), leaving the X detached from the
-   edge. Only set the width. */
 .octane-card-header,
 .octane-card-header-shell {
     > .flex,
@@ -524,9 +516,6 @@
     }
 }
 
-/* Close button anchored to the header shell (position:relative), whose
-   padding-box reaches the window edge: right:6px = 6px from the right edge.
-   Non-nested high-specificity rule + !important to beat Tailwind utilities. */
 .octane-card-header .octane-card-close-button,
 .octane-card-header-shell .octane-card-close-button,
 .octane-card-header .octane-card-header-close,
@@ -637,7 +626,7 @@
     width: 20px;
     height: 20px;
     background: url('../../assets/images/habbo-skin/slices/window-resize-grip.png') no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     cursor: nwse-resize;
     touch-action: none;
     user-select: none;

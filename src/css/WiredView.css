@@ -465,7 +465,7 @@
         height: auto;
         max-width: 12px;
         max-height: 12px;
-        image-rendering: pixelated;
+        image-rendering: var(--octane-pixel-art, pixelated);
     }
 
     .octane-wired__give-var-target--furni.is-active {
@@ -588,7 +588,7 @@
         height: auto;
         max-width: 13px;
         max-height: 13px;
-        image-rendering: pixelated;
+        image-rendering: var(--octane-pixel-art, pixelated);
     }
 
     .octane-wired__variable-picker-search {
@@ -609,7 +609,7 @@
         max-width: 10px;
         max-height: 10px;
         opacity: 0.75;
-        image-rendering: pixelated;
+        image-rendering: var(--octane-pixel-art, pixelated);
     }
 
     .octane-wired__variable-picker-search-input {
@@ -638,7 +638,7 @@
         height: auto;
         max-width: 10px;
         max-height: 10px;
-        image-rendering: pixelated;
+        image-rendering: var(--octane-pixel-art, pixelated);
     }
 
     .octane-wired__variable-picker-list,

@@ -11,7 +11,7 @@
     overflow: hidden;
     z-index: 1070;
     font-family: Volter, Volter_Goldfish, "Ubuntu", sans-serif;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .chat-input-mention-popover-header {

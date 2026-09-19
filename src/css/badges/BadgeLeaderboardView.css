@@ -3,7 +3,7 @@
     width: 460px;
     height: 679px;
     overflow: hidden;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     filter: drop-shadow(0 18px 32px rgba(0, 0, 0, 0.45));
 }
 
@@ -58,7 +58,7 @@
     height: 16px;
     background-repeat: no-repeat;
     background-position: 0 0;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-badge-leaderboard__header {
@@ -103,7 +103,7 @@
     width: auto;
     height: auto;
     margin-top: 3px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-badge-leaderboard__category-menu {
@@ -180,7 +180,7 @@
     height: auto;
     max-width: 25px;
     max-height: 25px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     flex: none;
 }
 
@@ -279,7 +279,7 @@
     background-size: 82px auto !important;
     background-position: -20px -24px !important;
     transform: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-badge-leaderboard__username {
@@ -308,7 +308,7 @@
     max-width: 25px;
     max-height: 25px;
     margin: 0 auto;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     object-fit: contain;
 }
 
@@ -317,7 +317,7 @@
     height: auto;
     max-width: 100%;
     max-height: 2px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-badge-leaderboard__footer {

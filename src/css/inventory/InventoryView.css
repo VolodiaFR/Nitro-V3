@@ -84,6 +84,7 @@
     height: 32px !important;
     min-height: 32px !important;
     max-height: 32px !important;
+    /* 9px of the side padding is the tab's cap bitmap. */
     padding: 7px 12px 10px !important;
     font-size: 12px !important;
     line-height: 17px !important;
@@ -165,7 +166,7 @@
     width: 180px;
     height: 180px;
     background: url('@/assets/images/inventory/air/inventory-empty-state.png') center no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-empty-copy {
@@ -214,7 +215,7 @@
     line-height: 14px !important;
     text-align: center !important;
     box-shadow: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-furni {
@@ -277,7 +278,7 @@
     background-repeat: no-repeat;
     background-position: left top;
     background-size: auto;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-furni-status-icon.is-trade {
@@ -355,7 +356,7 @@
     text-shadow: none !important;
     box-shadow: none !important;
     filter: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-window .octane-inventory-btn-place:hover {
@@ -392,7 +393,7 @@
     line-height: 11px !important;
     text-align: center !important;
     box-shadow: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-window .octane-inventory-btn-delete {
@@ -414,7 +415,7 @@
     color: #881e15 !important;
     font-weight: 700 !important;
     box-shadow: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-furni-grid .grid {
@@ -436,7 +437,7 @@
     box-shadow: none !important;
     isolation: isolate;
     animation: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-thumb::before {
@@ -542,7 +543,7 @@
 .octane-inventory-thumb-image img {
     max-width: none;
     flex: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-thumb.is-selected::after { z-index: 3; }
@@ -621,7 +622,7 @@
     border-image: var(--habbo-skin-shiny-red) 5 fill / 5px stretch;
     /* Requested darker upper half and lighter lower half. */
     transform: scaleY(-1);
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-preview-delete:hover::before { border-image-source: var(--habbo-skin-shiny-red-hover); }

@@ -78,7 +78,7 @@
     text-shadow: none !important;
     box-shadow: none !important;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .habbo-btn-secondary:hover,
@@ -131,7 +131,7 @@
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35) !important;
     box-shadow: none !important;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .habbo-btn-primary:hover,
@@ -188,7 +188,7 @@
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35) !important;
     box-shadow: none !important;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .habbo-btn-danger:hover {
@@ -249,7 +249,7 @@ input[type='checkbox'],
     background: var(--habbo-skin-checkbox) no-repeat center / 19px 20px;
     box-shadow: none;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 input[type='checkbox']:checked,
@@ -270,7 +270,7 @@ input[type='radio'],
     background: var(--habbo-skin-radio) no-repeat center / 11px 12px;
     box-shadow: none;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 input[type='radio']:checked,

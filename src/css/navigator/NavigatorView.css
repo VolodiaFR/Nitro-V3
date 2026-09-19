@@ -20,11 +20,11 @@
     box-shadow: none !important;
     filter: drop-shadow(2.828px 2.828px 4px rgba(0, 0, 0, 0.349));
     font-family: HabboAirUbuntu, UbuntuRegular, Ubuntu, sans-serif;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air img {
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air button,
@@ -156,7 +156,7 @@
     filter: none !important;
     transform: none !important;
     cursor: pointer;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__close:hover {
@@ -290,12 +290,12 @@
     display: block;
     width: 18px;
     height: 18px;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__quick-toggle img,
 .octane-navigator-air__icon-button img {
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__workspace {
@@ -387,7 +387,7 @@
     display: block;
     width: 18px;
     height: 18px;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-search-saves-result__header-label {
@@ -426,7 +426,7 @@
 }
 
 .octane-navigator-search-saves-result__empty img {
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .saved-search-row {
@@ -478,7 +478,7 @@
     border: 0;
     background: url("@/assets/images/navigator/air/icon-ql-remove.png") center / 10px 10px no-repeat;
     cursor: pointer;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -552,7 +552,7 @@
     white-space: nowrap;
     appearance: none;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__filter-button span {
@@ -570,7 +570,7 @@
     width: 16px;
     height: 16px;
     margin: 0;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -592,7 +592,7 @@
     border-image-width: 6px !important;
     border-image-repeat: stretch !important;
     background: transparent;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__filter-list button {
@@ -635,7 +635,7 @@
     border-image-repeat: stretch !important;
     background: transparent !important;
     box-shadow: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__search-input {
@@ -674,7 +674,7 @@
     display: block;
     width: 16px;
     height: 16px;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__search-refresh {
@@ -759,7 +759,7 @@
     height: 19px;
     object-fit: none;
     object-position: center;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__category-toggle span {
@@ -787,7 +787,7 @@
     height: 19px;
     object-fit: none;
     object-position: center;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__rows {
@@ -851,7 +851,7 @@
     font-size: 11px !important;
     font-weight: 700 !important;
     line-height: 14px !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__usercount img {
@@ -859,7 +859,7 @@
     width: 13px;
     height: 14px;
     object-fit: contain;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__usercount span {
@@ -1039,12 +1039,12 @@
     background-size: auto !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__tile-thumb,
 .octane-navigator-air__tile-thumb img {
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__tile-name {
@@ -1080,7 +1080,7 @@
     background-image: url("@/assets/images/navigator/air/show-room-info.png");
     background-repeat: no-repeat;
     background-position: center;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__door {
@@ -1089,7 +1089,7 @@
     height: 16px;
     background-repeat: no-repeat;
     background-position: center;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__door--doorbell {
@@ -1109,7 +1109,7 @@
     width: 13px;
     height: 11px;
     background: url("@/assets/images/navigator/air/icon-group.png") center / contain no-repeat;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__room-bubble {
@@ -1131,7 +1131,7 @@
     font-family: HabboAirUbuntu, UbuntuRegular, Ubuntu, sans-serif;
     font-size: 12px;
     filter: drop-shadow(4px 4px 4px rgba(0, 0, 0, 0.349));
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__room-bubble::before {
@@ -1143,7 +1143,7 @@
     height: 18px;
     margin-top: -9px;
     background: url("@/assets/images/habbo-skin/slices/bubble-pointer-left.png") center / 11px 18px no-repeat;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__room-bubble-content {
@@ -1286,7 +1286,7 @@
     flex: 0 0 20px;
     background-position: center;
     background-repeat: no-repeat;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__room-popover-actions .icon-navigator-favorite-room {
@@ -1353,7 +1353,7 @@
     align-self: center;
     justify-self: center;
     background: url("@/assets/images/navigator/air/event-icon.png") center / contain no-repeat;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__room-popover-event-copy {
@@ -1414,7 +1414,7 @@
     font-size: 12px;
     font-weight: 700;
     text-align: center;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__action--create {
@@ -1446,7 +1446,7 @@
     max-width: none;
     height: 59px;
     pointer-events: none;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__action span {
@@ -1481,36 +1481,7 @@
     border-image-slice: 6 fill;
     border-image-width: 6px;
     border-image-repeat: stretch;
-    image-rendering: auto;
-}
-
-@media (resolution: 1dppx), (resolution: 2dppx), (resolution: 3dppx) {
-    .octane-navigator-air__action img,
-    .octane-navigator-air__action-border,
-    .octane-navigator-air__tile-badge,
-    .octane-navigator-air__tile-thumb,
-    .octane-navigator-air__tile-thumb img,
-    .octane-navigator-air__room-bubble,
-    .octane-navigator-air__room-bubble::before,
-    .octane-navigator-air__room-popover-actions button > i,
-    .octane-navigator-air__room-popover-event-icon,
-    .octane-navigator-air img,
-    .octane-navigator-air__close,
-    .octane-navigator-air__quick-toggle img,
-    .octane-navigator-air__icon-button img,
-    .octane-navigator-search-saves-result__header-icon,
-    .octane-navigator-search-saves-result__empty img,
-    .saved-search-row__delete,
-    .octane-navigator-air__filter-button img,
-    .octane-navigator-air__search-refresh img,
-    .octane-navigator-air__category-toggle img,
-    .octane-navigator-air__usercount img,
-    .octane-navigator-air__room-info,
-    .octane-navigator-air__door,
-    .octane-navigator-air__group,
-    .octane-navigator-search-save img {
-        image-rendering: pixelated;
-    }
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-navigator-air__action--random .octane-navigator-air__action-border,
@@ -1549,7 +1520,7 @@
     font-size: 9px;
     line-height: 12px;
     -webkit-font-smoothing: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air button,
@@ -1582,6 +1553,39 @@
     background: transparent !important;
     box-shadow: none !important;
     image-rendering: pixelated;
+}
+
+.octane-room-creator-air__skin::before {
+    content: "";
+    position: absolute;
+    inset: -27px -7px auto;
+    height: 27px;
+    background:
+        linear-gradient(#367997, #367997) 0 0 / 100% 26px no-repeat,
+        linear-gradient(#030f18, #030f18) 0 26px / 100% 1px no-repeat;
+}
+
+.octane-room-creator-air__skin::after {
+    content: "";
+    position: absolute;
+    inset: -1px -7px -6px;
+    background:
+        linear-gradient(#030f18, #030f18) 0 0 / 100% 1px no-repeat,
+        linear-gradient(var(--navigator-air-surface, #e9e9e1), var(--navigator-air-surface, #e9e9e1)) 0 1px / 100% calc(100% - 1px) no-repeat;
+    clip-path: polygon(
+        0 0,
+        100% 0,
+        100% calc(100% - 3px),
+        calc(100% - 1px) calc(100% - 3px),
+        calc(100% - 1px) calc(100% - 1px),
+        calc(100% - 3px) calc(100% - 1px),
+        calc(100% - 3px) 100%,
+        3px 100%,
+        3px calc(100% - 1px),
+        1px calc(100% - 1px),
+        1px calc(100% - 3px),
+        0 calc(100% - 3px)
+    );
 }
 
 .octane-room-creator-air__caption {
@@ -1625,7 +1629,7 @@
     filter: none !important;
     transform: none !important;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__close:hover {
@@ -1695,7 +1699,7 @@
     border-image-repeat: stretch !important;
     background: transparent !important;
     box-shadow: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__field--name {
@@ -1763,7 +1767,7 @@
     font-size: 9px;
     line-height: 12px;
     white-space: nowrap;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__error-arrow {
@@ -1771,7 +1775,7 @@
     width: 11px;
     height: 11px;
     margin: -1px auto 0;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__dropmenu {
@@ -1826,7 +1830,7 @@
     white-space: nowrap;
     appearance: none;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__dropmenu-button span {
@@ -1844,7 +1848,7 @@
     width: 16px;
     height: 16px;
     margin: 0;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -1868,7 +1872,7 @@
     border-image-width: 6px !important;
     border-image-repeat: stretch !important;
     background: transparent;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__dropmenu-list button {
@@ -1919,7 +1923,7 @@
     text-align: center;
     text-shadow: none !important;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__button--create {
@@ -1971,7 +1975,7 @@
     border-image-slice: 6 fill;
     border-image-width: 6px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__layout-rows {
@@ -2007,7 +2011,7 @@
     border-image-slice: 6 fill;
     border-image-width: 6px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__thumbnail.is-selected .octane-room-creator-air__thumbnail-bg {
@@ -2024,7 +2028,7 @@
     object-fit: none;
     object-position: center;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__thumbnail-tile-icon {
@@ -2035,7 +2039,7 @@
     width: 18px;
     height: 10px;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__thumbnail-tiles {
@@ -2067,7 +2071,7 @@
     width: 19px;
     height: 10px;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__vip-promo {
@@ -2083,7 +2087,7 @@
     border-image-slice: 6 fill;
     border-image-width: 6px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__vip-promo-icon {
@@ -2093,7 +2097,7 @@
     width: 37px;
     height: 37px;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-creator-air__vip-promo-text {
@@ -2163,7 +2167,7 @@
 .octane-navigator-search-save img {
     width: 18px;
     height: 18px;
-    image-rendering: auto;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 

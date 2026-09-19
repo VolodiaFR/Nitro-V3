@@ -12,7 +12,7 @@
     --octane-card-surface: #e9e9e1;
     border: 1px solid transparent !important;
     font-family: HabboAirUbuntu, Ubuntu, sans-serif;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .draggable-window:has(> .octane-achievements-air) {
@@ -76,7 +76,7 @@
     color: #000000;
     cursor: pointer;
     font-family: HabboAirUbuntu, Ubuntu, sans-serif;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-achievements-air .air-achievements-category-tile::before {
@@ -139,7 +139,7 @@
     width: 86px;
     height: 72px;
     object-fit: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -198,7 +198,7 @@
     border: 6px solid transparent;
     border-bottom-width: 7px;
     border-image: url('../../assets/images/habbo-skin/slices/border-7-de4537.png') 6 6 7 6 fill / 6px 6px 7px 6px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-achievements-air .air-achievements-category-tile--empty {
@@ -286,7 +286,7 @@
     background: url('../../assets/images/achievements/back-arrow.png') 0 0 / 33px 34px no-repeat;
     box-shadow: none;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-achievements-air .air-achievements-back:hover,
@@ -332,7 +332,7 @@
     width: 84px;
     height: 72px;
     object-fit: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -402,7 +402,7 @@
     background: transparent;
     box-shadow: none;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-achievements-air .air-achievement-tile::before {
@@ -415,7 +415,7 @@
     background-image: var(--air-achievement-tile-background);
     background-position: 0 0;
     background-repeat: no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-achievements-air .air-achievement-tile.is-unseen:not(.is-selected)::before {
@@ -437,7 +437,7 @@
     background-position: center !important;
     background-repeat: no-repeat !important;
     transform: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-achievements-air .air-achievement-details {
@@ -464,7 +464,7 @@
     border-image-width: 6px;
     border-image-repeat: stretch;
     filter: brightness(0.8);
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-achievements-air .air-achievement-details-badge {
@@ -486,7 +486,7 @@
     background-repeat: no-repeat !important;
     transform: translate(-50%, -50%) scale(2) !important;
     transform-origin: center !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-achievements-air .air-achievement-details-name {
@@ -571,7 +571,7 @@
     overflow: hidden;
     color: #ffffff;
     font-family: HabboAirUbuntu, Ubuntu, sans-serif;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-achievements-air .air-achievement-progress__left,
@@ -583,7 +583,7 @@
     position: absolute;
     display: block;
     background-repeat: no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-achievements-air .air-achievement-progress__left {

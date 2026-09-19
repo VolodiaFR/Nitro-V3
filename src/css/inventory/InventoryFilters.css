@@ -65,7 +65,7 @@
     height: 20px;
     padding: 0;
     background: url('@/assets/images/habbo-skin/slices/inventory-search-clear.png') center no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-window .octane-inventory-filter-choice {
@@ -98,7 +98,7 @@
     padding: 4px 21px 3px 10px;
     background: url('@/assets/images/habbo-skin/slices/inventory-filter-dropdown-arrow.png') right 5px top 2px / 16px 16px no-repeat transparent !important;
     line-height: 14px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-window .octane-inventory-filter-select:focus-visible {
@@ -134,7 +134,7 @@
     font-size: 9px;
     line-height: 12px;
     color: #000;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-filter-menu::before {

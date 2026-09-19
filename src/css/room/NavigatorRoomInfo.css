@@ -24,7 +24,7 @@
     height: 12px;
     border: 0;
     background: url("@/assets/images/navigator/air/icon-home-no.png") center / contain no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     cursor: pointer;
 }
 
@@ -64,7 +64,7 @@
     height: 15px;
     border: 0;
     background: url("@/assets/images/navigator/air/roomtools-camera.png") center / contain no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-info__quick-actions,
@@ -83,7 +83,7 @@
 .octane-room-info__room-link img {
     width: 17px;
     height: 15px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-room-info__room-link:hover {

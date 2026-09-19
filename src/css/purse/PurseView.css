@@ -22,7 +22,7 @@
     border-radius: 0;
     background: transparent;
     box-shadow: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 /* Chrome is a sibling of the widgets so AIR x/y stay relative to the 230x77 box. */
@@ -41,7 +41,7 @@
     border-image-slice: 28 28 32 28 fill;
     border-image-width: 7px 7px 8px 7px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-purse__body {
@@ -125,7 +125,7 @@
     border-radius: 0 !important;
     background: none !important;
     box-shadow: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-purse .octane-purse-air-currency {
@@ -140,7 +140,7 @@
     max-width: 15px;
     max-height: 15px;
     object-fit: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 /* HC + earnings: border style-2 colorless color 0x3b3933 blend 0.8, 101x28 */
@@ -191,7 +191,7 @@
     border-image-slice: 24 fill;
     border-image-width: 6px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-purse__btn--join:hover,
@@ -219,7 +219,7 @@
     max-height: 18px;
     margin-right: 5px;
     object-fit: contain;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-purse__btn--join span,
@@ -273,7 +273,7 @@
     border-image-slice: 3 fill;
     border-image-width: 3px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-purse__btn--help {
@@ -324,7 +324,7 @@
     max-width: 15px;
     max-height: 18px;
     object-fit: contain;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-purse__btn--logout .octane-purse__btn-img,
@@ -349,7 +349,7 @@
     border-image-repeat: stretch;
     background: transparent;
     pointer-events: all;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-purse-menu__item {
@@ -402,7 +402,7 @@
     border-image-width: 7px 7px 8px 7px;
     background: transparent;
     box-shadow: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-purse-seasonal-currency .seasonal-row {
@@ -461,5 +461,5 @@
     max-width: 23px;
     max-height: 23px;
     object-fit: contain;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }

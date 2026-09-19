@@ -1,5 +1,6 @@
 import { CSSProperties, FC } from 'react';
 import { getHabbiconsBaseUrl } from '../../api/habbicons/habbiconCatalog';
+import { PIXEL_ART_RENDERING } from '../../common';
 
 export const STAFF_CHAT_FRANK_HABBICON_ID = 50;
 export const STAFF_CHAT_FRANK_SPRITE = { x: 42, y: 126, cellSize: 42, sheetSize: 294 } as const;
@@ -16,7 +17,7 @@ export const getStaffChatFrankIconStyle = (size: number, baseUrl: string): CSSPr
         backgroundPosition: `-${STAFF_CHAT_FRANK_SPRITE.x * scale}px -${STAFF_CHAT_FRANK_SPRITE.y * scale}px`,
         backgroundRepeat: 'no-repeat',
         backgroundSize: `${STAFF_CHAT_FRANK_SPRITE.sheetSize * scale}px ${STAFF_CHAT_FRANK_SPRITE.sheetSize * scale}px`,
-        imageRendering: 'pixelated'
+        imageRendering: PIXEL_ART_RENDERING
     };
 };
 

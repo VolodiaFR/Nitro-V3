@@ -12,7 +12,7 @@
     overflow: visible;
     color: #ffffff;
     font-family: Ubuntu, sans-serif;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-capture__body {
@@ -25,7 +25,7 @@
     flex: 0 0 462px;
     background: url('../../assets/images/room-widgets/camera-widget/camera-spritesheet.png') -1px -1px no-repeat;
     cursor: move;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-capture__body::before {
@@ -37,7 +37,7 @@
     background: url('../../assets/images/room-widgets/camera-widget/camera-spritesheet.png') -1px -1px no-repeat;
     content: '';
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-capture__title {
@@ -100,7 +100,7 @@
     overflow: hidden;
     background: #000000;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     contain: strict;
 }
 
@@ -113,7 +113,7 @@
     height: 320px;
     border: 0;
     object-fit: cover;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-viewfinder__stream {
@@ -130,7 +130,7 @@
     object-fit: fill;
     transform-origin: 0 0;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     backface-visibility: hidden;
     will-change: transform;
 }
@@ -148,7 +148,7 @@
     height: 318px;
     background: url('../../assets/images/room-widgets/camera-widget/camera-spritesheet.png') -343px -1px no-repeat;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-capture__flash {
@@ -220,7 +220,7 @@
     height: 94px;
     background: url('../../assets/images/room-widgets/camera-widget/camera-spritesheet.png') -343px -321px no-repeat;
     content: '';
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-capture__shutter:hover::before,
@@ -255,7 +255,7 @@
     border-radius: 0 0 9px 9px;
     background: #bab8b4;
     box-shadow: inset 1px 0 #ffffff, inset -1px -1px #ffffff;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-roll--hidden {
@@ -339,7 +339,7 @@
     min-height: 517px;
     max-height: 517px;
     resize: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-editor__content {
@@ -421,7 +421,7 @@
     margin: 0;
     background-position: 0 0;
     background-repeat: no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-editor__effect-tab .octane-icon:hover {
@@ -550,7 +550,7 @@
     width: 320px;
     height: 320px;
     object-fit: cover;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-editor__slider-panel {
@@ -676,7 +676,7 @@
     background-position: 0 0;
     background-repeat: no-repeat;
     content: '';
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-editor__tool--save::before {
@@ -793,7 +793,7 @@
     width: 320px;
     height: 320px;
     object-fit: cover;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-camera-checkout__loading {

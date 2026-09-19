@@ -19,7 +19,7 @@
         background: rgba(34, 34, 30, 0.86);
         box-shadow: inset -1px 0 rgba(255, 255, 255, 0.05), 0 2px 0 rgba(0, 0, 0, 0.45);
         color: #c9c9c9;
-        image-rendering: pixelated;
+        image-rendering: var(--octane-pixel-art, pixelated);
     }
 
     .room-tools-collapse-toggle {
@@ -348,7 +348,7 @@
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .swf-chat-input .swf-chat-style-trigger {
@@ -363,7 +363,7 @@
     margin: 0;
     padding: 0;
     background: url('@/assets/images/chat-input-swf/chat_style_block.png') 0 0 / 57px 38px no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .swf-chat-input .swf-chat-style-arrow {
@@ -383,7 +383,7 @@
     width: 17px;
     height: 19px;
     background: url('@/assets/images/chat-input-swf/chat_styles.png') center / auto no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .bubble-container.chat-text-size .chat-bubble,
@@ -416,7 +416,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.08),
         0 2px 0 rgba(0, 0, 0, 0.9),
         4px 4px 0 rgba(0, 0, 0, 0.45);
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .swf-chat-style-menu-grid {
@@ -437,7 +437,7 @@
     border-radius: 4px;
     background: transparent;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .swf-chat-style-option::before {
@@ -543,7 +543,7 @@
     border-radius: 0;
     box-sizing: border-box;
     background: transparent !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .swf-chat-input .swf-chat-input-sizer::before,
@@ -561,7 +561,7 @@
     border-image-slice: 20 fill;
     border-image-width: 10px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .swf-chat-input .swf-chat-input-sizer::after,
@@ -643,7 +643,7 @@
     width: 18px;
     height: 15px;
     background: url('@/assets/images/chat-input-swf/clip.png') center / auto no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .swf-chat-input .habbicon-chat-trigger::after {
@@ -654,7 +654,7 @@
     width: 12px;
     height: 12px;
     background: url('@/assets/images/chat-input-swf/sticky_note2.png') center / auto no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .swf-chat-input .swf-chat-emoji-trigger {
@@ -704,7 +704,7 @@
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-mobile-user-infostand-avatar {
@@ -729,7 +729,7 @@
     max-width: 54px;
     max-height: 62px;
     object-fit: contain;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     margin: 0;
     pointer-events: none;
 }
@@ -881,7 +881,7 @@
     font-size: 11px;
     line-height: 16px;
     text-shadow: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     -webkit-font-smoothing: antialiased;
 }
 
@@ -898,7 +898,7 @@
     border-image-width: 5px 5px 6px;
     border-image-repeat: stretch;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-avatar-action-menu--own::after {
@@ -999,7 +999,7 @@
     border-image-slice: 5 fill;
     border-image-width: 5px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .air-avatar-menu-buttons > .octane-context-menu-item + .octane-context-menu-item {
@@ -1064,7 +1064,7 @@
     width: 15px;
     height: 15px;
     background: url('../../assets/images/avatar-menu/air/vip.png') 0 0 / 15px 15px no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .air-avatar-menu-signs-grid {
@@ -1122,7 +1122,7 @@
     border-image-slice: 3 fill;
     border-image-width: 3px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-avatar-action-menu--own .air-avatar-menu-sign-cell:hover::before {
@@ -1142,7 +1142,7 @@
     display: block;
     background-position: 0 0;
     background-repeat: no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .air-avatar-menu-sign-icon--heart {
@@ -1222,7 +1222,7 @@
     height: 10px;
     content: '';
     background: url('../../assets/images/avatar-menu/air/arrow-down.png') center / 10px 5px no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-avatar-action-menu--own .octane-context-menu-footer:hover::before {
@@ -1298,7 +1298,7 @@
 .octane-camera-viewfinder {
     display: block;
     background: #000;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-pet-package-preview {

@@ -182,13 +182,13 @@
     background-size: auto !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-group-information-standalone .octane-extended-profile-group-info__badge-wrap img {
     width: auto;
     height: auto;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-group-information-standalone .octane-extended-profile-group-info__meta {
@@ -389,7 +389,7 @@
     background-size: auto !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-group-members-search .flex-column,
@@ -471,7 +471,7 @@
     width: auto !important;
     height: auto !important;
     transform: translateX(-50%);
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-group-member-row__copy {
@@ -570,7 +570,7 @@
         inset 0 -1px 0 rgba(0, 0, 0, 0.55),
         0 2px 0 rgba(0, 0, 0, 0.35);
     font-family: Ubuntu, sans-serif;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     transition: height 0.18s ease;
 }
 
@@ -1047,7 +1047,7 @@
     width: 40px !important;
     height: 40px !important;
     transform: none !important;
-    image-rendering: pixelated !important;
+    image-rendering: var(--octane-pixel-art, pixelated) !important;
 }
 
 .octane-group-member-row__copy {

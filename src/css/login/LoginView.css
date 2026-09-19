@@ -684,7 +684,7 @@
 .octane-login-card .avatar-preview img {
     max-width: 100%;
     max-height: 190px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     image-rendering: -moz-crisp-edges;
 }
 
@@ -733,7 +733,7 @@
 .octane-login-card .registration-wardrobe-tabs img {
     max-width: 40px;
     max-height: 27px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -1278,7 +1278,7 @@
     width: auto;
     height: auto;
     display: block;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     image-rendering: -moz-crisp-edges;
     position: relative;
     z-index: 1;
@@ -1620,7 +1620,7 @@
     border: 1px solid var(--habbo-tab, #b6bec5);
     background: #fff;
     flex-shrink: 0;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-login-card .room-template-body {

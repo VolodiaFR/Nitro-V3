@@ -422,7 +422,7 @@
     background-position: 0 0;
     background-repeat: no-repeat;
     background-size: 411px 630px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     color: #59224a;
     font-family: UbuntuCondensed, Ubuntu, sans-serif;
     font-weight: 700;
@@ -473,7 +473,7 @@
     height: 130px !important;
     margin: 0 !important;
     transform: translateX(-50%) !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-engraving-lock-view .engraving-lock-avatar--left {

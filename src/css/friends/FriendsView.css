@@ -435,7 +435,7 @@
         border-radius: 0;
         background: transparent;
         box-shadow: none;
-        image-rendering: pixelated;
+        image-rendering: var(--octane-pixel-art, pixelated);
 
         &:hover:not(.is-disabled):not(:disabled) .friend-bar-browse-arrow {
             filter: brightness(1.15);
@@ -453,7 +453,7 @@
     & .friend-bar-browse-arrow {
         position: absolute;
         pointer-events: none;
-        image-rendering: pixelated;
+        image-rendering: var(--octane-pixel-art, pixelated);
     }
 
     & .friend-bar-browse-bg {
@@ -1100,7 +1100,7 @@
 .swf-messenger-window {
     font-family: Ubuntu, Arial, sans-serif;
     color: #000;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     text-shadow: none;
 }
 
@@ -1366,7 +1366,7 @@ button.swf-friends-section-header {
     background-size: 42px auto !important;
     background-position: -10px -12px !important;
     transform: none !important;
-    image-rendering: pixelated !important;
+    image-rendering: var(--octane-pixel-art, pixelated) !important;
 }
 
 .swf-friends-window .friends-list-name {
@@ -2010,7 +2010,7 @@ button.swf-friends-section-header {
     line-height: 13px;
     position: relative;
 }
-.swf-messenger-window .swf-messenger-notification img { display: block; width: auto; height: auto; min-width: 25px; margin-top: 1px; image-rendering: pixelated; }
+.swf-messenger-window .swf-messenger-notification img { display: block; width: auto; height: auto; min-width: 25px; margin-top: 1px; image-rendering: var(--octane-pixel-art, pixelated); }
 .swf-messenger-window .swf-messenger-status-notification {
     margin: 4px 8px;
     color: #686868;
