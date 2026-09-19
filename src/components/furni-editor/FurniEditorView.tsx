@@ -22,6 +22,7 @@ export const FurniEditorView: FC<{}> = () => {
         clearError,
         selectedItem,
         setSelectedItem,
+        catalogItems,
         furniDataEntry,
         furniDataDiagnostic,
         interactions,
@@ -152,6 +153,7 @@ export const FurniEditorView: FC<{}> = () => {
                 {activeTab === TAB_EDIT && selectedItem && (
                     <FurniEditorEditView
                         item={selectedItem}
+                        catalogItems={catalogItems}
                         furniDataEntry={furniDataEntry}
                         furniDataDiagnostic={furniDataDiagnostic}
                         interactions={interactions}

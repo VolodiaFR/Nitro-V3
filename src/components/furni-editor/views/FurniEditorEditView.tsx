@@ -2,10 +2,11 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CopyToClipboard } from '../../../api';
 import { Button, Column, Flex, LayoutFurniIconImageView, Text } from '../../../common';
-import { FurniDetail } from '../../../hooks/furni-editor';
+import { CatalogRef, FurniDetail } from '../../../hooks/furni-editor';
 
 interface FurniEditorEditViewProps {
     item: FurniDetail;
+    catalogItems: CatalogRef[];
     furniDataEntry: Record<string, unknown> | null;
     furniDataDiagnostic: Record<string, unknown> | null;
     interactions: string[];
@@ -24,13 +25,164 @@ const FIELD_TIPS: Record<string, string> = {
     stackHeight: 'Visual height when items are stacked on top of this furniture',
     interactionType: 'Defines behavior when user interacts (e.g. default, gate, teleport, vendingmachine)',
     customparams: 'Extra parameters for the interaction type (format depends on interaction)',
-    interactionModesCount: 'Number of visual states/animations this furniture has'
+    interactionModesCount: 'Number of visual states/animations this furniture has',
+    vendingIds: 'Handitem ids a vending machine hands out, comma separated',
+    multiheight: 'Comma separated stack heights, one per state, for adjustable-height furniture',
+    effectIdMale: 'Avatar effect applied to male avatars on use (0 = none)',
+    effectIdFemale: 'Avatar effect applied to female avatars on use (0 = none)',
+    clothingOnWalk: 'Figure parts worn while walking on this furniture (clothing items)',
+    description: 'Server-side note kept in items_base; clients show the furnidata description instead'
 };
 
-const PERM_GROUPS = [
+// The editable subset of items_base. Identity columns (id, classname, sprite,
+// type) are deliberately absent: the server drops them from an update, so
+// keeping them in the form would only make the dirty check lie.
+const editableForm = (item: FurniDetail) => ({
+    width: item.width || 1,
+    length: item.length || 1,
+    stackHeight: item.stackHeight || 0,
+    allowStack: !!item.allowStack,
+    allowWalk: !!item.allowWalk,
+    allowSit: !!item.allowSit,
+    allowLay: !!item.allowLay,
+    allowGift: !!item.allowGift,
+    allowTrade: !!item.allowTrade,
+    allowRecycle: !!item.allowRecycle,
+    allowMarketplaceSell: !!item.allowMarketplaceSell,
+    allowInventoryStack: !!item.allowInventoryStack,
+    interactionType: item.interactionType || '',
+    interactionModesCount: item.interactionModesCount || 0,
+    customparams: item.customparams || '',
+    vendingIds: item.vendingIds || '',
+    multiheight: item.multiheight || '',
+    effectIdMale: item.effectIdMale || 0,
+    effectIdFemale: item.effectIdFemale || 0,
+    clothingOnWalk: item.clothingOnWalk || '',
+    description: item.description || ''
+});
+
+type EditForm = ReturnType<typeof editableForm>;
+type EditField = keyof EditForm;
+
+const FIELD_IDS = {
+    description: 'description',
+    modes: 'interactionModesCount',
+    customparams: 'customparams',
+    vending: 'vendingIds',
+    multiheight: 'multiheight',
+    'effect-male': 'effectIdMale',
+    'effect-female': 'effectIdFemale',
+    clothing: 'clothingOnWalk'
+} as const satisfies Record<string, EditField>;
+
+const FIELD_LABELS: Record<EditField, string> = {
+    width: 'Width',
+    length: 'Length',
+    stackHeight: 'Stack Height',
+    allowStack: 'Stack',
+    allowWalk: 'Walk',
+    allowSit: 'Sit',
+    allowLay: 'Lay',
+    allowGift: 'Gift',
+    allowTrade: 'Trade',
+    allowRecycle: 'Recycle',
+    allowMarketplaceSell: 'MarketplaceSell',
+    allowInventoryStack: 'InventoryStack',
+    interactionType: 'Interaction type',
+    interactionModesCount: 'Modes',
+    customparams: 'Custom Params',
+    vendingIds: 'Vending IDs',
+    multiheight: 'Multiheight',
+    effectIdMale: 'Effect ID (male)',
+    effectIdFemale: 'Effect ID (female)',
+    clothingOnWalk: 'Clothing on walk',
+    description: 'Description (DB)'
+};
+
+// Mirrors FurniEditorUpdatePayload.validateValue on the emulator: a value the
+// server would reject is flagged here instead of failing silently after Save.
+const validateForm = (form: EditForm): Partial<Record<EditField, string>> => {
+    const errors: Partial<Record<EditField, string>> = {};
+    const maxLen = (field: EditField, max: number) => {
+        if (String(form[field]).length > max) errors[field] = `Max ${max} chars`;
+    };
+
+    if (form.width < 1 || form.width > 64) errors.width = '1 to 64';
+    if (form.length < 1 || form.length > 64) errors.length = '1 to 64';
+    if (form.stackHeight < 0 || form.stackHeight > 99.99) errors.stackHeight = '0 to 99.99';
+    if (form.interactionModesCount < 0 || form.interactionModesCount > 100) errors.interactionModesCount = '0 to 100';
+    if (form.effectIdMale < 0) errors.effectIdMale = 'Min 0';
+    if (form.effectIdFemale < 0) errors.effectIdFemale = 'Min 0';
+    maxLen('interactionType', 500);
+    maxLen('customparams', 256);
+    maxLen('vendingIds', 255);
+    maxLen('clothingOnWalk', 255);
+    maxLen('multiheight', 50);
+    maxLen('description', 500);
+
+    return errors;
+};
+
+const formatValue = (value: unknown) => {
+    if (typeof value === 'boolean') return value ? 'on' : 'off';
+    const text = String(value);
+    return text === '' ? '(empty)' : text;
+};
+
+const formatPrice = (ref: CatalogRef) => {
+    const parts: string[] = [];
+    if (ref.costCredits > 0) parts.push(`${ref.costCredits} credits`);
+    if (ref.costPoints > 0) parts.push(`${ref.costPoints} points (type ${ref.pointsType})`);
+    return parts.length ? parts.join(' + ') : 'free';
+};
+
+const PERM_GROUPS: { label: string; keys: EditField[] }[] = [
     { label: 'Gameplay', keys: ['allowStack', 'allowWalk', 'allowSit', 'allowLay', 'allowInventoryStack'] },
     { label: 'Trading', keys: ['allowGift', 'allowTrade', 'allowRecycle', 'allowMarketplaceSell'] }
 ];
+
+interface ConfirmModalProps {
+    title: string;
+    confirmLabel: string;
+    confirmVariant: 'success' | 'danger';
+    onConfirm: () => void;
+    onCancel: () => void;
+    children: React.ReactNode;
+}
+
+const ConfirmModal: FC<ConfirmModalProps> = ({ title, confirmLabel, confirmVariant, onConfirm, onCancel, children }) => {
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.stopPropagation();
+                onCancel();
+            }
+        };
+
+        window.addEventListener('keydown', handler, true);
+
+        return () => window.removeEventListener('keydown', handler, true);
+    }, [onCancel]);
+
+    return (
+        <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-[60]" onClick={onCancel}>
+            <div role="dialog" aria-label={title} className="bg-[#ffffff] rounded-lg shadow-xl p-4 w-[340px]" onClick={(e) => e.stopPropagation()}>
+                <Text bold className="text-[14px] mb-2 block">
+                    {title}
+                </Text>
+                <div className="mb-3">{children}</div>
+                <Flex gap={1} justifyContent="end">
+                    <Button variant="secondary" onClick={onCancel}>
+                        Cancel
+                    </Button>
+                    <Button variant={confirmVariant} onClick={onConfirm}>
+                        {confirmLabel}
+                    </Button>
+                </Flex>
+            </div>
+        </div>
+    );
+};
 
 interface SectionProps {
     title: string;
@@ -128,6 +280,7 @@ const CopyValue: FC<{ value: string | number }> = ({ value }) => {
 export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
     const {
         item,
+        catalogItems,
         furniDataEntry,
         furniDataDiagnostic,
         interactions,
@@ -143,29 +296,12 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
     } = props;
     const saveRef = useRef<() => void>(null);
 
-    const [form, setForm] = useState({
-        itemName: '',
-        publicName: '',
-        spriteId: 0,
-        type: 's',
-        width: 1,
-        length: 1,
-        stackHeight: 0,
-        allowStack: true,
-        allowWalk: false,
-        allowSit: false,
-        allowLay: false,
-        allowGift: true,
-        allowTrade: true,
-        allowRecycle: true,
-        allowMarketplaceSell: true,
-        allowInventoryStack: true,
-        interactionType: '',
-        interactionModesCount: 0,
-        customparams: ''
-    });
+    const stored = useMemo(() => editableForm(item), [item]);
+    const [form, setForm] = useState<EditForm>(stored);
 
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [confirmSave, setConfirmSave] = useState(false);
+    const [confirmBack, setConfirmBack] = useState(false);
     const [furniName, setFurniName] = useState('');
     const [furniDescription, setFurniDescription] = useState('');
     const [confirmFurnidata, setConfirmFurnidata] = useState(false);
@@ -175,77 +311,25 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
     useEffect(() => {
         if (!item) return;
 
-        setForm({
-            itemName: item.itemName || '',
-            publicName: item.publicName || '',
-            spriteId: item.spriteId || 0,
-            type: item.type || 's',
-            width: item.width || 1,
-            length: item.length || 1,
-            stackHeight: item.stackHeight || 0,
-            allowStack: !!item.allowStack,
-            allowWalk: !!item.allowWalk,
-            allowSit: !!item.allowSit,
-            allowLay: !!item.allowLay,
-            allowGift: !!item.allowGift,
-            allowTrade: !!item.allowTrade,
-            allowRecycle: !!item.allowRecycle,
-            allowMarketplaceSell: !!item.allowMarketplaceSell,
-            allowInventoryStack: !!item.allowInventoryStack,
-            interactionType: item.interactionType || '',
-            interactionModesCount: item.interactionModesCount || 0,
-            customparams: item.customparams || ''
-        });
-
+        setForm(stored);
         setShowDeleteDialog(false);
+        setConfirmSave(false);
+        setConfirmBack(false);
         setFurniName(String(furniDataEntry?.name ?? ''));
         setFurniDescription(String(furniDataEntry?.description ?? ''));
         setConfirmFurnidata(false);
         setImportNote('');
-    }, [item, furniDataEntry]);
+    }, [item, stored, furniDataEntry]);
 
-    const setField = useCallback((key: string, value: unknown) => {
+    const setField = useCallback(<K extends EditField>(key: K, value: EditForm[K]) => {
         setForm((prev) => ({ ...prev, [key]: value }));
     }, []);
 
-    const isDirty = useMemo(() => {
-        if (!item) return false;
+    const changedFields = useMemo(() => (Object.keys(stored) as EditField[]).filter((key) => form[key] !== stored[key]), [form, stored]);
+    const isDirty = changedFields.length > 0;
+    const isChanged = useCallback((field: EditField) => form[field] !== stored[field], [form, stored]);
 
-        return (
-            form.itemName !== (item.itemName || '') ||
-            form.publicName !== (item.publicName || '') ||
-            form.spriteId !== (item.spriteId || 0) ||
-            form.type !== (item.type || 's') ||
-            form.width !== (item.width || 1) ||
-            form.length !== (item.length || 1) ||
-            form.stackHeight !== (item.stackHeight || 0) ||
-            form.allowStack !== !!item.allowStack ||
-            form.allowWalk !== !!item.allowWalk ||
-            form.allowSit !== !!item.allowSit ||
-            form.allowLay !== !!item.allowLay ||
-            form.allowGift !== !!item.allowGift ||
-            form.allowTrade !== !!item.allowTrade ||
-            form.allowRecycle !== !!item.allowRecycle ||
-            form.allowMarketplaceSell !== !!item.allowMarketplaceSell ||
-            form.allowInventoryStack !== !!item.allowInventoryStack ||
-            form.interactionType !== (item.interactionType || '') ||
-            form.interactionModesCount !== (item.interactionModesCount || 0) ||
-            form.customparams !== (item.customparams || '')
-        );
-    }, [form, item]);
-
-    const validation = useMemo(() => {
-        const errors: Record<string, string> = {};
-
-        if (!form.itemName.trim()) errors.itemName = 'Required';
-        if (!form.publicName.trim()) errors.publicName = 'Required';
-        if (form.width < 1) errors.width = 'Min 1';
-        if (form.length < 1) errors.length = 'Min 1';
-        if (form.stackHeight < 0) errors.stackHeight = 'Min 0';
-
-        return errors;
-    }, [form]);
-
+    const validation = useMemo(() => validateForm(form), [form]);
     const isValid = useMemo(() => Object.keys(validation).length === 0, [validation]);
 
     // Furnidata name editing only works when the furni has a matching furnidata
@@ -274,8 +358,8 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
     // furnidata entry already has a name — fills items_base.public_name from the
     // stored furnidata name so the DB fallback stops being blank.
     const canSyncPublicName = useMemo(
-        () => furnidataEditable && !String(form.publicName ?? '').trim() && !!String(furniDataEntry?.name ?? '').trim(),
-        [furnidataEditable, form.publicName, furniDataEntry]
+        () => furnidataEditable && !String(item.publicName ?? '').trim() && !!String(furniDataEntry?.name ?? '').trim(),
+        [furnidataEditable, item.publicName, furniDataEntry]
     );
 
     // True only when the name/description actually differ from the stored furnidata
@@ -318,20 +402,35 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
         }
     }, [importResult, item]);
 
+    // Save opens a diff of the changed fields; the packet only fires on Confirm.
     const handleSave = useCallback(() => {
-        if (!isValid) return;
+        if (!isValid || !isDirty) return;
 
+        setConfirmSave(true);
+    }, [isValid, isDirty]);
+
+    const handleSaveConfirm = useCallback(() => {
+        setConfirmSave(false);
         onUpdate(item.id, form);
-    }, [item, form, isValid, onUpdate]);
+    }, [item, form, onUpdate]);
 
     // Expose save for keyboard shortcut
     saveRef.current = handleSave;
 
     const handleBack = useCallback(() => {
-        if (isDirty && !window.confirm('You have unsaved changes. Discard and go back?')) return;
+        if (isDirty) {
+            setConfirmBack(true);
+            return;
+        }
 
         onBack();
     }, [isDirty, onBack]);
+
+    const handleDiscard = useCallback(() => setForm(stored), [stored]);
+    const closeSave = useCallback(() => setConfirmSave(false), []);
+    const closeBack = useCallback(() => setConfirmBack(false), []);
+    const closeDelete = useCallback(() => setShowDeleteDialog(false), []);
+    const closeFurnidata = useCallback(() => setConfirmFurnidata(false), []);
 
     const handleDeleteConfirm = useCallback(() => {
         onDelete(item.id);
@@ -352,9 +451,14 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
         return () => window.removeEventListener('keydown', handler);
     }, []);
 
-    const inputClass = (field?: string) =>
-        `w-full px-3 py-1.5 text-sm leading-normal rounded-lg border border-slate-300 bg-[#ffffff] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 transition${field && validation[field] ? ' border-red-400 bg-red-50' : ''}`;
+    // A changed field carries an amber edge until it is saved or discarded, an
+    // invalid one a red edge; red wins because it blocks the save.
+    const inputClass = (field?: EditField) => {
+        const state = field && validation[field] ? ' border-red-400 bg-red-50' : field && isChanged(field) ? ' border-amber-400 bg-amber-50/40' : '';
+        return `w-full px-3 py-1.5 text-sm leading-normal rounded-lg border border-slate-300 bg-[#ffffff] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 transition${state}`;
+    };
     const labelClass = 'text-[11px] font-medium text-slate-500 mb-1 flex items-center gap-0.5';
+    const fieldError = (field: EditField) => validation[field] && <span className="text-[9px] text-red-500">{validation[field]}</span>;
 
     return (
         <Column gap={1}>
@@ -365,9 +469,9 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                 </div>
                 <Flex column gap={0} className="min-w-0 flex-1">
                     <Text bold className="truncate text-slate-800 text-[15px] leading-tight">
-                        {furniName || form.publicName || form.itemName}
+                        {furniName || item.publicName || item.itemName}
                     </Text>
-                    <Text className="truncate text-slate-400 text-[11px] font-mono">{form.itemName}</Text>
+                    <Text className="truncate text-slate-400 text-[11px] font-mono">{item.itemName}</Text>
                     <Flex alignItems="center" gap={1} className="mt-1 flex-wrap">
                         <span className="inline-flex items-center gap-1 text-[10px] rounded-md border border-slate-200 bg-slate-50 pl-1.5 pr-2 py-0.5">
                             <span className="text-[8px] font-semibold uppercase tracking-wide text-slate-400">ID</span>
@@ -419,7 +523,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     value={furniName}
                                     onChange={(e) => setFurniName(e.target.value)}
                                     maxLength={256}
-                                    placeholder={furnidataCreatable ? form.publicName || form.itemName : undefined}
+                                    placeholder={furnidataCreatable ? item.publicName || item.itemName : undefined}
                                 />
                             </div>
                             <div>
@@ -494,11 +598,11 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                 <div className="grid grid-cols-2 gap-2">
                     <div>
                         <label className={labelClass}>Classname</label>
-                        <CopyValue value={form.itemName} />
+                        <CopyValue value={item.itemName} />
                     </div>
                     <div>
                         <label className={labelClass}>Public Name (DB fallback)</label>
-                        <CopyValue value={form.publicName} />
+                        <CopyValue value={item.publicName} />
                         {canSyncPublicName && (
                             <Button
                                 variant="secondary"
@@ -512,12 +616,60 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                     </div>
                     <div>
                         <label className={labelClass}>Sprite ID</label>
-                        <CopyValue value={form.spriteId} />
+                        <CopyValue value={item.spriteId} />
                     </div>
                     <div>
                         <label className={labelClass}>Type</label>
-                        <CopyValue value={form.type === 's' ? 'Floor (s)' : 'Wall (i)'} />
+                        <CopyValue value={item.type === 's' ? 'Floor (s)' : 'Wall (i)'} />
                     </div>
+                </div>
+                <div className="mt-2">
+                    <label className={labelClass} htmlFor="furni-editor-description">
+                        Description (DB)
+                        <Tip field="description" />
+                    </label>
+                    <textarea
+                        id="furni-editor-description"
+                        aria-label={FIELD_LABELS[FIELD_IDS['description']]}
+                        rows={2}
+                        className={`${inputClass('description')} resize-y min-h-[2.25rem]`}
+                        value={form.description}
+                        onChange={(e) => setField('description', e.target.value)}
+                    />
+                    {fieldError('description')}
+                </div>
+            </Section>
+
+            <Section title={`Catalogue (${catalogItems.length})`}>
+                <div data-testid="furni-editor-catalog">
+                    {catalogItems.length === 0 ? (
+                        <Text className="text-[11px] text-slate-400">Not in the catalogue</Text>
+                    ) : (
+                        <table className="w-full text-[11px]">
+                            <thead>
+                                <tr className="text-left text-[9px] uppercase tracking-wide text-slate-400">
+                                    <th className="font-semibold pb-1">Page</th>
+                                    <th className="font-semibold pb-1">Offer</th>
+                                    <th className="font-semibold pb-1 text-right">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {catalogItems.map((ref) => (
+                                    <tr key={ref.id} className="border-t border-slate-100">
+                                        <td className="py-1 pr-2 text-slate-700">
+                                            <span>{ref.pageName}</span>
+                                            <span className="ml-1 font-mono text-slate-400">#{ref.pageId}</span>
+                                        </td>
+                                        <td className="py-1 pr-2 font-mono text-slate-600 truncate max-w-[180px]">
+                                            {ref.catalogName}
+                                            <span className="ml-1 text-slate-400">#{ref.id}</span>
+                                        </td>
+                                        <td className="py-1 text-right text-slate-700 whitespace-nowrap">{formatPrice(ref)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </Section>
 
@@ -589,7 +741,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                             <Text className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">{group.label}</Text>
                             <div className="flex flex-wrap gap-1.5">
                                 {group.keys.map((key) => {
-                                    const on = (form as any)[key];
+                                    const on = form[key] === true;
                                     return (
                                         <button
                                             key={key}
@@ -597,7 +749,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                             onClick={() => setField(key, !on)}
                                             aria-pressed={on}
                                             title={on ? 'Enabled — click to disable' : 'Disabled — click to enable'}
-                                            className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border font-medium transition ${on ? 'bg-[#418db0] border-[#418db0] text-[#ffffff] shadow-sm' : 'bg-slate-100 border-slate-200 text-slate-400 hover:bg-slate-200 hover:text-slate-600'}`}
+                                            className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border font-medium transition ${on ? 'bg-[#418db0] border-[#418db0] text-[#ffffff] shadow-sm' : 'bg-slate-100 border-slate-200 text-slate-400 hover:bg-slate-200 hover:text-slate-600'}${isChanged(key) ? ' ring-2 ring-amber-300' : ''}`}
                                         >
                                             <span
                                                 className={`inline-block w-2 h-2 rounded-full ring-1 ${on ? 'bg-[#22c55e] ring-[#ffffff]/70' : 'bg-[#ef4444] ring-[#00000014]'}`}
@@ -633,24 +785,115 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                         </select>
                     </div>
                     <div>
-                        <label className={labelClass}>
+                        <label className={labelClass} htmlFor="furni-editor-modes">
                             Modes
                             <Tip field="interactionModesCount" />
                         </label>
                         <input
+                            id="furni-editor-modes"
+                            aria-label={FIELD_LABELS[FIELD_IDS['modes']]}
                             type="number"
-                            className={inputClass()}
+                            className={inputClass('interactionModesCount')}
                             value={form.interactionModesCount}
                             onChange={(e) => setField('interactionModesCount', Number(e.target.value))}
                         />
+                        {fieldError('interactionModesCount')}
                     </div>
                 </div>
                 <div className="mt-1">
-                    <label className={labelClass}>
+                    <label className={labelClass} htmlFor="furni-editor-customparams">
                         Custom Params
                         <Tip field="customparams" />
                     </label>
-                    <input className={inputClass()} value={form.customparams} onChange={(e) => setField('customparams', e.target.value)} />
+                    <input
+                        id="furni-editor-customparams"
+                        aria-label={FIELD_LABELS[FIELD_IDS['customparams']]}
+                        className={inputClass('customparams')}
+                        value={form.customparams}
+                        onChange={(e) => setField('customparams', e.target.value)}
+                    />
+                    {fieldError('customparams')}
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                    <div>
+                        <label className={labelClass} htmlFor="furni-editor-vending">
+                            Vending IDs
+                            <Tip field="vendingIds" />
+                        </label>
+                        <input
+                            id="furni-editor-vending"
+                            aria-label={FIELD_LABELS[FIELD_IDS['vending']]}
+                            className={inputClass('vendingIds')}
+                            value={form.vendingIds}
+                            onChange={(e) => setField('vendingIds', e.target.value)}
+                        />
+                        {fieldError('vendingIds')}
+                    </div>
+                    <div>
+                        <label className={labelClass} htmlFor="furni-editor-multiheight">
+                            Multiheight
+                            <Tip field="multiheight" />
+                        </label>
+                        <input
+                            id="furni-editor-multiheight"
+                            aria-label={FIELD_LABELS[FIELD_IDS['multiheight']]}
+                            className={inputClass('multiheight')}
+                            value={form.multiheight}
+                            onChange={(e) => setField('multiheight', e.target.value)}
+                        />
+                        {fieldError('multiheight')}
+                    </div>
+                </div>
+            </Section>
+
+            <Section title="Effects &amp; clothing">
+                <div className="grid grid-cols-3 gap-2">
+                    <div>
+                        <label className={labelClass} htmlFor="furni-editor-effect-male">
+                            Effect ID (male)
+                            <Tip field="effectIdMale" />
+                        </label>
+                        <input
+                            id="furni-editor-effect-male"
+                            aria-label={FIELD_LABELS[FIELD_IDS['effect-male']]}
+                            type="number"
+                            min={0}
+                            className={inputClass('effectIdMale')}
+                            value={form.effectIdMale}
+                            onChange={(e) => setField('effectIdMale', Number(e.target.value))}
+                        />
+                        {fieldError('effectIdMale')}
+                    </div>
+                    <div>
+                        <label className={labelClass} htmlFor="furni-editor-effect-female">
+                            Effect ID (female)
+                            <Tip field="effectIdFemale" />
+                        </label>
+                        <input
+                            id="furni-editor-effect-female"
+                            aria-label={FIELD_LABELS[FIELD_IDS['effect-female']]}
+                            type="number"
+                            min={0}
+                            className={inputClass('effectIdFemale')}
+                            value={form.effectIdFemale}
+                            onChange={(e) => setField('effectIdFemale', Number(e.target.value))}
+                        />
+                        {fieldError('effectIdFemale')}
+                    </div>
+                    <div>
+                        <label className={labelClass} htmlFor="furni-editor-clothing">
+                            Clothing on walk
+                            <Tip field="clothingOnWalk" />
+                        </label>
+                        <input
+                            id="furni-editor-clothing"
+                            aria-label={FIELD_LABELS[FIELD_IDS['clothing']]}
+                            className={inputClass('clothingOnWalk')}
+                            value={form.clothingOnWalk}
+                            onChange={(e) => setField('clothingOnWalk', e.target.value)}
+                        />
+                        {fieldError('clothingOnWalk')}
+                    </div>
                 </div>
             </Section>
 
@@ -658,66 +901,78 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
             <Flex gap={1} justifyContent="between" alignItems="center" className="mt-1">
                 <Flex gap={1} alignItems="center">
                     <Button variant="success" disabled={loading || !isValid || !isDirty} onClick={handleSave}>
-                        {loading ? 'Saving...' : 'Save'}
+                        {loading ? 'Saving...' : isDirty ? `Save (${changedFields.length})` : 'Save'}
                     </Button>
                     <span className="text-[9px] text-[#999]">Ctrl+S</span>
+                    {isDirty && (
+                        <Button variant="secondary" disabled={loading} onClick={handleDiscard}>
+                            Discard changes
+                        </Button>
+                    )}
                 </Flex>
                 <Button variant="danger" disabled={loading || item.usageCount > 0} onClick={() => setShowDeleteDialog(true)}>
                     Delete
                 </Button>
             </Flex>
 
-            {/* Delete Confirmation Dialog */}
-            {showDeleteDialog && (
-                <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-[60]" onClick={() => setShowDeleteDialog(false)}>
-                    <div className="bg-[#ffffff] rounded-lg shadow-xl p-4 w-[320px]" onClick={(e) => e.stopPropagation()}>
-                        <Text bold className="text-[14px] mb-2 block">
-                            Delete Item?
-                        </Text>
-                        <Text small className="mb-3 block text-[#666]">
-                            Are you sure you want to delete <strong>{item.publicName || item.itemName}</strong> (ID: {item.id})? This action cannot be undone.
-                        </Text>
-                        <Flex gap={1} justifyContent="end">
-                            <Button variant="secondary" onClick={() => setShowDeleteDialog(false)}>
-                                Cancel
-                            </Button>
-                            <Button variant="danger" onClick={handleDeleteConfirm}>
-                                Delete
-                            </Button>
-                        </Flex>
+            {confirmSave && (
+                <ConfirmModal title="Confirm changes" confirmLabel="Confirm" confirmVariant="success" onConfirm={handleSaveConfirm} onCancel={closeSave}>
+                    <Text small className="mb-2 block text-[#666]">
+                        {changedFields.length} field{changedFields.length === 1 ? '' : 's'} of <strong>{item.publicName || item.itemName}</strong> (ID:{' '}
+                        {item.id}) will change. Rooms pick the new values up on their next reload.
+                    </Text>
+                    <div className="max-h-48 overflow-auto flex flex-col gap-1">
+                        {changedFields.map((field) => (
+                            <div
+                                key={field}
+                                className="text-xs grid grid-cols-[1fr_auto_1fr] items-center gap-1 bg-slate-50 border border-slate-200 rounded-md px-2 py-1"
+                            >
+                                <span className="font-medium text-slate-700 truncate">{FIELD_LABELS[field]}</span>
+                                <span className="text-slate-400">→</span>
+                                <span className="font-mono text-right truncate">
+                                    <span className="text-slate-400 line-through mr-1">{formatValue(stored[field])}</span>
+                                    <span className="text-slate-800">{formatValue(form[field])}</span>
+                                </span>
+                            </div>
+                        ))}
                     </div>
-                </div>
+                </ConfirmModal>
             )}
 
-            {/* Furnidata Confirmation Dialog */}
+            {confirmBack && (
+                <ConfirmModal title="Unsaved changes" confirmLabel="Discard" confirmVariant="danger" onConfirm={onBack} onCancel={closeBack}>
+                    <Text small className="block text-[#666]">
+                        {changedFields.length} unsaved change{changedFields.length === 1 ? '' : 's'} will be lost if you go back now.
+                    </Text>
+                </ConfirmModal>
+            )}
+
+            {showDeleteDialog && (
+                <ConfirmModal title="Delete Item?" confirmLabel="Delete" confirmVariant="danger" onConfirm={handleDeleteConfirm} onCancel={closeDelete}>
+                    <Text small className="block text-[#666]">
+                        Are you sure you want to delete <strong>{item.publicName || item.itemName}</strong> (ID: {item.id})? This action cannot be undone.
+                    </Text>
+                </ConfirmModal>
+            )}
+
             {confirmFurnidata && (
-                <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-[60]" onClick={() => setConfirmFurnidata(false)}>
-                    <div className="bg-[#ffffff] rounded-lg shadow-xl p-4 w-[320px]" onClick={(e) => e.stopPropagation()}>
-                        <Text bold className="text-[14px] mb-2 block">
-                            Apply furnidata change to ALL clients?
-                        </Text>
-                        <div className="text-xs mb-1">
-                            <b>Name:</b> {String(furniDataEntry?.name ?? '')} → {furniName}
-                        </div>
-                        <div className="text-xs mb-3">
-                            <b>Desc:</b> {String(furniDataEntry?.description ?? '')} → {furniDescription}
-                        </div>
-                        <Flex gap={1} justifyContent="end">
-                            <Button variant="secondary" onClick={() => setConfirmFurnidata(false)}>
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="success"
-                                onClick={() => {
-                                    onUpdateFurnidata(item.id, furniName, furniDescription);
-                                    setConfirmFurnidata(false);
-                                }}
-                            >
-                                Confirm
-                            </Button>
-                        </Flex>
+                <ConfirmModal
+                    title="Apply furnidata change to ALL clients?"
+                    confirmLabel="Confirm"
+                    confirmVariant="success"
+                    onConfirm={() => {
+                        onUpdateFurnidata(item.id, furniName, furniDescription);
+                        setConfirmFurnidata(false);
+                    }}
+                    onCancel={closeFurnidata}
+                >
+                    <div className="text-xs mb-1">
+                        <b>Name:</b> {String(furniDataEntry?.name ?? '')} → {furniName}
                     </div>
-                </div>
+                    <div className="text-xs">
+                        <b>Desc:</b> {String(furniDataEntry?.description ?? '')} → {furniDescription}
+                    </div>
+                </ConfirmModal>
             )}
         </Column>
     );
