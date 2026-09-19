@@ -238,7 +238,7 @@
     display: block;
     width: 33px;
     height: 17px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-club-compact-mark {
@@ -374,7 +374,7 @@
     font-weight: 700 !important;
     line-height: 18px;
     text-shadow: 0 1px 0 rgb(0 0 0 / 35%) !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-club-offer.is-wide .octane-club-offer-action:not(.is-buy) {
@@ -583,7 +583,7 @@
     height: 40px;
     overflow: hidden;
     background: url("../../assets/images/catalog/air/habbo-icons.png") -177px -49px no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-club-purchase-confirm-copy {
@@ -704,7 +704,7 @@
     outline: 0;
     background: url("../../assets/images/catalog/air/gift/checkbox-default.png") 0 0 no-repeat;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-club-purchase-confirm-disclaimer input:checked {
@@ -758,7 +758,7 @@
     font-weight: 700;
     line-height: 17px;
     text-align: center;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-club-purchase-confirm .octane-club-purchase-confirm-cancel {

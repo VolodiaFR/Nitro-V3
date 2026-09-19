@@ -127,7 +127,7 @@
     left: 301px;
     width: 17px;
     height: 18px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-gift-suggestions {
@@ -184,7 +184,7 @@
     left: 10px;
     width: 306px;
     height: 149px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-gift-avatar {
@@ -212,7 +212,7 @@
     width: auto;
     max-width: none;
     height: auto;
-    image-rendering: pixelated !important;
+    image-rendering: var(--octane-pixel-art, pixelated) !important;
 }
 
 .octane-catalog-gift-incognito {
@@ -220,7 +220,7 @@
     flex: 0 0 auto;
     width: 37px;
     height: 48px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-gift-message {
@@ -284,7 +284,7 @@
     outline: 0;
     background: url("../../assets/images/catalog/air/gift/checkbox-default.png") no-repeat 0 0;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-gift-show-face:checked {
@@ -351,7 +351,7 @@
 .octane-catalog-gift-product-image .furni-image {
     flex: 0 0 auto;
     margin: 0;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-gift-arrow {
@@ -403,7 +403,7 @@
     z-index: 1;
     width: 10px;
     height: 9px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -489,7 +489,7 @@
     width: 16px;
     height: 16px;
     margin-top: 1px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-gift-ribbon-name {
@@ -569,7 +569,7 @@
 
 .octane-catalog-gift-palette-border,
 .octane-catalog-gift-palette-selection {
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-gift-cancel,

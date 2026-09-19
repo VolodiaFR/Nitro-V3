@@ -51,7 +51,7 @@
 .octane-catalog-window [class*='octane-catalog-standard-button'],
 .octane-catalog-window [class*='octane-catalog-standard-buy-button'],
 .octane-catalog-window [class*='octane-catalog-standard-gift-button'] {
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-mobile-header,
@@ -118,7 +118,7 @@
     box-shadow: none !important;
     cursor: pointer !important;
     white-space: nowrap !important;
-    image-rendering: pixelated !important;
+    image-rendering: var(--octane-pixel-art, pixelated) !important;
 }
 
 .octane-catalog-window .octane-catalog-default-admin button:hover {
@@ -168,10 +168,11 @@
 
 .octane-catalog-tabs-shell .octane-card-tab-item.octane-catalog-admin-tab {
     flex: 0 0 auto !important;
-    width: 32px !important;
-    min-width: 32px !important;
-    max-width: 32px !important;
-    padding: 6px 4px 7px !important;
+    /* 18px of caps + 12px for the 10px gear. */
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    padding: 4px 13px 8px !important;
     margin-left: 0 !important;
 }
 
@@ -189,7 +190,7 @@
     --catalog-admin-danger: #b83b32;
 
     color: var(--catalog-admin-text) !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-admin-modal .octane-card-header-shell {
@@ -577,7 +578,7 @@
 .octane-catalog-admin-offer-preview-icon img {
     width: 36px;
     height: 36px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     object-fit: contain;
 }
 
@@ -683,7 +684,7 @@
     line-height: 1;
     cursor: pointer;
     box-shadow: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-admin-button:disabled {
@@ -958,7 +959,7 @@
     min-height: 35px;
     max-height: 35px;
     gap: 0;
-    padding: 5px 6px 0 !important;
+    padding: 3px 6px 0 !important;
     align-items: flex-end;
     overflow: hidden;
     flex-wrap: nowrap;
@@ -977,14 +978,16 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    height: 30px !important;
-    min-height: 30px !important;
-    max-height: 30px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
     min-width: 0;
     flex: 0 0 auto;
     max-width: none;
-    padding: 4px 8px 6px !important;
-    margin: 0 2px 0 0;
+    /* 9px of the side padding is the tab's cap bitmap. */
+    padding: 4px 17px 8px !important;
+    /* Tabs sit edge to edge: a gap would show the white shelf as a line. */
+    margin: 0;
     flex-shrink: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -1003,7 +1006,7 @@
 }
 
 .octane-catalog-window .octane-catalog-tabs-shell .octane-card-tab-item.octane-catalog-admin-tab {
-    padding: 4px 4px 6px !important;
+    padding: 4px 13px 8px !important;
 }
 
 .octane-catalog-window .octane-catalog-tabs-shell .octane-card-tab-item > div {
@@ -1020,7 +1023,7 @@
     width: 18px;
     height: 18px;
     object-fit: contain;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     flex-shrink: 0;
 }
 
@@ -1390,7 +1393,7 @@
     max-width: 100%;
     max-height: 100%;
     border-radius: 0 !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     transform: none;
     transform-origin: center center;
     transition: transform 180ms ease-out;
@@ -1415,7 +1418,7 @@
 
 .octane-catalog-offer-preview.is-badge .group-badge,
 .octane-catalog-offer-preview.is-badge > *:not(.octane-catalog-preview-title) {
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-color-grid-shell {
@@ -1546,7 +1549,7 @@
 .octane-catalog-badge-tile > div {
     max-width: 40px;
     max-height: 40px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-badge-empty {
@@ -1797,7 +1800,7 @@
     width: 22px !important;
     height: 22px !important;
     background-size: auto;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-badge-preview .octane-catalog-price-frame .is-credits .octane-currency-icon {
@@ -1873,7 +1876,7 @@
 
 .octane-catalog-sound-product-render .furni-image {
     flex: 0 0 auto;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-sound-price {
@@ -2223,7 +2226,7 @@
     height: auto !important;
     max-width: 100% !important;
     max-height: 100% !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     object-fit: contain;
     pointer-events: none;
 }
@@ -2694,7 +2697,7 @@
     text-shadow: none !important;
     box-shadow: none !important;
     cursor: pointer;
-    image-rendering: pixelated !important;
+    image-rendering: var(--octane-pixel-art, pixelated) !important;
 }
 
 .octane-catalog-window button.octane-catalog-preview-btn,
@@ -2812,7 +2815,7 @@
     background-repeat: no-repeat !important;
     background-size: 22px 22px !important;
     box-shadow: none !important;
-    image-rendering: pixelated !important;
+    image-rendering: var(--octane-pixel-art, pixelated) !important;
     touch-action: none;
 }
 
@@ -2884,7 +2887,7 @@
     z-index: 0;
     background: #92d27c;
     -webkit-mask-box-image: url("../../assets/images/catalog/air/gift/border-slot-e9e9e9.png") 3 fill / 3px / 0 stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -2916,7 +2919,7 @@
     width: 30px;
     height: 30px;
     background: url("../../assets/images/catalog/air/bundle-star.png") 0 0 / 29px 29px no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-standard-spinner-input-frame::before {
@@ -2933,7 +2936,7 @@
     border-image-width: 6px !important;
     border-image-repeat: stretch !important;
     background: transparent !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -3265,7 +3268,7 @@
     object-fit: none !important;
     z-index: 1;
     filter: none !important;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-window .octane-catalog-preview-controls button.is-left .octane-catalog-preview-arrow {
@@ -3283,7 +3286,7 @@
     width: 13px;
     height: 22px;
     background-repeat: no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-window .octane-catalog-preview-controls .octane-icon.icon-zoom-more:hover,
@@ -3299,7 +3302,7 @@
     width: 41px;
     height: 22px;
     background: url("@/assets/images/catalog/preview-avatar-action.svg") no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-grid-club-level {
@@ -3810,7 +3813,7 @@
     font-weight: 700;
     cursor: pointer;
     box-shadow: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-admin-btn:hover {
@@ -4347,7 +4350,7 @@
     max-width: 32px;
     max-height: 32px;
     object-fit: contain;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-admin-offer-icon-empty {
@@ -4932,7 +4935,7 @@
     max-width: 100% !important;
     max-height: 100% !important;
     object-fit: contain;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-bundle-frame {

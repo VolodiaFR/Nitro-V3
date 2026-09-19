@@ -45,6 +45,16 @@
     src: local("Ubuntu Condensed"), local("Ubuntu");
 }
 
+:root {
+    --octane-pixel-art: auto;
+}
+
+@media (resolution: 1dppx), (resolution: 2dppx), (resolution: 3dppx) {
+    :root {
+        --octane-pixel-art: pixelated;
+    }
+}
+
 html,
 body {
     padding: 0;
