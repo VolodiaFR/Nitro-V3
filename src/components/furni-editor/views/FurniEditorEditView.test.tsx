@@ -330,6 +330,72 @@ describe('FurniEditorEditView', () => {
         expect(screen.getByRole('button', { name: '1 warning ›' })).toBeInTheDocument();
     });
 
+    it('flags a furnidata entry whose id is not the sprite id', () => {
+        renderView({ furniDataEntry: { classname: 'throne', id: 4201 } });
+
+        expect(screen.getByText('Furnidata id 4201 ≠ sprite')).toBeInTheDocument();
+    });
+
+    it('warns in the diff when a placement field changes on a furni standing in rooms', () => {
+        renderView();
+
+        fireEvent.change(screen.getByRole('spinbutton', { name: 'Width' }), { target: { value: '2' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Save (1)' }));
+
+        const dialog = screen.getByRole('dialog', { name: 'Confirm changes' });
+        expect(within(dialog).getByRole('note')).toHaveTextContent('3 placed furni will take the new footprint');
+    });
+
+    it('offers to undo the last save once the stored values have moved', () => {
+        const onUpdate = vi.fn();
+        const { rerender } = render(
+            <FurniEditorEditView
+                item={item}
+                catalogItems={[]}
+                furniDataEntry={null}
+                furniDataDiagnostic={null}
+                interactions={['default']}
+                loading={false}
+                onUpdate={onUpdate}
+                onDelete={vi.fn()}
+                onBack={vi.fn()}
+                onUpdateFurnidata={vi.fn()}
+                onRevertFurnidata={vi.fn()}
+                onSyncPublicName={vi.fn()}
+                onImportText={vi.fn()}
+                importResult={null}
+            />
+        );
+
+        fireEvent.change(screen.getByLabelText('Effect ID (male)'), { target: { value: '5' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Save (1)' }));
+        fireEvent.click(within(screen.getByRole('dialog', { name: 'Confirm changes' })).getByRole('button', { name: 'Confirm' }));
+        expect(screen.queryByRole('button', { name: 'Undo last save' })).toBeNull();
+
+        rerender(
+            <FurniEditorEditView
+                item={{ ...item, effectIdMale: 5 }}
+                catalogItems={[]}
+                furniDataEntry={null}
+                furniDataDiagnostic={null}
+                interactions={['default']}
+                loading={false}
+                onUpdate={onUpdate}
+                onDelete={vi.fn()}
+                onBack={vi.fn()}
+                onUpdateFurnidata={vi.fn()}
+                onRevertFurnidata={vi.fn()}
+                onSyncPublicName={vi.fn()}
+                onImportText={vi.fn()}
+                importResult={null}
+            />
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Undo last save' }));
+        expect(screen.getByLabelText('Effect ID (male)')).toHaveValue(0);
+        expect(screen.getByRole('button', { name: 'Save (1)' })).toBeEnabled();
+    });
+
     it('resets every field to the stored values with one click', () => {
         renderView();
 

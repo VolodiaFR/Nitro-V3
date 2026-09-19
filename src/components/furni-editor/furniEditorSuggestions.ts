@@ -6,6 +6,7 @@
 export interface EditableFields {
     width: number;
     length: number;
+    stackHeight: number;
     allowWalk: boolean;
     allowSit: boolean;
     allowLay: boolean;
@@ -76,6 +77,10 @@ export const suggestFromFurnidata = (entry: Record<string, unknown> | null, form
     if (xdim !== null && xdim >= 1 && xdim !== form.width) out.push({ field: 'width', value: xdim, reason: `${from} xdim` });
     if (ydim !== null && ydim >= 1 && ydim !== form.length) out.push({ field: 'length', value: ydim, reason: `${from} ydim` });
 
+    const height = typeof entry.height === 'number' ? entry.height : typeof entry.height === 'string' ? Number(entry.height) : NaN;
+    if (Number.isFinite(height) && height >= 0 && Math.abs(height - form.stackHeight) > 0.001)
+        out.push({ field: 'stackHeight', value: height, reason: `${from} height` });
+
     const flags: [SuggestionField & ('allowWalk' | 'allowSit' | 'allowLay' | 'allowTrade' | 'allowRecycle'), string][] = [
         ['allowWalk', 'canstandon'],
         ['allowSit', 'cansiton'],
@@ -127,4 +132,25 @@ export const expectationsForType = (form: EditableFields): { suggestions: Sugges
     if (need && !form[need.field].trim()) warnings.push({ field: need.field, message: need.message });
 
     return { suggestions, warnings };
+};
+
+// The renderer resolves a type id to its classname through the furnidata id,
+// so an entry matched by classname whose id is not the sprite id means the
+// room draws a different furni than the one this row describes.
+export const spriteIdMismatch = (entry: Record<string, unknown> | null, spriteId: number): number | null => {
+    if (!entry) return null;
+    const id = asInt(entry.id);
+    return id !== null && id !== spriteId ? id : null;
+};
+
+// A multiheight furni needs one height per visualization state; the asset
+// count, when known, says how many states that is.
+export const multiheightMismatch = (form: EditableFields, assetStates: number | null): Expectation | null => {
+    if (form.interactionType.trim().toLowerCase() !== 'multiheight' || assetStates === null || assetStates <= 0) return null;
+    const heights = form.multiheight
+        .split(',')
+        .map((h) => h.trim())
+        .filter(Boolean).length;
+    if (heights === 0 || heights === assetStates) return null;
+    return { field: 'multiheight', message: `${heights} height${heights === 1 ? '' : 's'} for ${assetStates} states in the asset` };
 };

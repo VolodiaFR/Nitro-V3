@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { EditableFields, expectationsForType, suggestFromFurnidata, suggestInteractionType } from './furniEditorSuggestions';
+import {
+    EditableFields,
+    expectationsForType,
+    multiheightMismatch,
+    spriteIdMismatch,
+    suggestFromFurnidata,
+    suggestInteractionType
+} from './furniEditorSuggestions';
 
 const registered = ['default', 'gate', 'guild_gate', 'teleport', 'dice', 'vendingmachine', 'multiheight', 'wf_trg_enter_room', 'wf_act_kick_user'];
 
 const form: EditableFields = {
     width: 1,
     length: 1,
+    stackHeight: 1.5,
     allowWalk: false,
     allowSit: true,
     allowLay: false,
@@ -88,5 +96,28 @@ describe('expectationsForType', () => {
         expect(expectationsForType(form)).toEqual({ suggestions: [], warnings: [] });
         expect(expectationsForType({ ...form, interactionType: '' })).toEqual({ suggestions: [], warnings: [] });
         expect(expectationsForType({ ...form, interactionType: 'wf_trg_enter_room' })).toEqual({ suggestions: [], warnings: [] });
+    });
+});
+
+describe('stack height, sprite id and multiheight checks', () => {
+    it('proposes the furnidata height as stack height when it differs', () => {
+        expect(suggestFromFurnidata({ height: 1 }, form)).toEqual([{ field: 'stackHeight', value: 1, reason: 'furnidata height' }]);
+        expect(suggestFromFurnidata({ height: 1.5 }, form)).toEqual([]);
+    });
+
+    it('reports a furnidata id that is not the sprite id', () => {
+        expect(spriteIdMismatch({ id: 4201 }, 4200)).toBe(4201);
+        expect(spriteIdMismatch({ id: 4200 }, 4200)).toBeNull();
+        expect(spriteIdMismatch({}, 4200)).toBeNull();
+        expect(spriteIdMismatch(null, 4200)).toBeNull();
+    });
+
+    it('compares the multiheight list with the asset state count', () => {
+        const mh = { ...form, interactionType: 'multiheight', multiheight: '0.5, 1.0, 1.5' };
+        expect(multiheightMismatch(mh, 5)).toEqual({ field: 'multiheight', message: '3 heights for 5 states in the asset' });
+        expect(multiheightMismatch(mh, 3)).toBeNull();
+        expect(multiheightMismatch(mh, null)).toBeNull();
+        expect(multiheightMismatch({ ...mh, multiheight: '' }, 5)).toBeNull();
+        expect(multiheightMismatch({ ...mh, interactionType: 'gate' }, 5)).toBeNull();
     });
 });

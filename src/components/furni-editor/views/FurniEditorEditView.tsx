@@ -4,7 +4,15 @@ import { CopyToClipboard } from '../../../api';
 import { Button, Flex, LayoutFurniIconImageView, LayoutFurniImageView, Text } from '../../../common';
 import { CatalogRef, FurniDetail } from '../../../hooks/furni-editor';
 import { readAssetStateCount } from '../furniAssetStates';
-import { Suggestion, expectationsForType, suggestFromFurnidata, suggestInteractionType } from '../furniEditorSuggestions';
+import { AssetPresence, AssetPresenceReport, checkAssetPresence } from '../furniAssetPresence';
+import {
+    Suggestion,
+    expectationsForType,
+    multiheightMismatch,
+    spriteIdMismatch,
+    suggestFromFurnidata,
+    suggestInteractionType
+} from '../furniEditorSuggestions';
 
 interface FurniEditorEditViewProps {
     item: FurniDetail;
@@ -633,8 +641,40 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
             const alreadyFromType = typed.suggestions.some((s) => s.field === 'interactionModesCount' && s.value === assetStates);
             if (!alreadyFromType) all.push({ field: 'interactionModesCount', value: assetStates, reason: `asset defines ${assetStates} states` });
         }
-        return { suggestions: all, warnings: typed.warnings };
+        const warnings = [...typed.warnings];
+        const mh = multiheightMismatch(form, assetStates);
+        if (mh) warnings.push(mh);
+        return { suggestions: all, warnings };
     }, [furnidataEditable, furniDataEntry, form, assetStates]);
+
+    // A furnidata entry found by classname but carrying another id: the room
+    // resolves the sprite through that id, so it draws a different furni.
+    const furnidataIdMismatch = useMemo(
+        () => (furnidataEditable ? spriteIdMismatch(furniDataEntry, item.spriteId) : null),
+        [furnidataEditable, furniDataEntry, item.spriteId]
+    );
+
+    // Whether the icon and the bundle actually exist where the renderer looks.
+    const [assets, setAssets] = useState<AssetPresenceReport | null>(null);
+    useEffect(() => {
+        setAssets(null);
+        const controller = new AbortController();
+        checkAssetPresence(item.itemName, controller.signal).then((report) => {
+            if (!controller.signal.aborted) setAssets(report);
+        });
+        return () => controller.abort();
+    }, [item.itemName]);
+
+    // The values a save replaced, kept so one click can put them back into
+    // the form while the sheet stays open. Cleared when another furni opens.
+    const [lastSave, setLastSave] = useState<{ id: number; previous: EditForm } | null>(null);
+    const undoAvailable = lastSave !== null && lastSave.id === item.id && (Object.keys(stored) as EditField[]).some((k) => stored[k] !== lastSave.previous[k]);
+    const undoLastSave = useCallback(() => {
+        if (lastSave) setForm(lastSave.previous);
+    }, [lastSave]);
+
+    // Fields whose change reshapes furni already standing in rooms.
+    const placementFields: EditField[] = ['width', 'length', 'stackHeight', 'allowWalk', 'allowStack', 'allowSit', 'allowLay'];
 
     const applySuggestion = useCallback((s: Suggestion) => setForm((prev) => ({ ...prev, [s.field]: s.value })), []);
     const applyAllSuggestions = useCallback(() => setForm((prev) => suggestions.reduce((next, s) => ({ ...next, [s.field]: s.value }), prev)), [suggestions]);
@@ -679,8 +719,9 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
 
     const handleSaveConfirm = useCallback(() => {
         setConfirmSave(false);
+        setLastSave({ id: item.id, previous: stored });
         onUpdate(item.id, form);
-    }, [item, form, onUpdate]);
+    }, [item, form, stored, onUpdate]);
 
     // Expose save for keyboard shortcut
     saveRef.current = handleSave;
@@ -869,6 +910,34 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                             )}
                         </div>
                     )}
+                    {furnidataIdMismatch !== null && (
+                        <div className={`${statusRow} text-amber-700`} role="note">
+                            <span
+                                title={`furnidata id ${furnidataIdMismatch}, sprite id ${item.spriteId}: rooms draw the furni that owns id ${furnidataIdMismatch}`}
+                            >
+                                Furnidata id {furnidataIdMismatch} ≠ sprite
+                            </span>
+                            <button type="button" className={statusLink} onClick={() => setGroup('data')}>
+                                see ›
+                            </button>
+                        </div>
+                    )}
+                    <div className={statusRow}>
+                        <span className="text-slate-500">Assets</span>
+                        <span className="flex items-center gap-1.5" aria-label={assets ? `icon ${assets.icon}, bundle ${assets.bundle}` : 'checking assets'}>
+                            {(['icon', 'bundle'] as const).map((kind) => {
+                                const state: AssetPresence | 'checking' = assets ? assets[kind] : 'checking';
+                                const tone = state === 'present' ? 'bg-[#10b981]' : state === 'missing' ? 'bg-[#ef4444]' : 'bg-slate-300';
+                                const url = assets ? (kind === 'icon' ? assets.iconUrl : assets.bundleUrl) : '';
+                                return (
+                                    <span key={kind} className="inline-flex items-center gap-0.5" title={url ? `${kind} ${state}: ${url}` : `${kind} ${state}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${tone}`} />
+                                        <span className={state === 'missing' ? 'text-red-600' : 'text-slate-600'}>{kind}</span>
+                                    </span>
+                                );
+                            })}
+                        </span>
+                    </div>
                     {interactionUnregistered && (
                         <div className={`${statusRow} text-amber-700`}>
                             <span>Type has no class</span>
@@ -926,6 +995,17 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                             Delete
                         </Button>
                     </div>
+                    {undoAvailable && (
+                        <Button
+                            variant="secondary"
+                            disabled={loading}
+                            onClick={undoLastSave}
+                            className="w-full"
+                            title="Put the values the last save replaced back into the form"
+                        >
+                            Undo last save
+                        </Button>
+                    )}
                     <span className="text-[9px] text-slate-400 text-center">Ctrl+S saves</span>
                 </div>
             </aside>
@@ -1169,6 +1249,16 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                             </Section>
                         )}
 
+                        {furnidataIdMismatch !== null && (
+                            <div className="flex items-start gap-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2 leading-snug">
+                                <span className="text-[#f59e0b] text-sm leading-none mt-px">⚠</span>
+                                <span>
+                                    This entry was matched by classname but carries id <b>{furnidataIdMismatch}</b>, while the DB sprite id is{' '}
+                                    <b>{item.spriteId}</b>. Rooms resolve the sprite through the furnidata id, so they draw whichever furni owns{' '}
+                                    {furnidataIdMismatch}. Fix by repointing the furnidata id to the sprite id, or the sprite id to the entry.
+                                </span>
+                            </div>
+                        )}
                         <Section title="Furnidata Debug" defaultOpen={false}>
                             <div className="grid grid-cols-2 gap-2 mb-2">
                                 <div>
@@ -1235,6 +1325,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                         onChange={(e) => setField('stackHeight', Number(e.target.value))}
                                     />
                                     {validation.stackHeight && <span className="text-[9px] text-red-500">{validation.stackHeight}</span>}
+                                    {chipsFor('stackHeight')}
                                 </div>
                             </div>
                         </Section>
@@ -1436,6 +1527,18 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                         {changedFields.length} field{changedFields.length === 1 ? '' : 's'} of <strong>{item.publicName || item.itemName}</strong> (ID:{' '}
                         {item.id}) will change. Rooms pick the new values up on their next reload.
                     </Text>
+                    {item.usageCount > 0 && changedFields.some((f) => placementFields.includes(f)) && (
+                        <div
+                            role="note"
+                            className="mb-2 flex items-start gap-1.5 text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1 leading-snug"
+                        >
+                            <span className="text-[#f59e0b] leading-none mt-px">⚠</span>
+                            <span>
+                                {item.usageCount} placed furni will take the new footprint or walk rules when their room reloads. Check for overlaps and blocked
+                                paths afterwards.
+                            </span>
+                        </div>
+                    )}
                     <div className="max-h-48 overflow-auto flex flex-col gap-1">
                         {changedFields.map((field) => (
                             <div
