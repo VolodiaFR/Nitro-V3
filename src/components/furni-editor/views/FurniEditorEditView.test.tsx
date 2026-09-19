@@ -166,7 +166,7 @@ describe('FurniEditorEditView', () => {
         renderView({ item: { ...item, interactionType: 'wf_trg_typo' } });
 
         expect(screen.getByText('No class registered for this type: the furni behaves as default')).toBeInTheDocument();
-        expect(screen.getByRole('combobox')).toHaveValue('wf_trg_typo');
+        expect(screen.getByLabelText('Interaction type')).toHaveValue('wf_trg_typo');
     });
 
     it('does not flag a registered interaction type, whatever its case', () => {
@@ -200,6 +200,33 @@ describe('FurniEditorEditView', () => {
 
         fireEvent.click(screen.getByRole('button', { name: '2 offers ›' }));
         expect(screen.getByRole('tab', { name: 'Catalogue' })).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('offers a per-field revert that puts the stored value back', () => {
+        renderView();
+
+        fireEvent.change(screen.getByLabelText('Effect ID (male)'), { target: { value: '5' } });
+        fireEvent.change(screen.getByLabelText('Multiheight'), { target: { value: '1' } });
+        expect(screen.getByRole('button', { name: 'Save (2)' })).toBeEnabled();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Revert Effect ID (male)' }));
+
+        expect(screen.getByLabelText('Effect ID (male)')).toHaveValue(0);
+        expect(screen.getByLabelText('Multiheight')).toHaveValue('1');
+        expect(screen.getByRole('button', { name: 'Save (1)' })).toBeEnabled();
+    });
+
+    it('jumps to a field by name, switching to its group', () => {
+        vi.useFakeTimers();
+        renderView();
+
+        fireEvent.change(screen.getByLabelText('Jump to field'), { target: { value: 'multi' } });
+        vi.runAllTimers();
+
+        expect(screen.getByRole('tab', { name: 'Behaviour' })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.getByLabelText('Multiheight')).toHaveFocus();
+        expect(screen.getByLabelText('Jump to field')).toHaveValue('');
+        vi.useRealTimers();
     });
 
     it('resets every field to the stored values with one click', () => {

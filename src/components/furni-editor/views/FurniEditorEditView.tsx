@@ -64,17 +64,6 @@ const editableForm = (item: FurniDetail) => ({
 type EditForm = ReturnType<typeof editableForm>;
 type EditField = keyof EditForm;
 
-const FIELD_IDS = {
-    description: 'description',
-    modes: 'interactionModesCount',
-    customparams: 'customparams',
-    vending: 'vendingIds',
-    multiheight: 'multiheight',
-    'effect-male': 'effectIdMale',
-    'effect-female': 'effectIdFemale',
-    clothing: 'clothingOnWalk'
-} as const satisfies Record<string, EditField>;
-
 const FIELD_LABELS: Record<EditField, string> = {
     width: 'Width',
     length: 'Length',
@@ -517,6 +506,42 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
     const labelClass = 'text-[11px] font-medium text-slate-500 mb-1 flex items-center gap-0.5';
     const fieldError = (field: EditField) => validation[field] && <span className="text-[9px] text-red-500">{validation[field]}</span>;
 
+    // Groups stay mounted and only toggle visibility, so a field can be focused
+    // right after its group is switched in.
+    const jumpToField = useCallback((field: EditField) => {
+        setGroup(FIELD_GROUP[field]);
+        window.setTimeout(() => document.getElementById(`furni-editor-${field}`)?.focus(), 0);
+    }, []);
+
+    const [jumpQuery, setJumpQuery] = useState('');
+    const handleJump = useCallback(
+        (query: string) => {
+            setJumpQuery(query);
+            const needle = query.trim().toLowerCase();
+            if (!needle) return;
+            const fields = Object.keys(FIELD_LABELS) as EditField[];
+            const match = fields.find((f) => FIELD_LABELS[f].toLowerCase() === needle) ?? fields.find((f) => FIELD_LABELS[f].toLowerCase().startsWith(needle));
+            if (!match) return;
+            setJumpQuery('');
+            jumpToField(match);
+        },
+        [jumpToField]
+    );
+
+    // "was X" next to a changed field's label: one click puts the stored value back.
+    const revert = (field: EditField) =>
+        isChanged(field) && (
+            <button
+                type="button"
+                onClick={() => setField(field, stored[field])}
+                title="Put the stored value back"
+                aria-label={`Revert ${FIELD_LABELS[field]}`}
+                className="ml-auto inline-flex items-center gap-0.5 text-[9px] font-normal text-amber-600 hover:text-amber-800 transition"
+            >
+                <span aria-hidden="true">↺</span> was {formatValue(stored[field])}
+            </button>
+        );
+
     const groupClass = (id: GroupId) => (group === id ? 'flex flex-col gap-1' : 'hidden');
     const statusRow = 'flex items-center justify-between gap-1 text-[10px] py-1 border-t border-slate-200';
     const statusLink = 'text-primary hover:underline cursor-pointer whitespace-nowrap';
@@ -593,7 +618,10 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                         <ul className="mt-0.5 space-y-px leading-snug">
                             {changedFields.map((field) => (
                                 <li key={field} className="truncate">
-                                    <span className="text-amber-700">{FIELD_LABELS[field]}</span> · {formatValue(stored[field])} → {formatValue(form[field])}
+                                    <button type="button" className="text-amber-700 hover:underline" onClick={() => jumpToField(field)}>
+                                        {FIELD_LABELS[field]}
+                                    </button>{' '}
+                                    · {formatValue(stored[field])} → {formatValue(form[field])}
                                 </li>
                             ))}
                         </ul>
@@ -648,6 +676,19 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                             </button>
                         );
                     })}
+                    <input
+                        list="furni-editor-fields"
+                        value={jumpQuery}
+                        onChange={(e) => handleJump(e.target.value)}
+                        placeholder="Jump to field"
+                        aria-label="Jump to field"
+                        className="ml-auto w-28 px-2 py-1 text-[11px] rounded-full border border-slate-200 bg-[#ffffff] focus:border-primary focus:outline-none"
+                    />
+                    <datalist id="furni-editor-fields">
+                        {(Object.keys(FIELD_LABELS) as EditField[]).map((field) => (
+                            <option key={field} value={FIELD_LABELS[field]} />
+                        ))}
+                    </datalist>
                 </div>
                 <div className="min-h-0 flex-1 overflow-y-auto pr-0.5">
                     <div className={groupClass('names')}>
@@ -780,10 +821,11 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                 <label className={labelClass} htmlFor="furni-editor-description">
                                     Description (DB)
                                     <Tip field="description" />
+                                    {revert('description')}
                                 </label>
                                 <textarea
                                     id="furni-editor-description"
-                                    aria-label={FIELD_LABELS[FIELD_IDS['description']]}
+                                    aria-label={FIELD_LABELS.description}
                                     rows={2}
                                     className={`${inputClass('description')} resize-y min-h-[2.25rem]`}
                                     value={form.description}
@@ -862,7 +904,9 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                         <Section title="Dimensions">
                             <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                    <label className={labelClass}>Width</label>
+                                    <label className={labelClass} htmlFor="furni-editor-width">
+                                        Width{revert('width')}
+                                    </label>
                                     <input
                                         type="number"
                                         className={inputClass('width')}
@@ -872,8 +916,11 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     {validation.width && <span className="text-[9px] text-red-500">{validation.width}</span>}
                                 </div>
                                 <div>
-                                    <label className={labelClass}>Length</label>
+                                    <label className={labelClass} htmlFor="furni-editor-length">
+                                        Length{revert('length')}
+                                    </label>
                                     <input
+                                        id="furni-editor-length"
                                         type="number"
                                         className={inputClass('length')}
                                         value={form.length}
@@ -885,8 +932,10 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     <label className={labelClass}>
                                         Stack Height
                                         <Tip field="stackHeight" />
+                                        {revert('stackHeight')}
                                     </label>
                                     <input
+                                        id="furni-editor-stackHeight"
                                         type="number"
                                         step="0.01"
                                         className={inputClass('stackHeight')}
@@ -936,8 +985,11 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     <label className={labelClass}>
                                         Type
                                         <Tip field="interactionType" />
+                                        {revert('interactionType')}
                                     </label>
                                     <select
+                                        id="furni-editor-interactionType"
+                                        aria-label={FIELD_LABELS.interactionType}
                                         className="w-full px-2 py-1 text-sm leading-normal rounded-sm border border-[#bbb] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/40 pr-8"
                                         value={form.interactionType}
                                         onChange={(e) => setField('interactionType', e.target.value)}
@@ -958,13 +1010,14 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     )}
                                 </div>
                                 <div>
-                                    <label className={labelClass} htmlFor="furni-editor-modes">
+                                    <label className={labelClass} htmlFor="furni-editor-interactionModesCount">
                                         Modes
                                         <Tip field="interactionModesCount" />
+                                        {revert('interactionModesCount')}
                                     </label>
                                     <input
-                                        id="furni-editor-modes"
-                                        aria-label={FIELD_LABELS[FIELD_IDS['modes']]}
+                                        id="furni-editor-interactionModesCount"
+                                        aria-label={FIELD_LABELS.interactionModesCount}
                                         type="number"
                                         className={inputClass('interactionModesCount')}
                                         value={form.interactionModesCount}
@@ -977,10 +1030,11 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                 <label className={labelClass} htmlFor="furni-editor-customparams">
                                     Custom Params
                                     <Tip field="customparams" />
+                                    {revert('customparams')}
                                 </label>
                                 <input
                                     id="furni-editor-customparams"
-                                    aria-label={FIELD_LABELS[FIELD_IDS['customparams']]}
+                                    aria-label={FIELD_LABELS.customparams}
                                     className={inputClass('customparams')}
                                     value={form.customparams}
                                     onChange={(e) => setField('customparams', e.target.value)}
@@ -989,13 +1043,14 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                             </div>
                             <div className="grid grid-cols-2 gap-2 mt-1">
                                 <div>
-                                    <label className={labelClass} htmlFor="furni-editor-vending">
+                                    <label className={labelClass} htmlFor="furni-editor-vendingIds">
                                         Vending IDs
                                         <Tip field="vendingIds" />
+                                        {revert('vendingIds')}
                                     </label>
                                     <input
-                                        id="furni-editor-vending"
-                                        aria-label={FIELD_LABELS[FIELD_IDS['vending']]}
+                                        id="furni-editor-vendingIds"
+                                        aria-label={FIELD_LABELS.vendingIds}
                                         className={inputClass('vendingIds')}
                                         value={form.vendingIds}
                                         onChange={(e) => setField('vendingIds', e.target.value)}
@@ -1006,10 +1061,11 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     <label className={labelClass} htmlFor="furni-editor-multiheight">
                                         Multiheight
                                         <Tip field="multiheight" />
+                                        {revert('multiheight')}
                                     </label>
                                     <input
                                         id="furni-editor-multiheight"
-                                        aria-label={FIELD_LABELS[FIELD_IDS['multiheight']]}
+                                        aria-label={FIELD_LABELS.multiheight}
                                         className={inputClass('multiheight')}
                                         value={form.multiheight}
                                         onChange={(e) => setField('multiheight', e.target.value)}
@@ -1022,13 +1078,14 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                         <Section title="Effects &amp; clothing">
                             <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                    <label className={labelClass} htmlFor="furni-editor-effect-male">
+                                    <label className={labelClass} htmlFor="furni-editor-effectIdMale">
                                         Effect ID (male)
                                         <Tip field="effectIdMale" />
+                                        {revert('effectIdMale')}
                                     </label>
                                     <input
-                                        id="furni-editor-effect-male"
-                                        aria-label={FIELD_LABELS[FIELD_IDS['effect-male']]}
+                                        id="furni-editor-effectIdMale"
+                                        aria-label={FIELD_LABELS.effectIdMale}
                                         type="number"
                                         min={0}
                                         className={inputClass('effectIdMale')}
@@ -1038,13 +1095,14 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     {fieldError('effectIdMale')}
                                 </div>
                                 <div>
-                                    <label className={labelClass} htmlFor="furni-editor-effect-female">
+                                    <label className={labelClass} htmlFor="furni-editor-effectIdFemale">
                                         Effect ID (female)
                                         <Tip field="effectIdFemale" />
+                                        {revert('effectIdFemale')}
                                     </label>
                                     <input
-                                        id="furni-editor-effect-female"
-                                        aria-label={FIELD_LABELS[FIELD_IDS['effect-female']]}
+                                        id="furni-editor-effectIdFemale"
+                                        aria-label={FIELD_LABELS.effectIdFemale}
                                         type="number"
                                         min={0}
                                         className={inputClass('effectIdFemale')}
@@ -1054,13 +1112,14 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     {fieldError('effectIdFemale')}
                                 </div>
                                 <div>
-                                    <label className={labelClass} htmlFor="furni-editor-clothing">
+                                    <label className={labelClass} htmlFor="furni-editor-clothingOnWalk">
                                         Clothing on walk
                                         <Tip field="clothingOnWalk" />
+                                        {revert('clothingOnWalk')}
                                     </label>
                                     <input
-                                        id="furni-editor-clothing"
-                                        aria-label={FIELD_LABELS[FIELD_IDS['clothing']]}
+                                        id="furni-editor-clothingOnWalk"
+                                        aria-label={FIELD_LABELS.clothingOnWalk}
                                         className={inputClass('clothingOnWalk')}
                                         value={form.clothingOnWalk}
                                         onChange={(e) => setField('clothingOnWalk', e.target.value)}
