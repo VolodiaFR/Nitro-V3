@@ -134,7 +134,7 @@ export const FurniEditorView: FC<{}> = () => {
     if (!isVisible || !isMod) return null;
 
     return (
-        <OctaneCardView uniqueKey="furni-editor" className="w-[620px] h-[520px]">
+        <OctaneCardView uniqueKey="furni-editor" className="w-[780px] h-[600px] min-w-[720px] min-h-[560px]">
             <OctaneCardHeaderView headerText="Furni Editor" onCloseClick={handleClose} />
             <OctaneCardTabsView>
                 <OctaneCardTabsItemView isActive={activeTab === TAB_SEARCH} onClick={() => setActiveTab(TAB_SEARCH)}>
