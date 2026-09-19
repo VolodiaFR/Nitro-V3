@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
     EditableFields,
     expectationsForType,
+    lineQueryFor,
     multiheightMismatch,
+    relateRows,
+    RelatedRow,
     spriteIdMismatch,
     suggestFromFurnidata,
+    suggestFromSiblings,
     suggestInteractionType
 } from './furniEditorSuggestions';
 
@@ -14,6 +18,7 @@ const form: EditableFields = {
     width: 1,
     length: 1,
     stackHeight: 1.5,
+    allowStack: false,
     allowWalk: false,
     allowSit: true,
     allowLay: false,
@@ -119,5 +124,64 @@ describe('stack height, sprite id and multiheight checks', () => {
         expect(multiheightMismatch(mh, null)).toBeNull();
         expect(multiheightMismatch({ ...mh, multiheight: '' }, 5)).toBeNull();
         expect(multiheightMismatch({ ...mh, interactionType: 'gate' }, 5)).toBeNull();
+    });
+});
+
+describe('furni lines, duplicates and sibling suggestions', () => {
+    const row = (id: number, itemName: string, spriteId: number, extra: Partial<RelatedRow> = {}): RelatedRow => ({
+        id,
+        spriteId,
+        itemName,
+        width: 1,
+        length: 1,
+        stackHeight: 1,
+        allowStack: true,
+        allowWalk: false,
+        allowSit: false,
+        allowLay: false,
+        interactionType: 'default',
+        interactionModesCount: 1,
+        ...extra
+    });
+
+    it('derives the line prefix from the classname, ignoring the colour suffix', () => {
+        expect(lineQueryFor('throne_gold*2')).toBe('throne');
+        expect(lineQueryFor('rare_dragonlamp')).toBe('rare');
+        expect(lineQueryFor('throne')).toBe('throne');
+        expect(lineQueryFor('a_b')).toBe('a_b');
+    });
+
+    it('splits the probe rows into siblings and duplicates', () => {
+        const self = { id: 1, itemName: 'throne_gold', spriteId: 100 };
+        const rows = [
+            row(1, 'throne_gold', 100),
+            row(2, 'throne_silver', 101),
+            row(3, 'throne', 102),
+            row(4, 'throne_gold', 103),
+            row(5, 'lamp', 100),
+            row(6, 'thronex', 104)
+        ];
+
+        const related = relateRows(rows, self);
+
+        expect(related.siblings.map((r) => r.id)).toEqual([2, 3]);
+        expect(related.duplicateNames.map((r) => r.id)).toEqual([4]);
+        expect(related.duplicateSprites.map((r) => r.id)).toEqual([5]);
+    });
+
+    it('proposes the value most siblings share, and stays quiet under two siblings or without a majority', () => {
+        const siblings = [
+            row(2, 'a', 1, { width: 2, allowWalk: true }),
+            row(3, 'b', 2, { width: 2, allowWalk: true }),
+            row(4, 'c', 3, { width: 3, allowWalk: false })
+        ];
+        const base = { ...form, allowStack: true, allowSit: false, stackHeight: 1, interactionModesCount: 1 };
+
+        expect(suggestFromSiblings(siblings, base)).toEqual([
+            { field: 'width', value: 2, reason: '2 of 3 in the line' },
+            { field: 'allowWalk', value: true, reason: '2 of 3 in the line' }
+        ]);
+        expect(suggestFromSiblings(siblings.slice(0, 1), base)).toEqual([]);
+        expect(suggestFromSiblings([siblings[0], siblings[2]], base)).toEqual([]);
     });
 });

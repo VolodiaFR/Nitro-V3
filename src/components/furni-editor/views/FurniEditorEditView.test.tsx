@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CatalogRef, FurniDetail } from '../../../hooks/furni-editor';
+import type { CatalogRef, FurniDetail, FurniItem } from '../../../hooks/furni-editor';
 import { FurniEditorEditView } from './FurniEditorEditView';
 
 vi.mock('../../../api', () => ({
@@ -62,6 +62,7 @@ const renderView = (overrides: Partial<React.ComponentProps<typeof FurniEditorEd
         furniDataEntry: null,
         furniDataDiagnostic: null,
         interactions: ['default', 'gate'],
+        relatedItems: [] as FurniItem[],
         loading: false,
         onUpdate: vi.fn(),
         onDelete: vi.fn(),
@@ -355,6 +356,7 @@ describe('FurniEditorEditView', () => {
                 furniDataEntry={null}
                 furniDataDiagnostic={null}
                 interactions={['default']}
+                relatedItems={[]}
                 loading={false}
                 onUpdate={onUpdate}
                 onDelete={vi.fn()}
@@ -379,6 +381,7 @@ describe('FurniEditorEditView', () => {
                 furniDataEntry={null}
                 furniDataDiagnostic={null}
                 interactions={['default']}
+                relatedItems={[]}
                 loading={false}
                 onUpdate={onUpdate}
                 onDelete={vi.fn()}
@@ -394,6 +397,40 @@ describe('FurniEditorEditView', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Undo last save' }));
         expect(screen.getByLabelText('Effect ID (male)')).toHaveValue(0);
         expect(screen.getByRole('button', { name: 'Save (1)' })).toBeEnabled();
+    });
+
+    it('lists duplicates and line siblings from the probe, and offers the line majority under the field', () => {
+        const row = (id: number, itemName: string, spriteId: number, width = 1): FurniItem => ({
+            id,
+            spriteId,
+            itemName,
+            publicName: itemName,
+            type: 's',
+            width,
+            length: 1,
+            stackHeight: 1.5,
+            allowStack: false,
+            allowWalk: false,
+            allowSit: true,
+            allowLay: false,
+            interactionType: 'default',
+            interactionModesCount: 1
+        });
+        renderView({
+            item: { ...item, itemName: 'throne_gold' },
+            relatedItems: [
+                row(42, 'throne_gold', 4200),
+                row(50, 'throne_gold', 4300),
+                row(51, 'throne', 4301, 2),
+                row(52, 'throne_silver', 4302, 2),
+                row(53, 'lamp', 4200)
+            ]
+        });
+
+        expect(screen.getByText('2 duplicates')).toBeInTheDocument();
+        expect(within(screen.getByTestId('furni-editor-duplicates')).getAllByRole('button')).toHaveLength(2);
+        expect(within(screen.getByTestId('furni-editor-siblings')).getAllByRole('button')).toHaveLength(2);
+        expect(screen.getByRole('button', { name: 'Apply Width 2' })).toHaveAttribute('title', '2 of 2 in the line');
     });
 
     it('resets every field to the stored values with one click', () => {

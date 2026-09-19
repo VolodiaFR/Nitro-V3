@@ -2,15 +2,18 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CopyToClipboard } from '../../../api';
 import { Button, Flex, LayoutFurniIconImageView, LayoutFurniImageView, Text } from '../../../common';
-import { CatalogRef, FurniDetail } from '../../../hooks/furni-editor';
+import { CatalogRef, FurniDetail, FurniItem } from '../../../hooks/furni-editor';
 import { readAssetStateCount } from '../furniAssetStates';
 import { AssetPresence, AssetPresenceReport, checkAssetPresence } from '../furniAssetPresence';
 import {
     Suggestion,
     expectationsForType,
     multiheightMismatch,
+    relateRows,
+    RelatedRow,
     spriteIdMismatch,
     suggestFromFurnidata,
+    suggestFromSiblings,
     suggestInteractionType
 } from '../furniEditorSuggestions';
 
@@ -20,6 +23,7 @@ interface FurniEditorEditViewProps {
     furniDataEntry: Record<string, unknown> | null;
     furniDataDiagnostic: Record<string, unknown> | null;
     interactions: string[];
+    relatedItems: FurniItem[];
     loading: boolean;
     onUpdate: (id: number, fields: Record<string, unknown>) => void;
     onDelete: (id: number) => void;
@@ -493,6 +497,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
         furniDataEntry,
         furniDataDiagnostic,
         interactions,
+        relatedItems,
         loading,
         onUpdate,
         onDelete,
@@ -610,6 +615,16 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
         [furniName, furniDescription, furniDataEntry]
     );
 
+    // Rows the line probe brought back, split into the furni of the same line
+    // and the rows that duplicate this classname or sprite id.
+    const related = useMemo(() => relateRows(relatedItems, item), [relatedItems, item]);
+    const duplicates = useMemo(() => {
+        const byId = new Map<number, RelatedRow>();
+        for (const row of [...related.duplicateNames, ...related.duplicateSprites]) byId.set(row.id, row);
+        return [...byId.values()];
+    }, [related]);
+    const openFurni = useCallback((spriteId: number) => window.dispatchEvent(new CustomEvent('furni-editor:open', { detail: { spriteId } })), []);
+
     // The asset's own state count, read once the room engine has the furni
     // loaded (the preview triggers that). Retried a few times because the load
     // is asynchronous and the loader has no completion hook the client can use.
@@ -637,6 +652,9 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
         const all: Suggestion[] = furnidataEditable ? suggestFromFurnidata(furniDataEntry, form) : [];
         const typed = expectationsForType(form);
         all.push(...typed.suggestions);
+        for (const s of suggestFromSiblings(related.siblings, form)) {
+            if (!all.some((existing) => existing.field === s.field)) all.push(s);
+        }
         if (assetStates !== null && assetStates > 0 && assetStates !== form.interactionModesCount) {
             const alreadyFromType = typed.suggestions.some((s) => s.field === 'interactionModesCount' && s.value === assetStates);
             if (!alreadyFromType) all.push({ field: 'interactionModesCount', value: assetStates, reason: `asset defines ${assetStates} states` });
@@ -645,7 +663,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
         const mh = multiheightMismatch(form, assetStates);
         if (mh) warnings.push(mh);
         return { suggestions: all, warnings };
-    }, [furnidataEditable, furniDataEntry, form, assetStates]);
+    }, [furnidataEditable, furniDataEntry, form, assetStates, related.siblings]);
 
     // A furnidata entry found by classname but carrying another id: the room
     // resolves the sprite through that id, so it draws a different furni.
@@ -908,6 +926,24 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     apply all
                                 </button>
                             )}
+                        </div>
+                    )}
+                    {duplicates.length > 0 && (
+                        <div className={`${statusRow} text-amber-700`} role="note">
+                            <span>
+                                {duplicates.length} duplicate{duplicates.length === 1 ? '' : 's'}
+                            </span>
+                            <button type="button" className={statusLink} onClick={() => setGroup('data')}>
+                                see ›
+                            </button>
+                        </div>
+                    )}
+                    {related.siblings.length > 0 && (
+                        <div className={statusRow}>
+                            <span className="text-slate-500">Same line</span>
+                            <button type="button" className={statusLink} onClick={() => setGroup('data')}>
+                                {related.siblings.length} furni ›
+                            </button>
                         </div>
                     )}
                     {furnidataIdMismatch !== null && (
@@ -1249,6 +1285,52 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                             </Section>
                         )}
 
+                        {duplicates.length > 0 && (
+                            <Section title={`Duplicates (${duplicates.length})`}>
+                                <Text className="text-[10px] text-amber-700 mb-1 block">
+                                    Other items_base rows with this classname or sprite id. Two rows for one furni usually means an import ran twice; keep the
+                                    one placed in rooms.
+                                </Text>
+                                <div data-testid="furni-editor-duplicates" className="flex flex-col gap-0.5">
+                                    {duplicates.map((row) => (
+                                        <button
+                                            key={row.id}
+                                            type="button"
+                                            onClick={() => openFurni(row.spriteId)}
+                                            className="flex items-center justify-between text-[11px] px-2 py-1 rounded-md border border-amber-200 bg-amber-50 hover:bg-amber-100 text-left"
+                                        >
+                                            <span className="font-mono text-slate-700">{row.itemName}</span>
+                                            <span className="font-mono text-slate-500">
+                                                #{row.id} · s{row.spriteId}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </Section>
+                        )}
+                        {related.siblings.length > 0 && (
+                            <Section title={`Same line (${related.siblings.length})`}>
+                                <Text className="text-[10px] text-slate-400 mb-1 block">
+                                    Furni sharing the classname prefix. When most of them agree on a value, it is offered under the matching field.
+                                </Text>
+                                <div data-testid="furni-editor-siblings" className="flex flex-col gap-0.5">
+                                    {related.siblings.map((row) => (
+                                        <button
+                                            key={row.id}
+                                            type="button"
+                                            onClick={() => openFurni(row.spriteId)}
+                                            className="flex items-center gap-2 text-[11px] px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left"
+                                        >
+                                            <span className="font-mono text-slate-700 truncate flex-1">{row.itemName}</span>
+                                            <span className="text-slate-500">
+                                                {row.width}×{row.length}
+                                            </span>
+                                            <span className="font-mono text-slate-400">{row.interactionType || 'none'}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </Section>
+                        )}
                         {furnidataIdMismatch !== null && (
                             <div className="flex items-start gap-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2 leading-snug">
                                 <span className="text-[#f59e0b] text-sm leading-none mt-px">⚠</span>

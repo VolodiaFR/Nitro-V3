@@ -5,6 +5,7 @@ import { useHasPermission } from '../../hooks';
 import { useFurniEditor } from '../../hooks/furni-editor';
 import { FurniEditorEditView } from './views/FurniEditorEditView';
 import { FurniEditorSearchView } from './views/FurniEditorSearchView';
+import { lineQueryFor } from './furniEditorSuggestions';
 
 const TAB_SEARCH = 0;
 const TAB_EDIT = 1;
@@ -26,6 +27,8 @@ export const FurniEditorView: FC<{}> = () => {
         furniDataEntry,
         furniDataDiagnostic,
         interactions,
+        relatedItems,
+        probeRelated,
         searchItems,
         loadDetail,
         loadBySpriteId,
@@ -107,6 +110,11 @@ export const FurniEditorView: FC<{}> = () => {
         return () => window.removeEventListener('furni-editor:open', handler);
     }, [isMod, loadBySpriteId]);
 
+    // Every open furni gets a probe for its line: siblings and duplicates come from it.
+    useEffect(() => {
+        probeRelated(selectedItem ? lineQueryFor(selectedItem.itemName) : '');
+    }, [selectedItem?.id, selectedItem?.itemName, probeRelated]);
+
     const handleSelect = useCallback(
         (id: number) => {
             loadDetail(id);
@@ -147,7 +155,15 @@ export const FurniEditorView: FC<{}> = () => {
                 )}
 
                 {activeTab === TAB_SEARCH && (
-                    <FurniEditorSearchView items={items} total={total} page={page} loading={loading} onSearch={searchItems} onSelect={handleSelect} />
+                    <FurniEditorSearchView
+                        items={items}
+                        total={total}
+                        page={page}
+                        loading={loading}
+                        interactions={interactions}
+                        onSearch={searchItems}
+                        onSelect={handleSelect}
+                    />
                 )}
 
                 {activeTab === TAB_EDIT && selectedItem && (
@@ -157,6 +173,7 @@ export const FurniEditorView: FC<{}> = () => {
                         furniDataEntry={furniDataEntry}
                         furniDataDiagnostic={furniDataDiagnostic}
                         interactions={interactions}
+                        relatedItems={relatedItems}
                         loading={loading}
                         onUpdate={updateItem}
                         onDelete={deleteItem}

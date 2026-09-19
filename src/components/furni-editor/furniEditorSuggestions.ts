@@ -7,6 +7,7 @@ export interface EditableFields {
     width: number;
     length: number;
     stackHeight: number;
+    allowStack: boolean;
     allowWalk: boolean;
     allowSit: boolean;
     allowLay: boolean;
@@ -153,4 +154,84 @@ export const multiheightMismatch = (form: EditableFields, assetStates: number | 
         .filter(Boolean).length;
     if (heights === 0 || heights === assetStates) return null;
     return { field: 'multiheight', message: `${heights} height${heights === 1 ? '' : 's'} for ${assetStates} states in the asset` };
+};
+
+// A furni line: rows whose classname shares the prefix up to the last
+// underscore (throne_gold, throne_silver → throne). The colour suffix *N is
+// never part of it.
+export const lineQueryFor = (classname: string): string => {
+    const base = classname.split('*')[0].trim().toLowerCase();
+    const cut = base.lastIndexOf('_');
+    const prefix = cut >= 3 ? base.slice(0, cut) : base;
+    return prefix;
+};
+
+export interface RelatedRow {
+    id: number;
+    spriteId: number;
+    itemName: string;
+    width: number;
+    length: number;
+    stackHeight: number;
+    allowStack: boolean;
+    allowWalk: boolean;
+    allowSit: boolean;
+    allowLay: boolean;
+    interactionType: string;
+    interactionModesCount: number;
+}
+
+export interface Related {
+    siblings: RelatedRow[];
+    duplicateNames: RelatedRow[];
+    duplicateSprites: RelatedRow[];
+}
+
+export const relateRows = (rows: RelatedRow[], self: { id: number; itemName: string; spriteId: number }): Related => {
+    const prefix = lineQueryFor(self.itemName);
+    const ownName = self.itemName.split('*')[0].trim().toLowerCase();
+    const others = rows.filter((row) => row.id !== self.id);
+    return {
+        siblings: others.filter((row) => {
+            const name = row.itemName.split('*')[0].trim().toLowerCase();
+            return name !== ownName && (name === prefix || name.startsWith(`${prefix}_`));
+        }),
+        duplicateNames: others.filter((row) => row.itemName.trim().toLowerCase() === self.itemName.trim().toLowerCase()),
+        duplicateSprites: others.filter((row) => row.spriteId === self.spriteId)
+    };
+};
+
+type LineField = 'width' | 'length' | 'stackHeight' | 'allowStack' | 'allowWalk' | 'allowSit' | 'allowLay' | 'interactionType' | 'interactionModesCount';
+const LINE_FIELDS: LineField[] = [
+    'width',
+    'length',
+    'stackHeight',
+    'allowStack',
+    'allowWalk',
+    'allowSit',
+    'allowLay',
+    'interactionType',
+    'interactionModesCount'
+];
+
+// The value most of the siblings share, when more than half agree and the
+// form differs. One sibling is a coincidence, not a line convention.
+export const suggestFromSiblings = (siblings: RelatedRow[], form: EditableFields & { allowStack: boolean }): Suggestion[] => {
+    if (siblings.length < 2) return [];
+    const out: Suggestion[] = [];
+    for (const field of LINE_FIELDS) {
+        const tally = new Map<string, { value: RelatedRow[LineField]; count: number }>();
+        for (const row of siblings) {
+            const value = row[field];
+            const key = String(value);
+            const entry = tally.get(key) ?? { value, count: 0 };
+            entry.count += 1;
+            tally.set(key, entry);
+        }
+        const best = [...tally.values()].sort((a, b) => b.count - a.count)[0];
+        if (!best || best.count * 2 <= siblings.length) continue;
+        if (String(form[field]) === String(best.value)) continue;
+        out.push({ field, value: best.value as never, reason: `${best.count} of ${siblings.length} in the line` });
+    }
+    return out;
 };

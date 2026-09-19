@@ -79,9 +79,37 @@ export const useFurniEditor = () => {
 
     const clearError = useCallback(() => setError(null), []);
 
+    // A probe is a search whose answer belongs to the edit sheet (siblings of
+    // the open furni, duplicates of its sprite id), not to the Search tab: the
+    // next search result is routed to relatedItems and the list is left alone.
+    const probeRef = useRef<string | null>(null);
+    const [relatedItems, setRelatedItems] = useState<FurniItem[]>([]);
+
     // Handle search results
     useMessageEvent(FurniEditorSearchResultEvent, (event: FurniEditorSearchResultEvent) => {
         const parser = event.getParser();
+        const rows: FurniItem[] = parser.items.map((item) => ({
+            id: item.id,
+            spriteId: item.spriteId,
+            itemName: item.itemName,
+            publicName: item.publicName,
+            type: item.type,
+            width: item.width,
+            length: item.length,
+            stackHeight: item.stackHeight,
+            allowStack: item.allowStack,
+            allowWalk: item.allowWalk,
+            allowSit: item.allowSit,
+            allowLay: item.allowLay,
+            interactionType: item.interactionType,
+            interactionModesCount: item.interactionModesCount
+        }));
+
+        if (probeRef.current !== null) {
+            probeRef.current = null;
+            setRelatedItems(rows);
+            return;
+        }
 
         setLoading(false);
         setItems(
@@ -236,6 +264,18 @@ export const useFurniEditor = () => {
         SendMessageComposer(new FurniEditorSearchComposer(query, type, pg, sortField, sortDir));
     }, []);
 
+    // Ask the server for the rows that share this furni's line prefix; the
+    // sheet derives siblings and duplicates from them. Empty query = clear.
+    const probeRelated = useCallback((query: string) => {
+        if (!query.trim()) {
+            probeRef.current = null;
+            setRelatedItems([]);
+            return;
+        }
+        probeRef.current = query;
+        SendMessageComposer(new FurniEditorSearchComposer(query, '', 1, 'itemName', 'asc'));
+    }, []);
+
     const loadDetail = useCallback((id: number) => {
         setLoading(true);
         setError(null);
@@ -325,6 +365,8 @@ export const useFurniEditor = () => {
         furniDataEntry,
         furniDataDiagnostic,
         interactions,
+        relatedItems,
+        probeRelated,
         searchItems,
         loadDetail,
         loadBySpriteId,
