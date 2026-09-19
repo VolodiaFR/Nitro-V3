@@ -1,6 +1,7 @@
 import { GetRoomEngine, IPetCustomPart, PetFigureData, TextureUtils, Vector3d } from '@octane/renderer';
 import { CSSProperties, FC, useEffect, useMemo, useRef, useState } from 'react';
 import { Base, BaseProps } from '../Base';
+import { PIXEL_ART_RENDERING } from './PixelArtRendering';
 
 interface LayoutPetImageViewProps extends BaseProps<HTMLDivElement> {
     figure?: string;
@@ -42,7 +43,7 @@ export const LayoutPetImageView: FC<LayoutPetImageViewProps> = (props) => {
         if (scale !== 1) {
             newStyle.transform = `scale(${scale})`;
 
-            if (!(scale % 1)) newStyle.imageRendering = 'pixelated';
+            if (!(scale % 1)) newStyle.imageRendering = PIXEL_ART_RENDERING;
         }
 
         newStyle.width = width;

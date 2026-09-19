@@ -1,5 +1,6 @@
 import { HabbiconAssetManager } from '@octane/renderer';
 import { FC, useEffect, useState } from 'react';
+import { PIXEL_ART_RENDERING } from './PixelArtRendering';
 
 export const LayoutHabbiconImageView: FC<{ id: number; collection?: boolean; outlined?: boolean; size?: number; className?: string; mirror?: boolean }> = ({
     id,
@@ -30,7 +31,7 @@ export const LayoutHabbiconImageView: FC<{ id: number; collection?: boolean; out
             src={source}
             width={size}
             height={size}
-            style={{ objectFit: collection ? 'none' : 'contain', imageRendering: 'pixelated', transform: mirror ? 'scaleX(-1)' : undefined }}
+            style={{ objectFit: collection ? 'none' : 'contain', imageRendering: PIXEL_ART_RENDERING, transform: mirror ? 'scaleX(-1)' : undefined }}
         />
     ) : null;
 };

@@ -2,6 +2,7 @@ import { AvatarScaleType, AvatarSetType, GetAvatarRenderManager } from '@octane/
 import { CSSProperties, FC, useEffect, useMemo, useRef, useState } from 'react';
 import { Base, BaseProps } from '../Base';
 import { cropAirMeMenuFaceImageUrl, cropOpaqueBoundsImageUrl, cropTransparentImageUrl } from './avatarImageCrop';
+import { PIXEL_ART_RENDERING } from './PixelArtRendering';
 
 const AVATAR_CACHE_MAX_SIZE = 200;
 const AVATAR_IMAGE_CACHE: Map<string, string> = new Map();
@@ -71,13 +72,13 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
         if (headOnly && !fit && !nativeCroppedHead && !airMeMenu) {
             newStyle.backgroundSize = compactHead ? `${compactHeadSize}px ${compactHeadSize}px` : '130px auto';
             newStyle.backgroundPosition = compactHead ? 'center' : '51% 40%';
-            newStyle.imageRendering = compactHead ? 'auto' : 'pixelated';
+            newStyle.imageRendering = compactHead ? 'auto' : PIXEL_ART_RENDERING;
         }
 
         if (scale !== 1) {
             newStyle.transform = `scale(${scale})`;
 
-            if (!(scale % 1)) newStyle.imageRendering = 'pixelated';
+            if (!(scale % 1)) newStyle.imageRendering = PIXEL_ART_RENDERING;
         }
 
         if (Object.keys(style).length) newStyle = { ...newStyle, ...style };
@@ -163,7 +164,7 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
                     src={avatarUrl}
                     alt=""
                     draggable={false}
-                    style={{ display: 'block', width: 'auto', maxWidth: 'none', height: 'auto', imageRendering: 'pixelated' }}
+                    style={{ display: 'block', width: 'auto', maxWidth: 'none', height: 'auto', imageRendering: PIXEL_ART_RENDERING }}
                 />
             )}
             {fit && !nativeCroppedHead && !airMeMenu && avatarUrl && avatarUrl.length > 0 && (
@@ -172,7 +173,7 @@ export const LayoutAvatarImageView: FC<LayoutAvatarImageViewProps> = (props) => 
                     alt=""
                     draggable={false}
                     className="absolute inset-0 w-full h-full object-contain"
-                    style={{ imageRendering: 'pixelated' }}
+                    style={{ imageRendering: PIXEL_ART_RENDERING }}
                 />
             )}
         </Base>
