@@ -16,7 +16,8 @@ vi.mock('../../../common', () => ({
     Column: ({ children }: any) => <div>{children}</div>,
     Flex: ({ children }: any) => <div>{children}</div>,
     Text: ({ children }: any) => <span>{children}</span>,
-    LayoutFurniIconImageView: () => null
+    LayoutFurniIconImageView: () => null,
+    LayoutFurniImageView: () => null
 }));
 
 const item: FurniDetail = {
@@ -227,6 +228,23 @@ describe('FurniEditorEditView', () => {
         expect(screen.getByLabelText('Multiheight')).toHaveFocus();
         expect(screen.getByLabelText('Jump to field')).toHaveValue('');
         vi.useRealTimers();
+    });
+
+    it('previews the furni with rotation, a state stepper and the stored footprint', () => {
+        renderView({ item: { ...item, width: 2, length: 3, interactionModesCount: 3 } });
+
+        const preview = screen.getByTestId('furni-editor-preview');
+        expect(within(preview).getByLabelText('Footprint 2 by 3').children).toHaveLength(6);
+
+        const rotate = within(preview).getByRole('button', { name: 'Rotate, facing 2' });
+        fireEvent.click(rotate);
+        expect(within(preview).getByRole('button', { name: 'Rotate, facing 4' })).toBeInTheDocument();
+
+        fireEvent.click(within(preview).getByRole('button', { name: 'Next state, showing base of 3' }));
+        expect(within(preview).getByRole('button', { name: 'Next state, showing 1 of 3' })).toBeInTheDocument();
+
+        fireEvent.change(screen.getByLabelText('Width'), { target: { value: '4' } });
+        expect(within(preview).getByLabelText('Footprint 4 by 3').children).toHaveLength(12);
     });
 
     it('resets every field to the stored values with one click', () => {

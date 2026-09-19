@@ -1,7 +1,7 @@
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CopyToClipboard } from '../../../api';
-import { Button, Flex, LayoutFurniIconImageView, Text } from '../../../common';
+import { Button, Flex, LayoutFurniIconImageView, LayoutFurniImageView, Text } from '../../../common';
 import { CatalogRef, FurniDetail } from '../../../hooks/furni-editor';
 
 interface FurniEditorEditViewProps {
@@ -164,6 +164,80 @@ const FIELD_GROUP: Record<EditField, GroupId> = {
     effectIdFemale: 'behaviour',
     clothingOnWalk: 'behaviour',
     description: 'names'
+};
+
+interface FurniPreviewProps {
+    item: FurniDetail;
+    width: number;
+    length: number;
+    modes: number;
+}
+
+// Rendered through the room engine, so what shows here is what a room shows:
+// rotation walks the four floor directions (two for wall items), the state
+// stepper drives the visualization state the way a click in the room would,
+// and the footprint grid draws width × length as stored in items_base.
+const FurniPreview: FC<FurniPreviewProps> = ({ item, width, length, modes }) => {
+    const directions = item.type === 'i' ? [2, 4] : [0, 2, 4, 6];
+    const [directionIndex, setDirectionIndex] = useState(1);
+    const [state, setState] = useState(-1);
+    const direction = directions[directionIndex % directions.length];
+    const stateCount = Math.max(0, modes);
+    const cols = Math.min(Math.max(width, 1), 8);
+    const rows = Math.min(Math.max(length, 1), 8);
+    const clipped = width > 8 || length > 8;
+
+    useEffect(() => {
+        setDirectionIndex(1);
+        setState(-1);
+    }, [item.id]);
+
+    const nextState = () => setState((prev) => (stateCount === 0 ? -1 : prev + 1 >= stateCount ? -1 : prev + 1));
+
+    return (
+        <div
+            className="relative h-28 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center"
+            data-testid="furni-editor-preview"
+        >
+            <LayoutFurniIconImageView productType={item.type} productClassId={item.spriteId} className="absolute opacity-20" />
+            <LayoutFurniImageView productType={item.type} productClassId={item.spriteId} direction={direction} state={state} className="relative" />
+            <div
+                className="absolute top-1 right-1 grid gap-px"
+                style={{ gridTemplateColumns: `repeat(${cols}, 6px)` }}
+                aria-label={`Footprint ${width} by ${length}`}
+                title={`Footprint ${width}×${length}${clipped ? ' (clipped)' : ''}`}
+            >
+                {Array.from({ length: cols * rows }, (_, i) => (
+                    <span key={i} className="h-1.5 w-1.5 bg-[#418db0] opacity-60" />
+                ))}
+            </div>
+            <span className="absolute bottom-1 right-1 text-[9px] font-mono text-slate-500">
+                {width}×{length}
+            </span>
+            <div className="absolute bottom-1 left-1 flex gap-1">
+                <button
+                    type="button"
+                    onClick={() => setDirectionIndex((prev) => prev + 1)}
+                    aria-label={`Rotate, facing ${direction}`}
+                    title="Rotate"
+                    className="inline-flex items-center gap-0.5 text-[9px] rounded-full border border-slate-200 bg-[#ffffff] px-1.5 py-px text-slate-600 hover:border-slate-300"
+                >
+                    <span aria-hidden="true">⟳</span> {direction}
+                </button>
+                {stateCount > 1 && (
+                    <button
+                        type="button"
+                        onClick={nextState}
+                        aria-label={`Next state, showing ${state < 0 ? 'base' : state + 1} of ${stateCount}`}
+                        title="Next state"
+                        className="inline-flex items-center gap-0.5 text-[9px] rounded-full border border-slate-200 bg-[#ffffff] px-1.5 py-px text-slate-600 hover:border-slate-300"
+                    >
+                        <span aria-hidden="true">▸</span> {state < 0 ? 'base' : `${state + 1}/${stateCount}`}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
 };
 
 interface ConfirmModalProps {
@@ -557,9 +631,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                 >
                     <span aria-hidden="true">‹</span> Back
                 </button>
-                <div className="h-24 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
-                    <LayoutFurniIconImageView productType={item.type} productClassId={item.spriteId} className="scale-[2]" />
-                </div>
+                <FurniPreview item={item} width={form.width} length={form.length} modes={form.interactionModesCount} />
                 <div className="min-w-0">
                     <div className="flex items-center gap-1">
                         <Text bold className="truncate text-slate-800 text-[13px] leading-tight flex-1 min-w-0">
@@ -908,6 +980,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                         Width{revert('width')}
                                     </label>
                                     <input
+                                        id="furni-editor-width"
                                         type="number"
                                         className={inputClass('width')}
                                         value={form.width}
