@@ -32,6 +32,7 @@ import {
     LayoutLimitedEditionCompactPlateView,
     LayoutRarityLevelView,
     LayoutRoomObjectImageView,
+    PIXEL_ART_RENDERING,
     Text,
     UserProfileIconView
 } from '../../../../../common';
@@ -663,7 +664,7 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                                                 alt=""
                                                 draggable={false}
                                                 src={externalImagePhotoUrl}
-                                                style={{ width: 64, height: 64, objectFit: 'contain', imageRendering: 'pixelated' }}
+                                                style={{ width: 64, height: 64, objectFit: 'contain', imageRendering: PIXEL_ART_RENDERING }}
                                             />
                                         </div>
                                     ) : (

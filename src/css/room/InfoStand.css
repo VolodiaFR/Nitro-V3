@@ -58,7 +58,7 @@
   color: #ffffff;
   font-family: Ubuntu, sans-serif;
   font-size: 11px;
-  image-rendering: pixelated;
+  image-rendering: var(--octane-pixel-art, pixelated);
 
   @media (max-width: 576px) {
     top: 0;
@@ -98,7 +98,7 @@
     border: 0;
     background: transparent url('../../assets/images/habbo-skin/slices/close-black.png') left top / 15px 15px no-repeat;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
   }
 
   .octane-infostand__header {
@@ -126,7 +126,7 @@
       display: block;
       width: 11px;
       height: 10px;
-      image-rendering: pixelated;
+      image-rendering: var(--octane-pixel-art, pixelated);
     }
   }
 
@@ -266,7 +266,7 @@
     left: 3px;
     width: 17px;
     height: 18px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
   }
 
   .octane-infostand__score {

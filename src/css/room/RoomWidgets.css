@@ -704,7 +704,7 @@
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-mobile-user-infostand-avatar {
@@ -729,7 +729,7 @@
     max-width: 54px;
     max-height: 62px;
     object-fit: contain;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     margin: 0;
     pointer-events: none;
 }
