@@ -89,7 +89,7 @@
     display: block;
     max-width: none;
     max-height: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 /*
@@ -254,7 +254,7 @@
 
 .octane-catalog-pet-preview-image .pet-image {
     transform-origin: center;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-pet-preview-price {
@@ -476,7 +476,7 @@
     background-color: transparent;
     background-position: center;
     background-repeat: no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-classic-scrollbar-button.is-up {
@@ -507,7 +507,7 @@
     position: relative;
     min-height: 0;
     background: url('../../assets/images/scrollbar/background.png') repeat-y center;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-classic-scrollbar-thumb {
@@ -520,7 +520,7 @@
     border-radius: 0;
     background: url('../../assets/images/scrollbar/thumb_middle.png') repeat-y center;
     cursor: grab;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     touch-action: none;
 }
 
@@ -533,7 +533,7 @@
     content: '';
     background-position: center;
     background-repeat: no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-classic-scrollbar-thumb::before {
@@ -1048,7 +1048,7 @@
     border-image-slice: 6 fill;
     border-image-width: 6px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -1061,7 +1061,7 @@
     max-width: none;
     height: auto;
     max-height: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-purchase-confirm-properties {
@@ -1128,7 +1128,7 @@
     border-image-slice: 6 fill;
     border-image-width: 6px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     pointer-events: none;
 }
 
@@ -1150,7 +1150,7 @@
     width: 34px;
     height: 37px;
     background: url("../../assets/images/catalog/air/unique-item-large-tile-upright.png") 0 0 / 34px 37px no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-purchase-confirm-summary {
@@ -1222,7 +1222,7 @@
     border: 0;
     border-radius: 0;
     background: url("../../assets/images/catalog/air/gift/checkbox-default.png") 0 0 / 15px 15px no-repeat;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-catalog-purchase-confirm-disclaimer input:checked {
@@ -1284,7 +1284,7 @@
     font-size: 12px !important;
     line-height: 17px !important;
     text-shadow: none !important;
-    image-rendering: pixelated !important;
+    image-rendering: var(--octane-pixel-art, pixelated) !important;
 }
 
 .octane-catalog-purchase-confirm-button.is-cancel {

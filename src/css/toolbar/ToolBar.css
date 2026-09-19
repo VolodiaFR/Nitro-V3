@@ -31,7 +31,7 @@
 .tb-icon {
     opacity: 1;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.28));
 }
 
@@ -58,7 +58,7 @@
 .tb-memenu-face-img {
     width: 50px !important;
     height: 50px !important;
-    image-rendering: pixelated !important;
+    image-rendering: var(--octane-pixel-art, pixelated) !important;
 }
 
 .tb-memenu-face {
@@ -120,7 +120,7 @@
     width: 45px;
     height: 45px;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .tb-memenu-bg {
@@ -159,7 +159,7 @@
     height: 40px;
     flex-shrink: 0;
     align-self: flex-start;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .tb-collapse {
@@ -181,7 +181,7 @@
     display: block;
     width: 13px;
     height: 45px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .tb-toggle {

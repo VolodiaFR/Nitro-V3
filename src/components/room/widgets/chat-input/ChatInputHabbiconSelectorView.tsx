@@ -1,4 +1,4 @@
-import { HabbiconAssetManager, UseHabbiconComposer } from '@octane/renderer';
+import { HabbiconAssetManager, TriggerHabbiconComposer } from '@octane/renderer';
 import * as Popover from '@radix-ui/react-popover';
 import { FC, useEffect, useMemo, useState } from 'react';
 import {
@@ -97,7 +97,7 @@ export const ChatInputHabbiconSelectorView: FC = () => {
     const applyHabbicon = async (habbiconId: number, keepOpen = false) => {
         await HabbiconAssetManager.getInstance().preload();
         catalog.clearUnseen(habbiconId);
-        SendMessageComposer(new UseHabbiconComposer(habbiconId));
+        SendMessageComposer(new TriggerHabbiconComposer(habbiconId));
 
         if (!keepOpen) setSelectorVisible(false);
     };
