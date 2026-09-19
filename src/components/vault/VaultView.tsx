@@ -186,7 +186,7 @@ export const VaultView: FC<{}> = (props) => {
                         <div key={category.key} className="flex items-center gap-2">
                             <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[5px] border border-[#9aa0a8] bg-white px-1.5 py-1">
                                 <span className="flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded border border-black/15 bg-white">
-                                    <img src={category.img} alt="" className="max-h-[20px] max-w-[20px] object-contain [image-rendering:pixelated]" />
+                                    <img src={category.img} alt="" className="max-h-[20px] max-w-[20px] object-contain image-rendering-pixelated" />
                                 </span>
                                 <Text bold className="truncate">
                                     {localizeWithFallback(category.textKey, category.label)}

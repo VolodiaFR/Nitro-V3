@@ -55,7 +55,7 @@
     border-radius: 0 !important;
     color: #111111 !important;
     text-shadow: none !important;
-    image-rendering: pixelated !important;
+    image-rendering: var(--octane-pixel-art, pixelated) !important;
 }
 
 .octane-catalog-window .octane-catalog-swf-button:hover,

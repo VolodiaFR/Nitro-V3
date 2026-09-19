@@ -40,7 +40,7 @@
 .octane-inventory-animal-image img {
     flex: none;
     max-width: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-animal-preview {
@@ -123,7 +123,7 @@
     font-weight: 400;
     line-height: 17px;
     box-shadow: none;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-inventory-window .octane-inventory-animal-place:hover { border-image-source: var(--habbo-skin-shiny-hover) !important; }

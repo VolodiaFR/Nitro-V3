@@ -576,7 +576,7 @@ export const TraxEditorView: FC<{}> = () =>
                                                 }}
                                             >
                                                 {GetTraxCartridgeUrl(set.cd) ? (
-                                                    <img alt="" className="h-[26px] w-[26px] shrink-0 [image-rendering:pixelated]" src={GetTraxCartridgeUrl(set.cd)} />
+                                                    <img alt="" className="h-[26px] w-[26px] shrink-0 image-rendering-pixelated" src={GetTraxCartridgeUrl(set.cd)} />
                                                 ) : (
                                                     <span className="h-5 w-4 shrink-0 rounded-[2px] border border-black/30" style={{ backgroundColor: set.color }} />
                                                 )}
@@ -617,7 +617,7 @@ export const TraxEditorView: FC<{}> = () =>
                                                         {slot + 1}
                                                     </span>
                                                     {(set && GetTraxCartridgeUrl(set.cd)) ? (
-                                                        <img alt="" className="h-[18px] w-[18px] shrink-0 [image-rendering:pixelated]" src={GetTraxCartridgeUrl(set.cd)} />
+                                                        <img alt="" className="h-[18px] w-[18px] shrink-0 image-rendering-pixelated" src={GetTraxCartridgeUrl(set.cd)} />
                                                     ) : (
                                                         <span className="h-3 w-3 shrink-0 rounded-[2px] border border-black/40" style={{ backgroundColor: set?.color ?? '#CACACA' }} />
                                                     )}

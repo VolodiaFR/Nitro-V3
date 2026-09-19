@@ -293,7 +293,7 @@
   height: auto;
   max-width: 32px;
   max-height: 28px;
-  image-rendering: pixelated;
+  image-rendering: var(--octane-pixel-art, pixelated);
   flex-shrink: 0;
 }
 
@@ -453,7 +453,7 @@
   background-size: contain !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
-  image-rendering: pixelated;
+  image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .octane-extended-profile-window .layout-grid-item.active {
@@ -484,7 +484,7 @@
   background-size: contain !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
-  image-rendering: pixelated;
+  image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 @media (max-width: 575.98px) {

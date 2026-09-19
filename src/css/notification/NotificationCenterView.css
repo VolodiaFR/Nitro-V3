@@ -97,7 +97,7 @@
 
         .hotel-event-promo {
             width: 170px;
-            image-rendering: pixelated;
+            image-rendering: var(--octane-pixel-art, pixelated);
         }
 
         .hotel-event-avatar {
@@ -797,7 +797,7 @@
     margin-left: auto;
     cursor: pointer;
     pointer-events: auto;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
     user-select: none;
 }
 

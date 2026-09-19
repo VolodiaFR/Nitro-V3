@@ -1,7 +1,7 @@
 import { FurnitureType } from '@octane/renderer';
 import { FC, useState } from 'react';
 import { ProductImageUtility } from '../../../../api';
-import { LayoutLimitedEditionStyledNumberView, LayoutRarityLevelView } from '../../../../common';
+import { LayoutLimitedEditionStyledNumberView, LayoutRarityLevelView, PIXEL_ART_RENDERING } from '../../../../common';
 import { ChestFurniGroup } from './chestFurniGrouping';
 
 const BORDER_IDLE = '#cbcbcb';
@@ -50,7 +50,7 @@ export const FurniChestGridItem: FC<{
                         )}
                         alt=""
                         draggable={false}
-                        style={{ maxWidth: 38, maxHeight: 38, objectFit: 'contain', imageRendering: 'pixelated' }}
+                        style={{ maxWidth: 38, maxHeight: 38, objectFit: 'contain', imageRendering: PIXEL_ART_RENDERING }}
                     />
                 </div>
                 {isRarity && (

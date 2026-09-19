@@ -32,7 +32,7 @@ import sceneZero from '../../../../assets/images/chest/light_coins_chest_balance
 import furniEmptyScene from '../../../../assets/images/chest/variant_furni_chest_empty.png';
 import bellIcon from '../../../../assets/images/chest/wired_chests_bell_icon.png';
 import gearIcon from '../../../../assets/images/chest/wired_chests_gear_icon.png';
-import { Column, Flex, LayoutCurrencyIcon, LayoutFurniImageView, OctaneCardContentView, OctaneCardHeaderView, OctaneCardView, Text } from '../../../../common';
+import { Column, Flex, LayoutCurrencyIcon, LayoutFurniImageView, OctaneCardContentView, OctaneCardHeaderView, OctaneCardView, PIXEL_ART_RENDERING, Text } from '../../../../common';
 import { useMessageEvent, usePurse } from '../../../../hooks';
 import { useInventoryFurni } from '../../../../hooks/inventory';
 import { ChestButton } from './ChestButton';
@@ -490,7 +490,7 @@ export const FurnitureChestView: FC = () => {
                                 onClick={() => setShowNotifications(true)}
                                 title={LocalizeText('wiredchests.notifications.button')}
                             >
-                                <img src={bellIcon} width={12} height={15} alt="" draggable={false} style={{ imageRendering: 'pixelated' }} />
+                                <img src={bellIcon} width={12} height={15} alt="" draggable={false} style={{ imageRendering: PIXEL_ART_RENDERING }} />
                             </button>
                             {/* settings_button 24x24, icon wired_chests_gear_icon 14x14 */}
                             <button
@@ -500,7 +500,7 @@ export const FurnitureChestView: FC = () => {
                                 onClick={() => setShowSettings(true)}
                                 title={LocalizeText('wiredchests.settings.button')}
                             >
-                                <img src={gearIcon} width={14} height={14} alt="" draggable={false} style={{ imageRendering: 'pixelated' }} />
+                                <img src={gearIcon} width={14} height={14} alt="" draggable={false} style={{ imageRendering: PIXEL_ART_RENDERING }} />
                             </button>
                         </div>
                     </div>
@@ -599,7 +599,7 @@ export const FurnitureChestView: FC = () => {
                             height={228}
                             alt=""
                             draggable={false}
-                            style={{ imageRendering: 'pixelated', display: 'block' }}
+                            style={{ imageRendering: PIXEL_ART_RENDERING, display: 'block' }}
                         />
                         {/* balance_cont @ (9,68): "Saldo" label = balance_txt @ (2,7), font 11, auto_size left */}
                         <div style={{ position: 'absolute', left: 11, top: 75, width: 45, color: '#5b4632', fontWeight: 'bold', fontSize: 11, lineHeight: 1, textAlign: 'left' }}>

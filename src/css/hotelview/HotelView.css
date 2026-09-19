@@ -313,7 +313,7 @@
     width: 34px;
     height: 37px;
     margin-left: 1px;
-    image-rendering: pixelated;
+    image-rendering: var(--octane-pixel-art, pixelated);
 }
 
 .hotelview-slot-nextlimitedrarecountdown .hotelview-slot-copy {
