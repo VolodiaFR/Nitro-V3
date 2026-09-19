@@ -852,3 +852,55 @@ export class DailyTaskData extends StubClass {
     public static STATUS_CLAIMED = 2;
 }
 export class DailyTaskRewardData extends StubClass {}
+
+// Reward track staff editor (hooks/quests/useRewardTrackAdmin). The composers keep their
+// payload so a test can read what would go on the wire.
+class RewardTrackEditorComposer {
+    private readonly _data: unknown[];
+
+    constructor(...args: unknown[]) {
+        this._data = args;
+    }
+
+    public getMessageArray(): unknown[] {
+        return this._data;
+    }
+
+    public dispose(): void {}
+}
+export class RewardTrackAdminDataMessageEvent extends MessageEvent {}
+export class RewardTrackAdminResultMessageEvent extends MessageEvent {}
+export class RewardTrackFurniSearchResultMessageEvent extends MessageEvent {}
+export class RewardTrackTextsMessageEvent extends MessageEvent {}
+export class GetRewardTrackAdminDataMessageComposer extends RewardTrackEditorComposer {}
+export class SaveRewardTrackMessageComposer extends RewardTrackEditorComposer {}
+export class SaveRewardTrackTaskMessageComposer extends RewardTrackEditorComposer {
+    constructor(
+        trackId: string,
+        id: string,
+        actionType: string,
+        parameter: string,
+        premium: boolean,
+        sortOrder: number,
+        levels: { requiredCount: number; pointsReward: number; premium: boolean }[]
+    ) {
+        super(
+            trackId,
+            id,
+            actionType,
+            parameter,
+            premium,
+            sortOrder,
+            levels.length,
+            ...levels.flatMap((level) => [level.requiredCount, level.pointsReward, level.premium])
+        );
+    }
+}
+export class SaveRewardTrackPrizeMessageComposer extends RewardTrackEditorComposer {}
+export class DeleteRewardTrackEntityMessageComposer extends RewardTrackEditorComposer {}
+export class SearchRewardTrackFurniMessageComposer extends RewardTrackEditorComposer {}
+export class SaveRewardTrackTextsMessageComposer extends RewardTrackEditorComposer {
+    constructor(trackId: string, texts: { key: string; value: string }[]) {
+        super(trackId, texts.length, ...texts.flatMap((text) => [text.key, text.value]));
+    }
+}

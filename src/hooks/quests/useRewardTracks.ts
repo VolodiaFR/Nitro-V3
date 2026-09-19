@@ -1,11 +1,13 @@
 import {
     ClaimRewardTrackPrizeMessageComposer,
+    GetLocalizationManager,
     GetRewardTracksMessageComposer,
     PurchaseRewardTrackPremiumMessageComposer,
     RewardTrackClaimResultMessageEvent,
     RewardTrackData,
     RewardTrackPremiumPurchaseResultMessageEvent,
     RewardTrackProgressMessageEvent,
+    RewardTrackTextsMessageEvent,
     RewardTracksMessageEvent
 } from '@octane/renderer';
 import { useCallback, useMemo, useState } from 'react';
@@ -22,6 +24,7 @@ const useRewardTracksState = () => {
     const [tracks, setTracks] = useState<RewardTrackData[]>([]);
     const [disabled, setDisabled] = useState(false);
     const [reloadCount, setReloadCount] = useState(0);
+    const [textsVersion, setTextsVersion] = useState(0);
     const [pendingPurchase, setPendingPurchase] = useState<string>(null);
     const { showSingleBubble = null, simpleAlert = null } = useNotification();
 
@@ -35,6 +38,19 @@ const useRewardTracksState = () => {
     }, []);
 
     const getTrack = useCallback((trackId: string) => tracks.find((track) => track.id === trackId) ?? null, [tracks]);
+
+    // The staff-written texts of the active tracks arrive right before the tracks and go into the
+    // localization manager, so the window reads them like any other key.
+    useMessageEvent<RewardTrackTextsMessageEvent>(RewardTrackTextsMessageEvent, (event) => {
+        const texts = event.getParser().texts;
+
+        if (!texts.size) return;
+
+        const manager = GetLocalizationManager();
+
+        texts.forEach((value, key) => manager.setValue(key, value));
+        setTextsVersion((prevValue) => prevValue + 1);
+    });
 
     useMessageEvent<RewardTracksMessageEvent>(RewardTracksMessageEvent, (event) => {
         const parser = event.getParser();
@@ -134,7 +150,7 @@ const useRewardTracksState = () => {
 
     const unseenCount = useMemo(() => tracks.reduce((total, track) => total + track.claimablePrizeCount, 0), [tracks]);
 
-    return { tracks, disabled, reloadCount, pendingPurchase, unseenCount, getTrack, requestTracks, claimPrize, purchasePremium };
+    return { tracks, disabled, reloadCount, textsVersion, pendingPurchase, unseenCount, getTrack, requestTracks, claimPrize, purchasePremium };
 };
 
 registerSharedHook(useRewardTracksState);

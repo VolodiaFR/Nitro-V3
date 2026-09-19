@@ -1,5 +1,6 @@
 import { AddLinkEventTracker, CreateLinkEvent, GetSessionDataManager, ILinkEventTracker, RemoveLinkEventTracker, RewardTrackData, RewardTrackPrizeData, RewardTrackTaskData } from '@octane/renderer';
 import { CSSProperties, FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FaCog } from 'react-icons/fa';
 import {
     filterRewardTrackTasks,
     getPremiumBoostPercent,
@@ -26,9 +27,10 @@ import giveRespectIcon from '../../assets/images/reward-track/tasks/give_respect
 import placeItemIcon from '../../assets/images/reward-track/tasks/place_item.png';
 import tierGiftIcon from '../../assets/images/reward-track/tier-gift.png';
 import tasksIcon from '../../assets/images/reward-track/tasks.png';
-import { Button, DraggableWindowPosition, LayoutAvatarImageView, LayoutBadgeImageView, LayoutCurrencyIcon, Text } from '../../common';
-import { useNotification, useRewardTracks } from '../../hooks';
+import { Button, DraggableWindowPosition, LayoutAvatarImageView, LayoutBadgeImageView, LayoutCurrencyIcon, LayoutFurniIconImageView, Text } from '../../common';
+import { useHasPermission, useNotification, useRewardTracks } from '../../hooks';
 import { OctaneCard } from '../../layout';
+import { RewardTrackAdminView } from './RewardTrackAdminView';
 
 const CURRENCY_TYPES: Record<string, number> = { credits: -1, duckets: 0, diamonds: 5 };
 
@@ -45,12 +47,15 @@ const TASK_ICONS: Record<string, string> = {
 const getTaskIcon = (actionType: string): string | null => TASK_ICONS[(actionType || '').toLowerCase()] ?? null;
 const FILTERS: RewardTrackTaskFilter[] = ['all', 'in_progress', 'completed'];
 
-const RewardIcon: FC<{ rewardTypeId: string; extraParams: string }> = ({ rewardTypeId, extraParams }) => {
+const RewardIcon: FC<{ rewardTypeId: string; extraParams: string; productItemTypeId: number }> = ({ rewardTypeId, extraParams, productItemTypeId }) => {
     const type = (rewardTypeId || '').toLowerCase();
 
     if (type in CURRENCY_TYPES) return <LayoutCurrencyIcon type={CURRENCY_TYPES[type]} className="octane-reward-track-prize-currency" />;
 
     if (type === 'badge') return <LayoutBadgeImageView badgeCode={extraParams} />;
+
+    // A furni prize: the server sends its sprite id and "<s|i>:<name>" (floor or wall, then the items_base name).
+    if (type === 'furni') return <LayoutFurniIconImageView productType={extraParams.startsWith('i:') ? 'i' : 's'} productClassId={productItemTypeId} className="octane-reward-track-prize-furni" />;
 
     return <div className="octane-reward-track-prize-generic">{rewardTypeId}</div>;
 };
@@ -86,7 +91,7 @@ const RewardTrackPrizeView: FC<{
             onClick={onClick}
         >
             <div className="octane-reward-track-prize-icon air-bitmap-surface">
-                <RewardIcon rewardTypeId={prize.rewardTypeId} extraParams={prize.extraParams} />
+                <RewardIcon rewardTypeId={prize.rewardTypeId} extraParams={prize.extraParams} productItemTypeId={prize.productItemTypeId} />
                 {prize.rewardAmount > 1 && <span className="octane-reward-track-prize-amount">{prize.rewardAmount}</span>}
             </div>
             {state === 'premium_locked' && <div className="octane-reward-track-prize-marker octane-reward-track-prize-marker-locked" />}
@@ -187,6 +192,9 @@ export const RewardTrackView: FC<{}> = () => {
     const [filter, setFilter] = useState<RewardTrackTaskFilter>('all');
     const [selectedTaskId, setSelectedTaskId] = useState<string>(null);
     const [premiumConfirm, setPremiumConfirm] = useState(false);
+    // The gear opens the staff editor inside the same window (acc_rewardtrack).
+    const isEditor = useHasPermission('acc_rewardtrack');
+    const [editMode, setEditMode] = useState(false);
     const { tracks = [], reloadCount = 0, pendingPurchase = null, requestTracks = null, claimPrize = null, purchasePremium = null } = useRewardTracks();
     const { simpleAlert = null } = useNotification();
 
@@ -195,6 +203,7 @@ export const RewardTrackView: FC<{}> = () => {
     const open = useCallback(
         (id: string) => {
             setTrackId(id);
+            setEditMode(false);
             setFilter('all');
             setSelectedTaskId(null);
             requestTracks && requestTracks();
@@ -353,10 +362,30 @@ export const RewardTrackView: FC<{}> = () => {
                     onCloseClick={() => setTrackId(null)}
                 />
                 <OctaneCard.Content className="octane-reward-track-content">
-                    {!track && <Text center>{localizeWithFallback('reward_track.loading', 'Loading the reward track...')}</Text>}
-                    {track && (
+                    {editMode && isEditor && (
+                        <RewardTrackAdminView
+                            onClose={() => setEditMode(false)}
+                            onPreview={(id) => {
+                                setEditMode(false);
+                                open(id);
+                            }}
+                        />
+                    )}
+                    {!editMode && !track && <Text center>{localizeWithFallback('reward_track.loading', 'Loading the reward track...')}</Text>}
+                    {!editMode && track && (
                         <>
                             <div className="octane-reward-track-header">
+                                {isEditor && (
+                                    <button
+                                        type="button"
+                                        className="octane-reward-track-admin-toggle"
+                                        title={localizeWithFallback('reward_track.admin.open', 'Edit the reward tracks')}
+                                        data-testid="reward-track-admin-toggle"
+                                        onClick={() => setEditMode(true)}
+                                    >
+                                        <FaCog />
+                                    </button>
+                                )}
                                 <div className="octane-reward-track-profile">
                                     <LayoutAvatarImageView figure={GetSessionDataManager().figure} direction={2} className="octane-reward-track-avatar" />
                                     <div className="octane-reward-track-info">

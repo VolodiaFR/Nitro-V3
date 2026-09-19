@@ -556,6 +556,12 @@
 }
 
 .octane-daily-task-reward-generic,
+.octane-reward-track-prize-furni {
+    max-width: 48px;
+    max-height: 48px;
+    image-rendering: pixelated;
+}
+
 .octane-reward-track-prize-generic {
     font-size: 10px;
     text-align: center;
@@ -1406,4 +1412,721 @@
     width: 33px;
     height: 32px;
     background-image: url("@/assets/images/toolbar/icons/me-menu/reward-track.png");
+}
+
+/* Reward track staff editor (the gear in the window, acc_rewardtrack). */
+.octane-reward-track-admin-toggle {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 3;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid #5b5b5b;
+    border-radius: 4px;
+    background: #f5f5f5;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.octane-reward-track-admin-toggle:hover {
+    background: #ffffff;
+}
+
+.octane-reward-track-content {
+    position: relative;
+}
+
+.octane-reward-track-admin {
+    --rta-bg: #ecece4;
+    --rta-panel: #f7f7f2;
+    --rta-panel-top: #fffdf5;
+    --rta-panel-alt: #e9e9df;
+    --rta-border: #9d9d96;
+    --rta-border-dark: #5f5f59;
+    --rta-text: #20201d;
+    --rta-muted: #60605a;
+    --rta-blue: #418db0;
+    --rta-blue-dark: #0e3f52;
+    --rta-blue-light: #dcecf5;
+    --rta-green: #1a7f2c;
+    --rta-danger: #b83b32;
+    --rta-premium: #6b3fa0;
+    --rta-premium-light: #ece1f6;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 6px;
+    background: var(--rta-bg);
+    color: var(--rta-text);
+    font-size: 12px;
+}
+
+.octane-reward-track-admin-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 28px;
+}
+
+.octane-reward-track-admin-toolbar > :last-child {
+    margin-left: auto;
+}
+
+.octane-reward-track-admin-heading {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--rta-blue-dark);
+}
+
+.octane-reward-track-admin-status {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.octane-reward-track-admin-status.is-ok {
+    background: #d8f3d0;
+    color: var(--rta-green);
+}
+
+.octane-reward-track-admin-status.is-error {
+    background: #f7d2d2;
+    color: var(--rta-danger);
+}
+
+.octane-reward-track-admin-status.is-pending {
+    background: var(--rta-panel-alt);
+    color: var(--rta-muted);
+}
+
+.octane-reward-track-admin-body {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+}
+
+.octane-reward-track-admin-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+/* Panels: the bordered cream cards of the catalog editor. */
+.octane-reward-track-admin-panel {
+    border: 2px solid var(--rta-border);
+    border-radius: 4px;
+    background: linear-gradient(180deg, var(--rta-panel-top) 0%, var(--rta-panel) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76), 0 1px 0 rgba(0, 0, 0, 0.08);
+    padding: 8px 10px 10px;
+}
+
+.octane-reward-track-admin-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 24px;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--rta-border);
+}
+
+.octane-reward-track-admin-panel-head.is-toggle {
+    cursor: pointer;
+    user-select: none;
+}
+
+.octane-reward-track-admin-panel.is-collapsed .octane-reward-track-admin-panel-head {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.octane-reward-track-admin-chevron {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--rta-blue-dark);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.octane-reward-track-admin-panel-summary {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--rta-muted);
+    font-size: 11px;
+}
+
+.octane-reward-track-admin-panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--rta-blue-dark);
+}
+
+.octane-reward-track-admin-panel.is-track .octane-reward-track-admin-panel-title {
+    font-size: 15px;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.octane-reward-track-admin-panel-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.octane-reward-track-admin-subtitle {
+    margin: 4px 0 2px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--rta-blue-dark);
+}
+
+.octane-reward-track-admin-muted {
+    color: var(--rta-muted);
+}
+
+/* Track list. */
+.octane-reward-track-admin-track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.octane-reward-track-admin-track {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border: 1px solid var(--rta-border);
+    border-radius: 4px;
+    background: #ffffff;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.octane-reward-track-admin-track:hover {
+    border-color: var(--rta-blue);
+}
+
+.octane-reward-track-admin-track.is-active {
+    border-color: var(--rta-blue-dark);
+    background: var(--rta-blue-light);
+    box-shadow: inset 3px 0 0 var(--rta-blue);
+}
+
+.octane-reward-track-admin-track.is-disabled .octane-reward-track-admin-track-id {
+    color: var(--rta-muted);
+}
+
+.octane-reward-track-admin-track-swatch {
+    width: 10px;
+    height: 28px;
+    border-radius: 2px;
+    background: #3577b9;
+}
+
+.octane-reward-track-admin-track-swatch[data-theme="green"] {
+    background: #2f9a4a;
+}
+
+.octane-reward-track-admin-track-swatch[data-theme="red"] {
+    background: #c0392b;
+}
+
+.octane-reward-track-admin-track-swatch[data-theme="orange"] {
+    background: #e67e22;
+}
+
+.octane-reward-track-admin-track-swatch[data-theme="purple"] {
+    background: #7d3c98;
+}
+
+.octane-reward-track-admin-track-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    font-size: 11px;
+}
+
+.octane-reward-track-admin-track-id {
+    font-size: 12px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Tags and chips. */
+.octane-reward-track-admin-tag {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: var(--rta-panel-alt);
+    color: var(--rta-muted);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+.octane-reward-track-admin-tag.is-on {
+    background: #d8f3d0;
+    color: var(--rta-green);
+}
+
+.octane-reward-track-admin-tag.is-off {
+    background: #f7d2d2;
+    color: var(--rta-danger);
+}
+
+.octane-reward-track-admin-tag.is-premium {
+    background: var(--rta-premium-light);
+    color: var(--rta-premium);
+}
+
+.octane-reward-track-admin-facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+    font-size: 11px;
+}
+
+.octane-reward-track-admin-facts .octane-reward-track-admin-tag {
+    margin-left: 0;
+}
+
+.octane-reward-track-admin-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+.octane-reward-track-admin-chip {
+    padding: 1px 6px;
+    border: 1px solid var(--rta-border);
+    border-radius: 3px;
+    background: #ffffff;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.octane-reward-track-admin-chip.is-premium {
+    border-color: var(--rta-premium);
+    background: var(--rta-premium-light);
+    color: var(--rta-premium);
+}
+
+/* Tables. */
+.octane-reward-track-admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.octane-reward-track-admin-table th {
+    padding: 2px 6px 4px;
+    text-align: left;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--rta-muted);
+}
+
+.octane-reward-track-admin-table td {
+    padding: 3px 6px;
+    border-top: 1px solid var(--rta-border);
+    vertical-align: middle;
+}
+
+.octane-reward-track-admin-table tbody tr:nth-child(even) td {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.octane-reward-track-admin-table.is-levels td {
+    border-top-color: transparent;
+    padding: 2px 6px;
+}
+
+.octane-reward-track-admin-table.is-levels input:not([type="checkbox"]) {
+    width: 90px;
+}
+
+.octane-reward-track-admin-row-actions {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.octane-reward-track-admin-row-actions .octane-reward-track-admin-btn + .octane-reward-track-admin-btn {
+    margin-left: 4px;
+}
+
+/* Forms. */
+.octane-reward-track-admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.octane-reward-track-admin-form.is-nested {
+    margin-top: 8px;
+    padding: 8px 10px 10px;
+    border: 1px solid var(--rta-border);
+    border-radius: 4px;
+    background: #ffffff;
+}
+
+.octane-reward-track-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px 8px;
+}
+
+.octane-reward-track-admin-grid.is-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.octane-reward-track-admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.octane-reward-track-admin-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--rta-muted);
+}
+
+.octane-reward-track-admin input:not([type="checkbox"]),
+.octane-reward-track-admin select {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 24px;
+    padding: 2px 6px;
+    border: 2px solid var(--rta-border-dark);
+    border-radius: 4px;
+    background: #fffdf4;
+    color: var(--rta-text);
+    font: inherit;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.octane-reward-track-admin input:not([type="checkbox"]):focus,
+.octane-reward-track-admin select:focus {
+    outline: none;
+    border-color: var(--rta-blue);
+    box-shadow: 0 0 0 2px rgba(99, 197, 233, 0.35);
+}
+
+.octane-reward-track-admin input:disabled {
+    background: var(--rta-panel-alt);
+    color: var(--rta-muted);
+}
+
+.octane-reward-track-admin input::placeholder {
+    color: #9a9990;
+}
+
+.octane-reward-track-admin input[type="checkbox"] {
+    appearance: auto;
+    -webkit-appearance: checkbox;
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: var(--rta-blue);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.octane-reward-track-admin-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+}
+
+.octane-reward-track-admin-toggle-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.octane-reward-track-admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.octane-reward-track-admin-spacer {
+    flex: 1 1 auto;
+}
+
+/* Buttons keep the hotel skin but take the editor's compact size. */
+.octane-reward-track-admin-btn {
+    min-height: 22px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+}
+
+/* The editor's forms open in a window of their own over the Reward Track window. */
+.octane-reward-track-admin-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.octane-reward-track-admin-modal {
+    display: flex;
+    flex-direction: column;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    border: 2px solid #1c3f52;
+    border-radius: 6px;
+    background: #ecece4;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+}
+
+.octane-reward-track-admin-modal-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 31px;
+    padding: 0 30px;
+    background: linear-gradient(180deg, #58a8c5 0%, #418db0 45%, #0e3f52 100%);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.octane-reward-track-admin-modal-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.octane-reward-track-admin-modal-body {
+    min-height: 0;
+    overflow: auto;
+    padding: 10px;
+}
+
+.octane-reward-track-admin-modal-body.octane-reward-track-admin {
+    min-height: 0;
+    border-radius: 0;
+}
+
+.octane-reward-track-admin-grid.is-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Inline validation, notes, reorder arrows. */
+.octane-reward-track-admin-field.has-error input:not([type="checkbox"]),
+.octane-reward-track-admin-field.has-error select,
+.octane-reward-track-admin input[aria-invalid="true"] {
+    border-color: var(--rta-danger) !important;
+}
+
+.octane-reward-track-admin-field-error {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--rta-danger);
+}
+
+.octane-reward-track-admin-form-problems {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--rta-danger);
+}
+
+.octane-reward-track-admin-note {
+    padding: 4px 8px;
+    border: 1px solid var(--rta-border);
+    border-radius: 4px;
+    background: var(--rta-blue-light);
+    color: var(--rta-blue-dark);
+    font-size: 11px;
+}
+
+.octane-reward-track-admin-order-head,
+.octane-reward-track-admin-order {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.octane-reward-track-admin-arrow {
+    width: 18px;
+    height: 16px;
+    padding: 0;
+    border: 1px solid var(--rta-border);
+    border-radius: 3px;
+    background: #ffffff;
+    color: var(--rta-blue-dark);
+    font-size: 8px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.octane-reward-track-admin-arrow + .octane-reward-track-admin-arrow {
+    margin-left: 2px;
+}
+
+.octane-reward-track-admin-arrow:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* Track filters, the texts form, the furni picker. */
+.octane-reward-track-admin-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-bottom: 6px;
+}
+
+.octane-reward-track-admin-filter {
+    padding: 2px 7px;
+    border: 1px solid var(--rta-border);
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--rta-muted);
+    font: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.octane-reward-track-admin-filter.is-active {
+    border-color: var(--rta-blue-dark);
+    background: var(--rta-blue-light);
+    color: var(--rta-blue-dark);
+}
+
+.octane-reward-track-admin-tag.is-scheduled {
+    background: #fff1cc;
+    color: #8a5a00;
+}
+
+.octane-reward-track-admin-tag.is-expired {
+    background: var(--rta-panel-alt);
+    color: var(--rta-muted);
+}
+
+.octane-reward-track-admin-text-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 360px;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.octane-reward-track-admin-text-row {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+}
+
+.octane-reward-track-admin-furni-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.octane-reward-track-admin-furni-results {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    max-height: 180px;
+    overflow: auto;
+    padding: 4px;
+    border: 1px solid var(--rta-border);
+    border-radius: 4px;
+    background: #ffffff;
+}
+
+.octane-reward-track-admin-furni-match {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 2px 4px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    background: transparent;
+    font: inherit;
+    font-size: 11px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.octane-reward-track-admin-furni-match span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.octane-reward-track-admin-furni-match:hover {
+    border-color: var(--rta-blue);
+}
+
+.octane-reward-track-admin-furni-match.is-picked {
+    border-color: var(--rta-blue-dark);
+    background: var(--rta-blue-light);
+}
+
+.octane-reward-track-admin-furni-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
 }
