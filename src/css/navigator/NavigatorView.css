@@ -23,6 +23,10 @@
     image-rendering: pixelated;
 }
 
+.octane-navigator-air img {
+    image-rendering: auto;
+}
+
 .octane-navigator-air button,
 .octane-navigator-air input,
 .octane-navigator-air select {
@@ -60,6 +64,35 @@
     background: transparent !important;
     box-shadow: none !important;
     image-rendering: pixelated;
+}
+
+.octane-navigator-air__skin::before {
+    content: "";
+    position: absolute;
+    inset: -29px -7px auto;
+    height: 28px;
+    background: #367997;
+}
+
+.octane-navigator-air__skin::after {
+    content: "";
+    position: absolute;
+    inset: 0 -7px -6px;
+    background: var(--navigator-air-surface);
+    clip-path: polygon(
+        0 0,
+        100% 0,
+        100% calc(100% - 3px),
+        calc(100% - 1px) calc(100% - 3px),
+        calc(100% - 1px) calc(100% - 1px),
+        calc(100% - 3px) calc(100% - 1px),
+        calc(100% - 3px) 100%,
+        3px 100%,
+        3px calc(100% - 1px),
+        1px calc(100% - 1px),
+        1px calc(100% - 3px),
+        0 calc(100% - 3px)
+    );
 }
 
 .octane-navigator-air__tab-shelf {
@@ -123,7 +156,7 @@
     filter: none !important;
     transform: none !important;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__close:hover {
@@ -175,7 +208,7 @@
 
 .octane-navigator-air__tab {
     box-sizing: border-box;
-    flex: 0 0 auto !important;
+    flex: 0 1 auto !important;
     width: var(--navigator-tab-width, 88px) !important;
     min-width: 0 !important;
     max-width: none !important;
@@ -190,11 +223,11 @@
     background-color: transparent !important;
     background-image:
         url("@/assets/images/habbo-skin/slices/tab-3-default-left.png"),
-        url("@/assets/images/habbo-skin/slices/tab-3-default-mid.png"),
-        url("@/assets/images/habbo-skin/slices/tab-3-default-right.png") !important;
+        url("@/assets/images/habbo-skin/slices/tab-3-default-right.png"),
+        url("@/assets/images/habbo-skin/slices/tab-3-default-mid.png") !important;
     background-repeat: no-repeat, no-repeat, no-repeat !important;
-    background-position: left top, 9px top, right top !important;
-    background-size: 9px 32px, calc(100% - 18px) 32px, 9px 32px !important;
+    background-position: left top, right top, 7px top !important;
+    background-size: 9px 32px, 9px 32px, calc(100% - 14px) 32px !important;
     box-shadow: none !important;
     color: #111 !important;
     font-family: HabboAirUbuntu, UbuntuRegular, Ubuntu, sans-serif;
@@ -211,16 +244,16 @@
 .octane-navigator-air__tab:hover {
     background-image:
         url("@/assets/images/habbo-skin/slices/tab-3-hover-left.png"),
-        url("@/assets/images/habbo-skin/slices/tab-3-hover-mid.png"),
-        url("@/assets/images/habbo-skin/slices/tab-3-hover-right.png") !important;
+        url("@/assets/images/habbo-skin/slices/tab-3-hover-right.png"),
+        url("@/assets/images/habbo-skin/slices/tab-3-hover-mid.png") !important;
 }
 
 .octane-navigator-air__tab.is-active,
 .octane-navigator-air__tab.is-active:hover {
     background-image:
         url("@/assets/images/habbo-skin/slices/tab-3-selected-left.png"),
-        url("@/assets/images/habbo-skin/slices/tab-3-selected-mid.png"),
-        url("@/assets/images/habbo-skin/slices/tab-3-selected-right.png") !important;
+        url("@/assets/images/habbo-skin/slices/tab-3-selected-right.png"),
+        url("@/assets/images/habbo-skin/slices/tab-3-selected-mid.png") !important;
 }
 
 .octane-navigator-air__quick-toggle,
@@ -257,12 +290,12 @@
     display: block;
     width: 18px;
     height: 18px;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__quick-toggle img,
 .octane-navigator-air__icon-button img {
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__workspace {
@@ -354,7 +387,7 @@
     display: block;
     width: 18px;
     height: 18px;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-search-saves-result__header-label {
@@ -393,7 +426,7 @@
 }
 
 .octane-navigator-search-saves-result__empty img {
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .saved-search-row {
@@ -445,7 +478,7 @@
     border: 0;
     background: url("@/assets/images/navigator/air/icon-ql-remove.png") center / 10px 10px no-repeat;
     cursor: pointer;
-    image-rendering: pixelated;
+    image-rendering: auto;
     pointer-events: none;
 }
 
@@ -537,7 +570,7 @@
     width: 16px;
     height: 16px;
     margin: 0;
-    image-rendering: pixelated;
+    image-rendering: auto;
     pointer-events: none;
 }
 
@@ -641,7 +674,7 @@
     display: block;
     width: 16px;
     height: 16px;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__search-refresh {
@@ -726,7 +759,7 @@
     height: 19px;
     object-fit: none;
     object-position: center;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__category-toggle span {
@@ -754,7 +787,7 @@
     height: 19px;
     object-fit: none;
     object-position: center;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__rows {
@@ -826,7 +859,7 @@
     width: 13px;
     height: 14px;
     object-fit: contain;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__usercount span {
@@ -1000,11 +1033,18 @@
 
 .octane-navigator-air__tile-badge {
     position: absolute !important;
-    top: -11px;
-    left: -5px;
+    top: 2px;
+    left: 2px;
     z-index: 2;
-    width: 50px;
-    height: 61px;
+    background-size: auto !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    image-rendering: auto;
+}
+
+.octane-navigator-air__tile-thumb,
+.octane-navigator-air__tile-thumb img {
+    image-rendering: auto;
 }
 
 .octane-navigator-air__tile-name {
@@ -1040,7 +1080,7 @@
     background-image: url("@/assets/images/navigator/air/show-room-info.png");
     background-repeat: no-repeat;
     background-position: center;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__door {
@@ -1049,7 +1089,7 @@
     height: 16px;
     background-repeat: no-repeat;
     background-position: center;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__door--doorbell {
@@ -1069,7 +1109,7 @@
     width: 13px;
     height: 11px;
     background: url("@/assets/images/navigator/air/icon-group.png") center / contain no-repeat;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__room-bubble {
@@ -1091,7 +1131,7 @@
     font-family: HabboAirUbuntu, UbuntuRegular, Ubuntu, sans-serif;
     font-size: 12px;
     filter: drop-shadow(4px 4px 4px rgba(0, 0, 0, 0.349));
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__room-bubble::before {
@@ -1103,7 +1143,7 @@
     height: 18px;
     margin-top: -9px;
     background: url("@/assets/images/habbo-skin/slices/bubble-pointer-left.png") center / 11px 18px no-repeat;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__room-bubble-content {
@@ -1246,7 +1286,7 @@
     flex: 0 0 20px;
     background-position: center;
     background-repeat: no-repeat;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__room-popover-actions .icon-navigator-favorite-room {
@@ -1313,7 +1353,7 @@
     align-self: center;
     justify-self: center;
     background: url("@/assets/images/navigator/air/event-icon.png") center / contain no-repeat;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__room-popover-event-copy {
@@ -1406,7 +1446,7 @@
     max-width: none;
     height: 59px;
     pointer-events: none;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 .octane-navigator-air__action span {
@@ -1441,7 +1481,36 @@
     border-image-slice: 6 fill;
     border-image-width: 6px;
     border-image-repeat: stretch;
-    image-rendering: pixelated;
+    image-rendering: auto;
+}
+
+@media (resolution: 1dppx), (resolution: 2dppx), (resolution: 3dppx) {
+    .octane-navigator-air__action img,
+    .octane-navigator-air__action-border,
+    .octane-navigator-air__tile-badge,
+    .octane-navigator-air__tile-thumb,
+    .octane-navigator-air__tile-thumb img,
+    .octane-navigator-air__room-bubble,
+    .octane-navigator-air__room-bubble::before,
+    .octane-navigator-air__room-popover-actions button > i,
+    .octane-navigator-air__room-popover-event-icon,
+    .octane-navigator-air img,
+    .octane-navigator-air__close,
+    .octane-navigator-air__quick-toggle img,
+    .octane-navigator-air__icon-button img,
+    .octane-navigator-search-saves-result__header-icon,
+    .octane-navigator-search-saves-result__empty img,
+    .saved-search-row__delete,
+    .octane-navigator-air__filter-button img,
+    .octane-navigator-air__search-refresh img,
+    .octane-navigator-air__category-toggle img,
+    .octane-navigator-air__usercount img,
+    .octane-navigator-air__room-info,
+    .octane-navigator-air__door,
+    .octane-navigator-air__group,
+    .octane-navigator-search-save img {
+        image-rendering: pixelated;
+    }
 }
 
 .octane-navigator-air__action--random .octane-navigator-air__action-border,
@@ -2094,7 +2163,7 @@
 .octane-navigator-search-save img {
     width: 18px;
     height: 18px;
-    image-rendering: pixelated;
+    image-rendering: auto;
 }
 
 

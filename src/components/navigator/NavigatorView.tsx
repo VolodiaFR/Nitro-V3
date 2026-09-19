@@ -178,8 +178,8 @@ export const NavigatorView: FC<{}> = () => {
 
         const sizeTabs = () => {
             for (const label of labels) {
-                const titleWidth = label.offsetWidth + 4 + 20;
-                label.parentElement.style.setProperty('--navigator-tab-width', `${44 + Math.ceil(titleWidth / 2)}px`);
+                const labelWidth = Math.ceil(label.getBoundingClientRect().width);
+                label.parentElement.style.setProperty('--navigator-tab-width', `${Math.max(70, labelWidth + 24)}px`);
             }
         };
 
