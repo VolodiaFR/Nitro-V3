@@ -725,36 +725,42 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
 
             {/* Field groups: one at a time, chips carry a dot when a group holds unsaved changes. */}
             <div className="min-h-0 flex flex-col gap-1">
-                <div className="flex flex-wrap gap-1" role="tablist" aria-label="Field groups">
-                    {GROUPS.map(({ id, label }) => {
-                        const changed = changedByGroup[id];
-                        const invalid = invalidByGroup[id];
-                        return (
-                            <button
-                                key={id}
-                                type="button"
-                                role="tab"
-                                aria-selected={group === id}
-                                onClick={() => setGroup(id)}
-                                className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border transition ${group === id ? 'bg-slate-800 border-slate-800 text-[#ffffff]' : 'bg-[#ffffff] border-slate-200 text-slate-600 hover:border-slate-300'}`}
-                            >
-                                {label}
-                                {(changed > 0 || invalid) && (
-                                    <span
-                                        aria-label={invalid ? 'has invalid fields' : `${changed} unsaved`}
-                                        className={`w-1.5 h-1.5 rounded-full ${invalid ? 'bg-[#ef4444]' : 'bg-[#f59e0b]'}`}
-                                    />
-                                )}
-                            </button>
-                        );
-                    })}
+                <div className="flex items-center gap-2">
+                    <div
+                        className="inline-flex items-center gap-0.5 rounded-lg bg-slate-100 border border-slate-200 p-0.5"
+                        role="tablist"
+                        aria-label="Field groups"
+                    >
+                        {GROUPS.map(({ id, label }) => {
+                            const changed = changedByGroup[id];
+                            const invalid = invalidByGroup[id];
+                            return (
+                                <button
+                                    key={id}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={group === id}
+                                    onClick={() => setGroup(id)}
+                                    className={`relative inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-md transition ${group === id ? 'bg-[#ffffff] text-slate-800 font-semibold shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/60'}`}
+                                >
+                                    {label}
+                                    {(changed > 0 || invalid) && (
+                                        <span
+                                            aria-label={invalid ? 'has invalid fields' : `${changed} unsaved`}
+                                            className={`w-1.5 h-1.5 rounded-full ring-2 ring-[#ffffff] ${invalid ? 'bg-[#ef4444]' : 'bg-[#f59e0b]'}`}
+                                        />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
                     <input
                         list="furni-editor-fields"
                         value={jumpQuery}
                         onChange={(e) => handleJump(e.target.value)}
                         placeholder="Jump to field"
                         aria-label="Jump to field"
-                        className="ml-auto w-28 px-2 py-1 text-[11px] rounded-full border border-slate-200 bg-[#ffffff] focus:border-primary focus:outline-none"
+                        className="ml-auto w-28 px-2.5 py-1 text-[11px] rounded-lg border border-slate-200 bg-[#ffffff] text-slate-700 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 transition"
                     />
                     <datalist id="furni-editor-fields">
                         {(Object.keys(FIELD_LABELS) as EditField[]).map((field) => (
