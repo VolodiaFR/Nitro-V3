@@ -279,6 +279,57 @@ describe('FurniEditorEditView', () => {
         expect(screen.getByRole('button', { name: 'Save (1)' })).toBeEnabled();
     });
 
+    it('offers what furnidata says about footprint, flags and description, one click each or all at once', () => {
+        renderView({
+            furniDataEntry: {
+                classname: 'throne',
+                xdim: 2,
+                ydim: 1,
+                canstandon: true,
+                cansiton: true,
+                canlayon: false,
+                tradeable: true,
+                recyclable: false,
+                description: 'Royal seat'
+            },
+            item: { ...item, description: '' }
+        });
+
+        expect(screen.getByRole('button', { name: '4 suggestions ›' })).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Apply Width 2' }));
+        expect(screen.getByRole('spinbutton', { name: 'Width' })).toHaveValue(2);
+        expect(screen.queryByRole('button', { name: 'Apply Width 2' })).toBeNull();
+
+        fireEvent.click(screen.getByRole('button', { name: 'apply all' }));
+        expect(screen.getByLabelText('Description (DB)')).toHaveValue('Royal seat');
+        expect(screen.getByRole('button', { name: 'Walk', pressed: true })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Recycle', pressed: false })).toBeInTheDocument();
+        expect(screen.queryByText(/suggestion/)).toBeNull();
+        expect(screen.getByRole('button', { name: 'Save (4)' })).toBeEnabled();
+    });
+
+    it('ignores a furnidata entry that belongs to another classname', () => {
+        renderView({ furniDataEntry: { classname: 'other_chair', xdim: 4, ydim: 4 } });
+
+        expect(screen.queryByRole('button', { name: /suggestion/ })).toBeNull();
+    });
+
+    it('proposes the state count a type drives and warns when a list-driven type has an empty list', () => {
+        renderView({ item: { ...item, interactionType: 'gate' }, interactions: ['default', 'gate', 'vendingmachine'] });
+
+        fireEvent.click(screen.getByRole('button', { name: 'Apply Modes 2' }));
+        expect(screen.getByLabelText('Modes')).toHaveValue(2);
+
+        const picker = screen.getByLabelText('Interaction type');
+        fireEvent.focus(picker);
+        fireEvent.change(picker, { target: { value: 'vending' } });
+        fireEvent.keyDown(picker, { key: 'Enter' });
+
+        expect(screen.getByRole('note')).toHaveTextContent('vendingmachine hands out nothing without vending ids');
+        expect(screen.getByRole('button', { name: '1 warning ›' })).toBeInTheDocument();
+    });
+
     it('resets every field to the stored values with one click', () => {
         renderView();
 

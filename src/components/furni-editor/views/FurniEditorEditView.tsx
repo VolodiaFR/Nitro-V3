@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { CopyToClipboard } from '../../../api';
 import { Button, Flex, LayoutFurniIconImageView, LayoutFurniImageView, Text } from '../../../common';
 import { CatalogRef, FurniDetail } from '../../../hooks/furni-editor';
+import { readAssetStateCount } from '../furniAssetStates';
+import { Suggestion, expectationsForType, suggestFromFurnidata, suggestInteractionType } from '../furniEditorSuggestions';
 
 interface FurniEditorEditViewProps {
     item: FurniDetail;
@@ -164,30 +166,6 @@ const FIELD_GROUP: Record<EditField, GroupId> = {
     effectIdFemale: 'behaviour',
     clothingOnWalk: 'behaviour',
     description: 'names'
-};
-
-// Types too generic to be inferred from a classname token: "default" would match
-// half the hotel and "multiheight" is a behaviour, not a name.
-const UNSUGGESTABLE_TYPES = new Set(['default', 'multiheight']);
-
-export const suggestInteractionType = (classname: string, registered: string[]): { type: string; reason: string } | null => {
-    const name = classname.trim().toLowerCase();
-    if (!name) return null;
-    const candidates = registered.filter((type) => !UNSUGGESTABLE_TYPES.has(type.toLowerCase()));
-
-    const exact = candidates.find((type) => type.toLowerCase() === name);
-    if (exact) return { type: exact, reason: 'classname is a registered type' };
-
-    const prefix = candidates
-        .filter((type) => name.startsWith(`${type.toLowerCase()}_`) || name.startsWith(`${type.toLowerCase()}-`))
-        .sort((a, b) => b.length - a.length)[0];
-    if (prefix) return { type: prefix, reason: 'classname starts with it' };
-
-    const tokens = name.split(/[_\-*]/).filter(Boolean);
-    const token = candidates.filter((type) => tokens.includes(type.toLowerCase())).sort((a, b) => b.length - a.length)[0];
-    if (token) return { type: token, reason: 'classname contains it' };
-
-    return null;
 };
 
 interface InteractionTypePickerProps {
@@ -624,6 +602,43 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
         [furniName, furniDescription, furniDataEntry]
     );
 
+    // The asset's own state count, read once the room engine has the furni
+    // loaded (the preview triggers that). Retried a few times because the load
+    // is asynchronous and the loader has no completion hook the client can use.
+    const [assetStates, setAssetStates] = useState<number | null>(null);
+    useEffect(() => {
+        setAssetStates(null);
+        let tries = 0;
+        let handle = 0;
+        const attempt = () => {
+            const count = readAssetStateCount(item.itemName);
+            if (count !== null) {
+                setAssetStates(count);
+                return;
+            }
+            if (++tries < 8) handle = window.setTimeout(attempt, 700);
+        };
+        attempt();
+        return () => window.clearTimeout(handle);
+    }, [item.itemName]);
+
+    // Everything the editor can propose from data it already has. Furnidata is
+    // trusted only when its entry matches this classname; the type table and
+    // the asset count apply to whatever type is in the form right now.
+    const { suggestions, warnings } = useMemo(() => {
+        const all: Suggestion[] = furnidataEditable ? suggestFromFurnidata(furniDataEntry, form) : [];
+        const typed = expectationsForType(form);
+        all.push(...typed.suggestions);
+        if (assetStates !== null && assetStates > 0 && assetStates !== form.interactionModesCount) {
+            const alreadyFromType = typed.suggestions.some((s) => s.field === 'interactionModesCount' && s.value === assetStates);
+            if (!alreadyFromType) all.push({ field: 'interactionModesCount', value: assetStates, reason: `asset defines ${assetStates} states` });
+        }
+        return { suggestions: all, warnings: typed.warnings };
+    }, [furnidataEditable, furniDataEntry, form, assetStates]);
+
+    const applySuggestion = useCallback((s: Suggestion) => setForm((prev) => ({ ...prev, [s.field]: s.value })), []);
+    const applyAllSuggestions = useCallback(() => setForm((prev) => suggestions.reduce((next, s) => ({ ...next, [s.field]: s.value }), prev)), [suggestions]);
+
     const furnidataMissReason = useMemo(() => {
         const reason = String(furniDataDiagnostic?.reason ?? '');
         return reason || 'not_found';
@@ -749,6 +764,50 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
             </button>
         );
 
+    const chipClass = 'mt-1 inline-flex items-center gap-1 text-[10px] font-medium rounded-md px-2 py-0.5 transition';
+    const suggestionChip = (s: Suggestion) => (
+        <button
+            key={`${s.field}:${String(s.value)}`}
+            type="button"
+            onClick={() => applySuggestion(s)}
+            title={s.reason}
+            aria-label={`Apply ${FIELD_LABELS[s.field]} ${formatValue(s.value)}`}
+            className={`${chipClass} text-primary bg-primary/10 border border-primary/20 hover:bg-primary/15 mr-1`}
+        >
+            <span aria-hidden="true">✦</span> Suggested: <span className="font-mono">{formatValue(s.value)}</span>
+            <span className="text-primary/70 font-normal">· {s.reason}</span>
+        </button>
+    );
+    const warningChip = (w: { field: EditField; message: string }) => (
+        <span key={w.field} role="note" className={`${chipClass} text-amber-700 bg-amber-100 border border-amber-200`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]" /> {w.message}
+        </span>
+    );
+    const chipsFor = (field: EditField) => (
+        <>
+            {suggestions.filter((s) => s.field === field).map(suggestionChip)}
+            {warnings.filter((w) => w.field === field).map(warningChip)}
+        </>
+    );
+    const permissionSuggestions = suggestions.filter((s) => s.field.startsWith('allow'));
+    const permissionChips = permissionSuggestions.length > 0 && (
+        <div className="flex flex-wrap items-center gap-0.5">
+            {permissionSuggestions.map((s) => (
+                <button
+                    key={s.field}
+                    type="button"
+                    onClick={() => applySuggestion(s)}
+                    title={s.reason}
+                    aria-label={`Apply ${FIELD_LABELS[s.field]} ${formatValue(s.value)}`}
+                    className={`${chipClass} mt-0 text-primary bg-primary/10 border border-primary/20 hover:bg-primary/15`}
+                >
+                    <span aria-hidden="true">✦</span> {FIELD_LABELS[s.field]} {formatValue(s.value)}
+                    <span className="text-primary/70 font-normal">· {s.reason}</span>
+                </button>
+            ))}
+        </div>
+    );
+
     const groupClass = (id: GroupId) => (group === id ? 'flex flex-col gap-1' : 'hidden');
     const statusRow = 'flex items-center justify-between gap-1 text-[10px] py-1 border-t border-slate-200';
     const statusLink = 'text-primary hover:underline cursor-pointer whitespace-nowrap';
@@ -795,6 +854,21 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                         <span className="text-slate-500">Placed in rooms</span>
                         <span className={item.usageCount > 0 ? 'text-emerald-700' : 'text-slate-400'}>{item.usageCount}</span>
                     </div>
+                    {(suggestions.length > 0 || warnings.length > 0) && (
+                        <div className={`${statusRow} text-primary`}>
+                            <button type="button" className={statusLink} onClick={() => jumpToField((suggestions[0] ?? warnings[0]).field)}>
+                                {suggestions.length > 0
+                                    ? `${suggestions.length} suggestion${suggestions.length === 1 ? '' : 's'}`
+                                    : `${warnings.length} warning${warnings.length === 1 ? '' : 's'}`}{' '}
+                                ›
+                            </button>
+                            {suggestions.length > 1 && (
+                                <button type="button" className={statusLink} onClick={applyAllSuggestions}>
+                                    apply all
+                                </button>
+                            )}
+                        </div>
+                    )}
                     {interactionUnregistered && (
                         <div className={`${statusRow} text-amber-700`}>
                             <span>Type has no class</span>
@@ -1043,6 +1117,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     onChange={(e) => setField('description', e.target.value)}
                                 />
                                 {fieldError('description')}
+                                {chipsFor('description')}
                             </div>
                         </Section>
                     </div>
@@ -1120,12 +1195,14 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     </label>
                                     <input
                                         id="furni-editor-width"
+                                        aria-label={FIELD_LABELS.width}
                                         type="number"
                                         className={inputClass('width')}
                                         value={form.width}
                                         onChange={(e) => setField('width', Number(e.target.value))}
                                     />
                                     {validation.width && <span className="text-[9px] text-red-500">{validation.width}</span>}
+                                    {chipsFor('width')}
                                 </div>
                                 <div>
                                     <label className={labelClass} htmlFor="furni-editor-length">
@@ -1133,12 +1210,14 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     </label>
                                     <input
                                         id="furni-editor-length"
+                                        aria-label={FIELD_LABELS.length}
                                         type="number"
                                         className={inputClass('length')}
                                         value={form.length}
                                         onChange={(e) => setField('length', Number(e.target.value))}
                                     />
                                     {validation.length && <span className="text-[9px] text-red-500">{validation.length}</span>}
+                                    {chipsFor('length')}
                                 </div>
                                 <div>
                                     <label className={labelClass}>
@@ -1148,6 +1227,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                     </label>
                                     <input
                                         id="furni-editor-stackHeight"
+                                        aria-label={FIELD_LABELS.stackHeight}
                                         type="number"
                                         step="0.01"
                                         className={inputClass('stackHeight')}
@@ -1239,6 +1319,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                         onChange={(e) => setField('interactionModesCount', Number(e.target.value))}
                                     />
                                     {fieldError('interactionModesCount')}
+                                    {chipsFor('interactionModesCount')}
                                 </div>
                             </div>
                             <div className="mt-1">
@@ -1271,6 +1352,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                         onChange={(e) => setField('vendingIds', e.target.value)}
                                     />
                                     {fieldError('vendingIds')}
+                                    {chipsFor('vendingIds')}
                                 </div>
                                 <div>
                                     <label className={labelClass} htmlFor="furni-editor-multiheight">
@@ -1286,6 +1368,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                                         onChange={(e) => setField('multiheight', e.target.value)}
                                     />
                                     {fieldError('multiheight')}
+                                    {chipsFor('multiheight')}
                                 </div>
                             </div>
                         </Section>
