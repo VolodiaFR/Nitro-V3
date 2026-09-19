@@ -30,6 +30,7 @@ interface FurniEditorEditViewProps {
     onBack: () => void;
     onUpdateFurnidata: (id: number, name: string, description: string) => void;
     onRevertFurnidata: (id: number) => void;
+    onUpdateFurnidataStructure: (id: number, structure: Record<string, number | boolean>) => void;
     onSyncPublicName: (id: number, name: string) => void;
     onImportText: (id: number) => void;
     importResult: { found: boolean; name: string; description: string; classname: string; nonce: number } | null;
@@ -504,6 +505,7 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
         onBack,
         onUpdateFurnidata,
         onRevertFurnidata,
+        onUpdateFurnidataStructure,
         onSyncPublicName,
         onImportText,
         importResult
@@ -758,6 +760,32 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
     const closeBack = useCallback(() => setConfirmBack(false), []);
     const closeDelete = useCallback(() => setShowDeleteDialog(false), []);
     const closeFurnidata = useCallback(() => setConfirmFurnidata(false), []);
+
+    // The reverse of the furnidata chips: when items_base is right and the entry
+    // is wrong, push the DB values into the entry. Only fields the entry carries
+    // and that differ are offered; the save is confirmed like every other write.
+    const [confirmStructure, setConfirmStructure] = useState(false);
+    const structureDiff = useMemo(() => {
+        if (!furnidataEditable || !furniDataEntry) return [] as { key: string; label: string; from: unknown; to: number | boolean }[];
+        const rows: { key: string; label: string; from: unknown; to: number | boolean }[] = [];
+        const consider = (key: string, label: string, to: number | boolean) => {
+            if (!(key in furniDataEntry)) return;
+            const from = furniDataEntry[key];
+            if (String(from) !== String(to)) rows.push({ key, label, from, to });
+        };
+        consider('xdim', 'xdim', stored.width);
+        consider('ydim', 'ydim', stored.length);
+        consider('height', 'height', stored.stackHeight);
+        consider('canstandon', 'canstandon', stored.allowWalk);
+        consider('cansiton', 'cansiton', stored.allowSit);
+        consider('canlayon', 'canlayon', stored.allowLay);
+        return rows;
+    }, [furnidataEditable, furniDataEntry, stored]);
+    const closeStructure = useCallback(() => setConfirmStructure(false), []);
+    const writeStructure = useCallback(() => {
+        setConfirmStructure(false);
+        onUpdateFurnidataStructure(item.id, Object.fromEntries(structureDiff.map((row) => [row.key, row.to])));
+    }, [item.id, structureDiff, onUpdateFurnidataStructure]);
 
     const handleDeleteConfirm = useCallback(() => {
         onDelete(item.id);
@@ -1275,14 +1303,50 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
 
                     <div className={groupClass('data')}>
                         {furniDataEntry && (
-                            <Section title="FurniData.json" defaultOpen={false}>
-                                <Text className="text-[10px] text-slate-400 mb-1 block">
-                                    Read-only — how this furni resolves from the furnidata JSON (source of truth for the display name).
-                                </Text>
-                                <pre className="text-[10px] leading-snug text-slate-600 bg-slate-50 border border-slate-200 rounded-lg p-2 overflow-auto max-h-52 whitespace-pre-wrap break-all font-mono">
-                                    {JSON.stringify(furniDataEntry, null, 2)}
-                                </pre>
-                            </Section>
+                            <>
+                                <Section title="Furnidata structure">
+                                    {structureDiff.length === 0 ? (
+                                        <Text className="text-[11px] text-slate-400">
+                                            {furnidataEditable
+                                                ? 'Footprint, height and walk, sit, lay flags agree with the DB.'
+                                                : 'No matching entry to compare.'}
+                                        </Text>
+                                    ) : (
+                                        <>
+                                            <Text className="text-[10px] text-slate-400 mb-1 block">
+                                                Where the entry disagrees with items_base. The chips under the fields take the furnidata side; this takes the DB
+                                                side and rewrites the entry for every client.
+                                            </Text>
+                                            <div data-testid="furni-editor-structure" className="flex flex-col gap-0.5 mb-1.5">
+                                                {structureDiff.map((row) => (
+                                                    <div
+                                                        key={row.key}
+                                                        className="text-[11px] grid grid-cols-[1fr_auto_1fr] items-center gap-1 bg-slate-50 border border-slate-200 rounded-md px-2 py-1"
+                                                    >
+                                                        <span className="font-mono text-slate-700">{row.label}</span>
+                                                        <span className="text-slate-400">→</span>
+                                                        <span className="font-mono text-right">
+                                                            <span className="text-slate-400 line-through mr-1">{formatValue(row.from)}</span>
+                                                            <span className="text-slate-800">{formatValue(row.to)}</span>
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <Button variant="secondary" disabled={loading} onClick={() => setConfirmStructure(true)}>
+                                                Write DB values into furnidata
+                                            </Button>
+                                        </>
+                                    )}
+                                </Section>
+                                <Section title="FurniData.json" defaultOpen={false}>
+                                    <Text className="text-[10px] text-slate-400 mb-1 block">
+                                        Read-only — how this furni resolves from the furnidata JSON (source of truth for the display name).
+                                    </Text>
+                                    <pre className="text-[10px] leading-snug text-slate-600 bg-slate-50 border border-slate-200 rounded-lg p-2 overflow-auto max-h-52 whitespace-pre-wrap break-all font-mono">
+                                        {JSON.stringify(furniDataEntry, null, 2)}
+                                    </pre>
+                                </Section>
+                            </>
                         )}
 
                         {duplicates.length > 0 && (
@@ -1652,6 +1716,28 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                     <Text small className="block text-[#666]">
                         Are you sure you want to delete <strong>{item.publicName || item.itemName}</strong> (ID: {item.id})? This action cannot be undone.
                     </Text>
+                </ConfirmModal>
+            )}
+
+            {confirmStructure && (
+                <ConfirmModal
+                    title="Rewrite furnidata structure?"
+                    confirmLabel="Write"
+                    confirmVariant="success"
+                    onConfirm={writeStructure}
+                    onCancel={closeStructure}
+                >
+                    <Text small className="mb-2 block text-[#666]">
+                        {structureDiff.length} field{structureDiff.length === 1 ? '' : 's'} of the furnidata entry for <strong>{item.itemName}</strong> will
+                        take the DB values. Every client reloads its furnidata afterwards.
+                    </Text>
+                    <div className="flex flex-col gap-1">
+                        {structureDiff.map((row) => (
+                            <div key={row.key} className="text-xs font-mono">
+                                <b>{row.label}:</b> {formatValue(row.from)} → {formatValue(row.to)}
+                            </div>
+                        ))}
+                    </div>
                 </ConfirmModal>
             )}
 

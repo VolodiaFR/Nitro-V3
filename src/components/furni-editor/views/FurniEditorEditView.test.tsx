@@ -69,6 +69,7 @@ const renderView = (overrides: Partial<React.ComponentProps<typeof FurniEditorEd
         onBack: vi.fn(),
         onUpdateFurnidata: vi.fn(),
         onRevertFurnidata: vi.fn(),
+        onUpdateFurnidataStructure: vi.fn(),
         onSyncPublicName: vi.fn(),
         onImportText: vi.fn(),
         importResult: null,
@@ -363,6 +364,7 @@ describe('FurniEditorEditView', () => {
                 onBack={vi.fn()}
                 onUpdateFurnidata={vi.fn()}
                 onRevertFurnidata={vi.fn()}
+                onUpdateFurnidataStructure={vi.fn()}
                 onSyncPublicName={vi.fn()}
                 onImportText={vi.fn()}
                 importResult={null}
@@ -388,6 +390,7 @@ describe('FurniEditorEditView', () => {
                 onBack={vi.fn()}
                 onUpdateFurnidata={vi.fn()}
                 onRevertFurnidata={vi.fn()}
+                onUpdateFurnidataStructure={vi.fn()}
                 onSyncPublicName={vi.fn()}
                 onImportText={vi.fn()}
                 importResult={null}
@@ -431,6 +434,20 @@ describe('FurniEditorEditView', () => {
         expect(within(screen.getByTestId('furni-editor-duplicates')).getAllByRole('button')).toHaveLength(2);
         expect(within(screen.getByTestId('furni-editor-siblings')).getAllByRole('button')).toHaveLength(2);
         expect(screen.getByRole('button', { name: 'Apply Width 2' })).toHaveAttribute('title', '2 of 2 in the line');
+    });
+
+    it('writes the DB structural values into the furnidata entry after confirmation', () => {
+        const onUpdateFurnidataStructure = vi.fn();
+        renderView({
+            onUpdateFurnidataStructure,
+            furniDataEntry: { classname: 'throne', xdim: 2, ydim: 1, height: 1.5, canstandon: false, cansiton: false, canlayon: false }
+        });
+
+        expect(within(screen.getByTestId('furni-editor-structure')).getAllByText(/xdim|cansiton/)).toHaveLength(2);
+        fireEvent.click(screen.getByRole('button', { name: 'Write DB values into furnidata' }));
+        fireEvent.click(within(screen.getByRole('dialog', { name: 'Rewrite furnidata structure?' })).getByRole('button', { name: 'Write' }));
+
+        expect(onUpdateFurnidataStructure).toHaveBeenCalledWith(42, { xdim: 1, cansiton: true });
     });
 
     it('resets every field to the stored values with one click', () => {

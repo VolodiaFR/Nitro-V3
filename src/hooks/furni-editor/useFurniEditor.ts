@@ -312,6 +312,15 @@ export const useFurniEditor = () => {
         SendMessageComposer(new FurniEditorUpdateFurnidataComposer(id, JSON.stringify({ name, description })));
     }, []);
 
+    // Push items_base structural values into the furnidata entry (xdim, ydim,
+    // height, canstandon, cansiton, canlayon). The server refuses to create.
+    const updateFurnidataStructure = useCallback((id: number, structure: Record<string, number | boolean>) => {
+        pendingActionRef.current = { action: 'update', itemId: id };
+        setLoading(true);
+        setError(null);
+        SendMessageComposer(new FurniEditorUpdateFurnidataComposer(id, JSON.stringify({ structure })));
+    }, []);
+
     const revertFurnidata = useCallback((id: number) => {
         pendingActionRef.current = { action: 'update', itemId: id };
         setLoading(true);
@@ -375,6 +384,7 @@ export const useFurniEditor = () => {
         loadInteractions,
         updateFurnidata,
         revertFurnidata,
+        updateFurnidataStructure,
         syncPublicName,
         importText,
         importResult

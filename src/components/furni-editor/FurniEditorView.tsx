@@ -37,6 +37,7 @@ export const FurniEditorView: FC<{}> = () => {
         loadInteractions,
         updateFurnidata,
         revertFurnidata,
+        updateFurnidataStructure,
         syncPublicName,
         importText,
         importResult
@@ -180,6 +181,7 @@ export const FurniEditorView: FC<{}> = () => {
                         onBack={handleBack}
                         onUpdateFurnidata={updateFurnidata}
                         onRevertFurnidata={revertFurnidata}
+                        onUpdateFurnidataStructure={updateFurnidataStructure}
                         onSyncPublicName={syncPublicName}
                         onImportText={importText}
                         importResult={importResult}
