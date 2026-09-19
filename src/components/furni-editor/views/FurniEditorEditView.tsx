@@ -330,6 +330,14 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
     const isChanged = useCallback((field: EditField) => form[field] !== stored[field], [form, stored]);
 
     const validation = useMemo(() => validateForm(form), [form]);
+
+    // The server lists the interaction types it has a class for; a stored type
+    // outside that list is one the item manager silently maps to default, and
+    // one the server now refuses to save, so the select keeps it visible and flags it.
+    const interactionUnregistered = useMemo(() => {
+        const type = form.interactionType.trim().toLowerCase();
+        return type !== '' && !interactions.some((known) => known.toLowerCase() === type);
+    }, [form.interactionType, interactions]);
     const isValid = useMemo(() => Object.keys(validation).length === 0, [validation]);
 
     // Furnidata name editing only works when the furni has a matching furnidata
@@ -777,12 +785,19 @@ export const FurniEditorEditView: FC<FurniEditorEditViewProps> = (props) => {
                             onChange={(e) => setField('interactionType', e.target.value)}
                         >
                             <option value="">none</option>
+                            {interactionUnregistered && <option value={form.interactionType}>{form.interactionType}</option>}
                             {interactions.map((i) => (
                                 <option key={i} value={i}>
                                     {i}
                                 </option>
                             ))}
                         </select>
+                        {interactionUnregistered && (
+                            <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-md px-2 py-0.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]" />
+                                No class registered for this type: the furni behaves as default
+                            </span>
+                        )}
                     </div>
                     <div>
                         <label className={labelClass} htmlFor="furni-editor-modes">

@@ -162,6 +162,19 @@ describe('FurniEditorEditView', () => {
         confirmSpy.mockRestore();
     });
 
+    it('flags a stored interaction type that no server class is registered for, and keeps it selectable', () => {
+        renderView({ item: { ...item, interactionType: 'wf_trg_typo' } });
+
+        expect(screen.getByText('No class registered for this type: the furni behaves as default')).toBeInTheDocument();
+        expect(screen.getByRole('combobox')).toHaveValue('wf_trg_typo');
+    });
+
+    it('does not flag a registered interaction type, whatever its case', () => {
+        renderView({ item: { ...item, interactionType: 'Gate' } });
+
+        expect(screen.queryByText('No class registered for this type: the furni behaves as default')).toBeNull();
+    });
+
     it('resets every field to the stored values with one click', () => {
         renderView();
 
