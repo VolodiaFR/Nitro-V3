@@ -175,6 +175,33 @@ describe('FurniEditorEditView', () => {
         expect(screen.queryByText('No class registered for this type: the furni behaves as default')).toBeNull();
     });
 
+    it('shows one field group at a time and marks the groups holding unsaved changes', () => {
+        renderView();
+
+        const names = screen.getByRole('tab', { name: 'Names' });
+        const behaviour = screen.getByRole('tab', { name: 'Behaviour' });
+        expect(names).toHaveAttribute('aria-selected', 'true');
+        expect(behaviour).toHaveAttribute('aria-selected', 'false');
+
+        fireEvent.change(screen.getByLabelText('Effect ID (male)'), { target: { value: '5' } });
+
+        expect(within(behaviour).getByLabelText('1 unsaved')).toBeInTheDocument();
+        expect(within(names).queryByLabelText(/unsaved/)).toBeNull();
+
+        fireEvent.click(behaviour);
+        expect(behaviour).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('lists every unsaved change in the sidebar and jumps to the catalogue from its status row', () => {
+        renderView();
+
+        fireEvent.change(screen.getByLabelText('Effect ID (male)'), { target: { value: '5' } });
+        expect(screen.getByText('1 unsaved change')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: '2 offers ›' }));
+        expect(screen.getByRole('tab', { name: 'Catalogue' })).toHaveAttribute('aria-selected', 'true');
+    });
+
     it('resets every field to the stored values with one click', () => {
         renderView();
 
