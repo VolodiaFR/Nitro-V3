@@ -22,6 +22,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@octane/renderer': resolve(__dirname, 'src/octane-renderer.mock.ts'),
+            'pixi.js': resolve(__dirname, 'src/pixi.mock.ts'),
             '@': resolve(__dirname, 'src'),
             '@layout': resolve(__dirname, 'src/layout')
         }
