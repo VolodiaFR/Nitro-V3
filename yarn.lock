@@ -1576,6 +1576,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@svta/cml-cta@npm:1.0.6":
+  version: 1.0.6
+  resolution: "@svta/cml-cta@npm:1.0.6"
+  peerDependencies:
+    "@svta/cml-structured-field-values": 1.1.3
+    "@svta/cml-utils": 1.5.0
+  checksum: 10c0/89d12330bce2e87ff0b9af50c26e6248d829069fdf43c391ebdd9e09992d8aee1b30aa5efaa51ec7038a74a9506c38f31d7f068b48016a57be25ec30bda49000
+  languageName: node
+  linkType: hard
+
 "@svta/cml-dash@npm:1.0.6":
   version: 1.0.6
   resolution: "@svta/cml-dash@npm:1.0.6"
@@ -1602,6 +1612,22 @@ __metadata:
     "@svta/cml-utils": 1.5.0
     "@svta/cml-xml": 1.1.4
   checksum: 10c0/5e0cabb725f8712e60c06a02856440208d1a2d9cb75c494d5f8930a05e6bf8c90373f4fb8760ac40f07231d574779ad3b18e71d8657a7c1fb80a642651c92f73
+  languageName: node
+  linkType: hard
+
+"@svta/cml-structured-field-values@npm:1.1.3":
+  version: 1.1.3
+  resolution: "@svta/cml-structured-field-values@npm:1.1.3"
+  peerDependencies:
+    "@svta/cml-utils": 1.5.0
+  checksum: 10c0/cafdaa3583fa0c87f4264e5c37657b97d703a0cbcf88dc09c3820e39083d1a88304fe55a0bb4923142643875e8449571025440cec3597fdfd6780a919ed7251a
+  languageName: node
+  linkType: hard
+
+"@svta/cml-utils@npm:1.5.0":
+  version: 1.5.0
+  resolution: "@svta/cml-utils@npm:1.5.0"
+  checksum: 10c0/048875dfb8dc5e942e9a90199c68eb6c6514127daece45547fdaac2f0756647454bf824fe9baeb169ccf9db47acfdc42e3a44f4476100274dc8862d10be609f0
   languageName: node
   linkType: hard
 
