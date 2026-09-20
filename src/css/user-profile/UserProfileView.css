@@ -669,3 +669,29 @@
 .octane-extended-profile-window__content {
   position: relative;
 }
+
+/* A dark card background (measured by useCardBackgroundTone) turns the identity copy light,
+   with a soft shadow; links stay recognisable in white. */
+.profile-card-background--dark .octane-extended-profile__motto,
+.profile-card-background--dark .octane-extended-profile__meta,
+.profile-card-background--dark .octane-extended-profile__meta b,
+.profile-card-background--dark .octane-extended-profile__status-text {
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+.profile-card-background--dark .octane-extended-profile__username {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+/* The italic motto is thin: a wider, softer shadow smothers dotted and striped patterns
+   right under the strokes without drawing an outline. */
+.profile-card-background--dark .octane-extended-profile__motto {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8), 0 0 3px rgba(0, 0, 0, 0.85), 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+.profile-card-background--dark .octane-extended-profile__actions .octane-extended-profile__link,
+.profile-card-background--dark .octane-extended-profile__meta .octane-extended-profile__link {
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+}

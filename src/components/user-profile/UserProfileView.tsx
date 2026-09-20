@@ -12,15 +12,17 @@ import {
     UserProfileParser,
     UserRelationshipsComposer
 } from '@octane/renderer';
-import { FC, useState } from 'react';
+import { FC, useRef, useState } from 'react';
 import { CreateLinkEvent, GetRoomSession, GetUserProfile, LocalizeText, localizeWithFallback, SanitizeHtml, SendMessageComposer } from '../../api';
 import { frankStop } from '../../assets/images/user-profile';
 import { useIsUserBlocked, useMessageEvent, useNotification, useOctaneEvent } from '../../hooks';
+import { useCardBackgroundTone } from '../../hooks/user-profile/useCardBackgroundTone';
 import { OctaneCard } from '../../layout';
 import { GroupsContainerView } from './GroupsContainerView';
 import { UserContainerView } from './UserContainerView';
 
 export const UserProfileView: FC<{}> = () => {
+    const contentRef = useRef<HTMLDivElement>(null);
     const [userProfile, setUserProfile] = useState<UserProfileParser>(null);
     const [userBadges, setUserBadges] = useState<string[]>([]);
     const [userRelationships, setUserRelationships] = useState<RelationshipStatusInfoMessageParser>(null);
@@ -123,15 +125,20 @@ export const UserProfileView: FC<{}> = () => {
         GetUserProfile(userData.webID);
     });
 
+    const cardBackgroundId = userProfile?.cardBackgroundId ?? 0;
+    // The card background is painted on the window content; the copy on top turns light when it is dark.
+    const cardTone = useCardBackgroundTone(contentRef, cardBackgroundId);
+
     if (!userProfile) return null;
 
-    const cardBackgroundId = userProfile.cardBackgroundId ?? 0;
-    const cardBackgroundClass = cardBackgroundId ? `profile-card-background card-background-${cardBackgroundId}` : '';
+    const cardBackgroundClass = cardBackgroundId
+        ? `profile-card-background card-background-${cardBackgroundId}${cardTone === 'dark' ? ' profile-card-background--dark' : ''}`
+        : '';
 
     return (
         <OctaneCard className="octane-extended-profile-window w-[640px] h-[720px] max-w-[96vw] max-h-[92vh]" uniqueKey="octane-user-profile">
             <OctaneCard.Header headerText={LocalizeText('extendedprofile.caption')} onCloseClick={onClose} />
-            <OctaneCard.Content className={`octane-extended-profile-window__content overflow-hidden !p-0 flex flex-col ${cardBackgroundClass}`}>
+            <OctaneCard.Content ref={contentRef} className={`octane-extended-profile-window__content overflow-hidden !p-0 flex flex-col ${cardBackgroundClass}`}>
                 {isBlocked && (
                     // Official blocked_container: the drama text, whose "event:profile/unblock" link
                     // opens the unblock confirm (it carries no href, so it is never followed as a
