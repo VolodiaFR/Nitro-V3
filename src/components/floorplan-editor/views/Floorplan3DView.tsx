@@ -1,5 +1,5 @@
 import { Dispatch, FC, PointerEvent as ReactPointerEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, WheelEvent } from 'react';
-import { FaCrosshairs, FaSearchMinus, FaSearchPlus, FaSyncAlt } from 'react-icons/fa';
+import { FaExpand, FaMinus, FaPlus, FaSyncAlt } from 'react-icons/fa';
 import { PointerProjection } from '../hooks/usePointerToTile';
 import { useTool } from '../hooks/useTool';
 import { FloorplanScene } from '../scene3d/FloorplanScene';
@@ -48,7 +48,7 @@ export const Floorplan3DView: FC<Props> = ({ state, dispatch, panMode = false })
     const [zoomLabel, setZoomLabel] = useState('');
     const [hover, setHover] = useState<TileHit | null>(null);
     const [showWalls, setShowWalls] = useState(true);
-    const [textured, setTextured] = useState(false);
+    const [textured, setTextured] = useState(true);
     const [wallSides, setWallSides] = useState<WallSides>({ north: true, west: true });
     const [autoRotate, setAutoRotate] = useState(false);
 
@@ -322,7 +322,7 @@ export const Floorplan3DView: FC<Props> = ({ state, dispatch, panMode = false })
         <div
             ref={hostRef}
             data-testid="floorplan-3d"
-            className={`relative w-full h-full min-h-0 rounded-md border border-zinc-300 overflow-hidden bg-[#e9e9e1] select-none touch-none ${panMode ? 'cursor-grab active:cursor-grabbing' : 'cursor-crosshair'}`}
+            className={`fp-stage select-none touch-none ${panMode ? 'cursor-grab active:cursor-grabbing' : 'cursor-crosshair'}`}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={endDrag}
@@ -333,57 +333,28 @@ export const Floorplan3DView: FC<Props> = ({ state, dispatch, panMode = false })
             onContextMenu={(event) => event.preventDefault()}
         >
             {status === 'loading' && (
-                <div className="absolute z-10 inset-0 flex items-center justify-center text-xs text-zinc-500" data-testid="floorplan-3d-loading">
+                <div className="absolute z-10 inset-0 flex items-center justify-center text-xs text-zinc-400" data-testid="floorplan-3d-loading">
                     Loading 3D preview...
                 </div>
             )}
             {status === 'unavailable' && (
-                <div className="absolute z-10 inset-0 flex items-center justify-center px-4 text-center text-xs text-zinc-600" data-testid="floorplan-3d-unavailable">
+                <div className="absolute z-10 inset-0 flex items-center justify-center px-4 text-center text-xs text-zinc-300" data-testid="floorplan-3d-unavailable">
                     The 3D preview needs WebGL, which is not available here.
                 </div>
             )}
-            <div className="absolute z-10 bottom-2 left-2 flex items-center gap-1 rounded-md bg-white/95 border border-zinc-300 shadow-sm px-1 py-1 text-zinc-700" onPointerDown={(event) => event.stopPropagation()} onDoubleClick={(event) => event.stopPropagation()}>
-                <button
-                    type="button"
-                    data-testid="view3d-zoom-out"
-                    title="Zoom out (wheel)"
-                    className="w-7 h-7 flex items-center justify-center rounded hover:bg-zinc-100 disabled:opacity-40"
-                    disabled={status !== 'ready'}
-                    onClick={() => zoomBy(ZOOM_STEP)}
-                >
-                    <FaSearchMinus size={12} />
+            <div className="fp-stage-buttons" onPointerDown={(event) => event.stopPropagation()} onDoubleClick={(event) => event.stopPropagation()}>
+                <button type="button" data-testid="view3d-reset" title={`Fit room to view (double-click)${zoomLabel ? ` · distance ${zoomLabel}` : ''}`} className="fp-round-btn is-small" disabled={status !== 'ready'} onClick={resetView}>
+                    <FaExpand size={10} />
                 </button>
-                <button
-                    type="button"
-                    data-testid="view3d-reset"
-                    title="Fit room to view (double-click)"
-                    className="px-2 h-7 min-w-[3rem] flex items-center justify-center rounded hover:bg-zinc-100 text-xs font-bold tabular-nums disabled:opacity-40"
-                    disabled={status !== 'ready'}
-                    onClick={resetView}
-                >
-                    <FaCrosshairs size={12} className="mr-1" />
-                    {zoomLabel}
+                <button type="button" data-testid="view3d-zoom-in" title="Zoom in (wheel)" className="fp-round-btn" disabled={status !== 'ready'} onClick={() => zoomBy(1 / ZOOM_STEP)}>
+                    <FaPlus size={13} />
                 </button>
-                <button
-                    type="button"
-                    data-testid="view3d-zoom-in"
-                    title="Zoom in (wheel)"
-                    className="w-7 h-7 flex items-center justify-center rounded hover:bg-zinc-100 disabled:opacity-40"
-                    disabled={status !== 'ready'}
-                    onClick={() => zoomBy(1 / ZOOM_STEP)}
-                >
-                    <FaSearchPlus size={12} />
+                <button type="button" data-testid="view3d-zoom-out" title="Zoom out (wheel)" className="fp-round-btn" disabled={status !== 'ready'} onClick={() => zoomBy(ZOOM_STEP)}>
+                    <FaMinus size={13} />
                 </button>
             </div>
-            <div className="absolute z-10 top-2 left-2 flex items-center gap-1 rounded-md bg-white/95 border border-zinc-300 shadow-sm px-1 py-1 text-zinc-700" onPointerDown={(event) => event.stopPropagation()} onDoubleClick={(event) => event.stopPropagation()}>
-                <button
-                    type="button"
-                    data-testid="view3d-walls"
-                    data-active={showWalls ? 'true' : 'false'}
-                    title="Show the room walls"
-                    className={`px-2 h-7 flex items-center justify-center rounded text-xs font-bold ${showWalls ? 'bg-sky-500 text-white' : 'hover:bg-zinc-100'}`}
-                    onClick={() => setShowWalls((value) => !value)}
-                >
+            <div className="fp-stage-toggles" onPointerDown={(event) => event.stopPropagation()} onDoubleClick={(event) => event.stopPropagation()}>
+                <button type="button" data-testid="view3d-walls" data-active={showWalls ? 'true' : 'false'} title="Show the room walls" className={`fp-pill ${showWalls ? 'is-on' : ''}`} onClick={() => setShowWalls((value) => !value)}>
                     Walls
                 </button>
                 <button
@@ -391,7 +362,7 @@ export const Floorplan3DView: FC<Props> = ({ state, dispatch, panMode = false })
                     data-testid="view3d-textures"
                     data-active={textured ? 'true' : 'false'}
                     title="Draw floor and wall patterns instead of the height colours"
-                    className={`px-2 h-7 flex items-center justify-center rounded text-xs font-bold ${textured ? 'bg-sky-500 text-white' : 'hover:bg-zinc-100'}`}
+                    className={`fp-pill ${textured ? 'is-on' : ''}`}
                     onClick={() => setTextured((value) => !value)}
                 >
                     Textures
@@ -401,16 +372,16 @@ export const Floorplan3DView: FC<Props> = ({ state, dispatch, panMode = false })
                     data-testid="view3d-rotate"
                     data-active={autoRotate ? 'true' : 'false'}
                     title="Turn the room around 360°"
-                    className={`px-2 h-7 flex items-center justify-center gap-1 rounded text-xs font-bold disabled:opacity-40 ${autoRotate ? 'bg-sky-500 text-white' : 'hover:bg-zinc-100'}`}
+                    className={`fp-pill inline-flex items-center gap-1 ${autoRotate ? 'is-on' : ''}`}
                     disabled={status !== 'ready'}
                     onClick={() => setAutoRotate((value) => !value)}
                 >
-                    <FaSyncAlt size={11} className={autoRotate ? 'animate-spin' : ''} style={autoRotate ? { animationDuration: '3s' } : undefined} />
+                    <FaSyncAlt size={10} className={autoRotate ? 'animate-spin' : ''} style={autoRotate ? { animationDuration: '3s' } : undefined} />
                     360°
                 </button>
             </div>
-            <div className="absolute z-10 top-2 right-2 rounded-md bg-white/90 border border-zinc-300 px-2 py-1 text-[10px] text-zinc-600 pointer-events-none">
-                {panMode ? 'Drag to rotate · Shift-drag to pan · Wheel to zoom · 360° to turn' : 'Click or drag to edit · Right-drag to rotate · Shift-drag to pan · Wheel to zoom · 360° to turn'}
+            <div className="fp-stage-hint">
+                {panMode ? 'Drag to rotate · Shift-drag to pan · Wheel to zoom' : 'Click or drag to edit · Right-drag to rotate · Shift-drag to pan · Wheel to zoom'}
             </div>
         </div>
     );

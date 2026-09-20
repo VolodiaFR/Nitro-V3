@@ -172,7 +172,7 @@ export class FloorplanScene {
             autoDensity: true,
             antialias: true,
             backgroundAlpha: 1,
-            background: 0xe9e9e1,
+            background: 0x000000,
             useBackBuffer: false,
             eventMode: 'none'
         });
