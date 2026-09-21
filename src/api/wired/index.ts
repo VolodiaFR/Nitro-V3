@@ -9,3 +9,4 @@ export * from './WiredStringDelimeter';
 export * from './WiredStyle';
 export * from './WiredTriggerLayoutCode';
 export * from './WiredClipboard';
+export * from './WiredVariableFx';

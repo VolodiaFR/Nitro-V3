@@ -572,6 +572,7 @@ export class RoomVisualizationSettingsEvent extends StubClass {}
 export class RoomEntryTileMessageEvent extends StubClass {}
 export class RoomOccupiedTilesMessageEvent extends StubClass {}
 export const RoomEngineEvent = makeEnumProxy('RoomEngineEvent');
+export const RoomSessionEvent = makeEnumProxy('RoomSessionEvent');
 
 // Link tracker stubs
 export type ILinkEventTracker = { linkReceived: (url: string) => void; eventUrlPrefix: string };
@@ -927,6 +928,12 @@ export class WiredVariableHoldersPageComposer extends RecordingComposer {}
 export class WiredLogPageEvent extends StubClass {}
 export class WiredVariableHoldersPageEvent extends StubClass {}
 export class WiredClickSettingsEvent extends StubClass {}
+export class WiredVariableFxConfigsEvent extends StubClass {}
+export class WiredVariableFxConfigsRemovedEvent extends StubClass {}
+export class WiredVariableFxStatusEvent extends StubClass {}
+export class WiredVariableFxStatusRemovedEvent extends StubClass {}
+export const wiredVariableFxStatusKey = (status: { configId: number; variableId: string; userEntity: boolean; entityId: number }) =>
+    `${status.configId}|${status.variableId}|${status.userEntity ? 'u' : 'f'}|${status.entityId}`;
 export class WiredMenuPermissionsSaveComposer extends RecordingComposer {}
 export class WiredRoomStateActionComposer extends RecordingComposer {}
 export class SelfDonationMessageComposer extends RecordingComposer {}

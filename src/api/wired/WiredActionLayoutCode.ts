@@ -152,4 +152,15 @@ export class WiredActionLayoutCode {
      * (walk behind, pass through). The emulator registers it on wf_act_click_conf.
      */
     public static CLICK_SETTINGS: number = 129;
+    /**
+     * The six variable fx boxes (wf_xtra_var_fx_*): each draws the user or furni variable box on
+     * its own tile over the avatars or furni that hold a value. One editor serves all six; the
+     * code only picks the category.
+     */
+    public static VARIABLE_FX_HEALTH_POINTS_EXTRA: number = 130;
+    public static VARIABLE_FX_PROGRESS_BAR_EXTRA: number = 131;
+    public static VARIABLE_FX_LEVELLING_PROGRESS_EXTRA: number = 132;
+    public static VARIABLE_FX_STATUS_BAR_EXTRA: number = 133;
+    public static VARIABLE_FX_BOSS_BAR_EXTRA: number = 134;
+    public static VARIABLE_FX_NUMBER_DISPLAY_EXTRA: number = 135;
 }
