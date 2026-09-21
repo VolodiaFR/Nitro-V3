@@ -906,3 +906,23 @@ export class SaveRewardTrackTextsMessageComposer extends RewardTrackEditorCompos
         super(trackId, texts.length, ...texts.flatMap((text) => [text.key, text.value]));
     }
 }
+
+// ---------------------------------------------------------------------------
+// Wired creator tools — paged windows (room logs, variable owners)
+// ---------------------------------------------------------------------------
+
+class RecordingComposer {
+    private _data: unknown[];
+    constructor(...args: unknown[]) {
+        this._data = args;
+    }
+    getMessageArray() {
+        return this._data;
+    }
+    dispose() {}
+}
+
+export class WiredRoomLogsPageComposer extends RecordingComposer {}
+export class WiredVariableHoldersPageComposer extends RecordingComposer {}
+export class WiredLogPageEvent extends StubClass {}
+export class WiredVariableHoldersPageEvent extends StubClass {}
