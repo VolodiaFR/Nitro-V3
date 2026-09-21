@@ -29,13 +29,11 @@ interface WiredCreatorToolsUiState {
     isInspectionGiveOpen: boolean;
     isVariableManageOpen: boolean;
     isManagedGiveOpen: boolean;
+    isRoomLogsOpen: boolean;
+    isSelfDonationOpen: boolean;
 
     monitorHistorySeverityFilter: MonitorSeverityFilter;
     monitorHistoryTypeFilter: string;
-
-    variableManageTypeFilter: string;
-    variableManageSort: string;
-    variableManagePage: number;
 
     /**
      * Latest snapshot pushed by the server through `WiredMonitorDataEvent`.
@@ -132,13 +130,12 @@ interface WiredCreatorToolsUiState {
     setIsInspectionGiveOpen: (next: Updater<boolean>) => void;
     setIsVariableManageOpen: (next: boolean) => void;
     setIsManagedGiveOpen: (next: Updater<boolean>) => void;
+    setIsRoomLogsOpen: (next: boolean) => void;
+    setIsSelfDonationOpen: (next: boolean) => void;
 
     setMonitorHistorySeverityFilter: (next: MonitorSeverityFilter) => void;
     setMonitorHistoryTypeFilter: (next: string) => void;
 
-    setVariableManageTypeFilter: (next: string) => void;
-    setVariableManageSort: (next: string) => void;
-    setVariableManagePage: (next: Updater<number>) => void;
 
     setMonitorSnapshot: (next: MonitorSnapshot) => void;
     resetMonitorSnapshot: () => void;
@@ -180,13 +177,11 @@ export const useWiredCreatorToolsUiStore = createOctaneStore<WiredCreatorToolsUi
     isInspectionGiveOpen: false,
     isVariableManageOpen: false,
     isManagedGiveOpen: false,
+    isRoomLogsOpen: false,
+    isSelfDonationOpen: false,
 
     monitorHistorySeverityFilter: 'ALL',
     monitorHistoryTypeFilter: 'ALL',
-
-    variableManageTypeFilter: 'ALL',
-    variableManageSort: 'highest_value',
-    variableManagePage: 1,
 
     monitorSnapshot: createEmptyMonitorSnapshot(),
 
@@ -224,14 +219,13 @@ export const useWiredCreatorToolsUiStore = createOctaneStore<WiredCreatorToolsUi
     setIsMonitorInfoOpen: (next) => set({ isMonitorInfoOpen: next }),
     setIsInspectionGiveOpen: (next) => set((state) => ({ isInspectionGiveOpen: apply(state.isInspectionGiveOpen, next) })),
     setIsVariableManageOpen: (next) => set({ isVariableManageOpen: next }),
+    setIsRoomLogsOpen: (next) => set({ isRoomLogsOpen: next }),
+    setIsSelfDonationOpen: (next) => set({ isSelfDonationOpen: next }),
     setIsManagedGiveOpen: (next) => set((state) => ({ isManagedGiveOpen: apply(state.isManagedGiveOpen, next) })),
 
     setMonitorHistorySeverityFilter: (next) => set({ monitorHistorySeverityFilter: next }),
     setMonitorHistoryTypeFilter: (next) => set({ monitorHistoryTypeFilter: next }),
 
-    setVariableManageTypeFilter: (next) => set({ variableManageTypeFilter: next }),
-    setVariableManageSort: (next) => set({ variableManageSort: next }),
-    setVariableManagePage: (next) => set((state) => ({ variableManagePage: apply(state.variableManagePage, next) })),
 
     setMonitorSnapshot: (next) => set({ monitorSnapshot: next }),
     resetMonitorSnapshot: () => set({ monitorSnapshot: createEmptyMonitorSnapshot() }),

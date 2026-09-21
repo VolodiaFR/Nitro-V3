@@ -572,6 +572,7 @@ export class RoomVisualizationSettingsEvent extends StubClass {}
 export class RoomEntryTileMessageEvent extends StubClass {}
 export class RoomOccupiedTilesMessageEvent extends StubClass {}
 export const RoomEngineEvent = makeEnumProxy('RoomEngineEvent');
+export const RoomSessionEvent = makeEnumProxy('RoomSessionEvent');
 
 // Link tracker stubs
 export type ILinkEventTracker = { linkReceived: (url: string) => void; eventUrlPrefix: string };
@@ -904,5 +905,101 @@ export class SearchRewardTrackFurniMessageComposer extends RewardTrackEditorComp
 export class SaveRewardTrackTextsMessageComposer extends RewardTrackEditorComposer {
     constructor(trackId: string, texts: { key: string; value: string }[]) {
         super(trackId, texts.length, ...texts.flatMap((text) => [text.key, text.value]));
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wired creator tools — paged windows (room logs, variable owners)
+// ---------------------------------------------------------------------------
+
+class RecordingComposer {
+    private _data: unknown[];
+    constructor(...args: unknown[]) {
+        this._data = args;
+    }
+    getMessageArray() {
+        return this._data;
+    }
+    dispose() {}
+}
+
+export class WiredRoomLogsPageComposer extends RecordingComposer {}
+export class WiredVariableHoldersPageComposer extends RecordingComposer {}
+export class WiredLogPageEvent extends StubClass {}
+export class WiredVariableHoldersPageEvent extends StubClass {}
+export class WiredClickSettingsEvent extends StubClass {}
+export class WiredVariableFxConfigsEvent extends StubClass {}
+export class WiredVariableFxConfigsRemovedEvent extends StubClass {}
+export class WiredVariableFxStatusEvent extends StubClass {}
+export class WiredVariableFxStatusRemovedEvent extends StubClass {}
+export const wiredVariableFxStatusKey = (status: { configId: number; variableId: string; userEntity: boolean; entityId: number }) =>
+    `${status.configId}|${status.variableId}|${status.userEntity ? 'u' : 'f'}|${status.entityId}`;
+export class WiredMenuPermissionsSaveComposer extends RecordingComposer {}
+export class WiredRoomStateActionComposer extends RecordingComposer {}
+export class SelfDonationMessageComposer extends RecordingComposer {}
+export class SelfDonationResultMessageEvent extends StubClass {}
+
+// Wired setup definitions (the box a wired window edits); stubs with the private fields the
+// clipboard helpers copy, so instanceof and the getters behave like the renderer's classes.
+export class Triggerable {
+    _intParams: number[] = [];
+    _stringParam = '';
+    _stuffIds: number[] = [];
+    _id = 0;
+    _stuffTypeId = 0;
+    _furniLimit = 0;
+    _stuffTypeSelectionCode = 0;
+    constructor(..._args: unknown[]) {}
+    get id() {
+        return this._id;
+    }
+    get intData() {
+        return this._intParams;
+    }
+    get stringData() {
+        return this._stringParam;
+    }
+    get selectedItems() {
+        return this._stuffIds;
+    }
+    get spriteId() {
+        return this._stuffTypeId;
+    }
+    get maximumItemSelectionCount() {
+        return this._furniLimit;
+    }
+    get stuffTypeSelectionCode() {
+        return this._stuffTypeSelectionCode;
+    }
+    get code() {
+        return 0;
+    }
+}
+export class WiredActionDefinition extends Triggerable {
+    _type = 0;
+    _delayInPulses = 0;
+    get code() {
+        return this._type;
+    }
+    get type() {
+        return this._type;
+    }
+    get delayInPulses() {
+        return this._delayInPulses;
+    }
+}
+export class TriggerDefinition extends Triggerable {
+    _triggerConf = 0;
+    get code() {
+        return this._triggerConf;
+    }
+}
+export class ConditionDefinition extends Triggerable {
+    _type = 0;
+    get code() {
+        return this._type;
+    }
+    get type() {
+        return this._type;
     }
 }

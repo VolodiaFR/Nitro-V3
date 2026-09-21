@@ -18,6 +18,7 @@ import {
     RoomObjectHSLColorEnabledEvent,
     RoomObjectOperationType,
     RoomSessionEvent,
+    WiredClickSettingsEvent,
     RoomVariableEnum,
     Vector3d
 } from '@octane/renderer';
@@ -140,8 +141,20 @@ const useRoomState = () => {
             case RoomSessionEvent.ENDED:
                 setRoomSession(null);
                 setIsHandItemBlocked(false);
+                // A wired click setting belongs to the room that sent it.
+                GetRoomEngine().setWiredClickSettings(0, 0);
                 return;
         }
+    });
+
+    // The room's wired click-settings box: what this player's clicks on avatars and furni do
+    // (walk behind, pass through). The renderer applies it and forgets it with the room.
+    useMessageEvent<WiredClickSettingsEvent>(WiredClickSettingsEvent, (event) => {
+        const parser = event.getParser();
+
+        if (!parser) return;
+
+        GetRoomEngine().setWiredClickSettings(parser.userOption, parser.furniOption);
     });
 
     useMessageEvent<HanditemBlockStateMessageEvent>(HanditemBlockStateMessageEvent, (event) => {
