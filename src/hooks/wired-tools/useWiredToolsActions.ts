@@ -15,6 +15,9 @@ export const useWiredToolsActions = () => {
     const {
         updateAccountPreferences,
         saveRoomSettings,
+        saveRoomTimezone,
+        reloadRoomWired,
+        rollbackRoomWired,
         requestUserVariables,
         assignUserVariable,
         removeUserVariable,
@@ -32,6 +35,9 @@ export const useWiredToolsActions = () => {
     return {
         updateAccountPreferences,
         saveRoomSettings,
+        saveRoomTimezone,
+        reloadRoomWired,
+        rollbackRoomWired,
         requestUserVariables,
         assignUserVariable,
         removeUserVariable,

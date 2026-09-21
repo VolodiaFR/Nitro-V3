@@ -1,9 +1,10 @@
 import {
     CreateLinkEvent,
     GetSessionDataManager,
+    WiredMenuPermissionsSaveComposer,
     WiredRoomSettingsDataEvent,
     WiredRoomSettingsRequestComposer,
-    WiredRoomSettingsSaveComposer,
+    WiredRoomStateActionComposer,
     WiredUserVariableManageComposer,
     WiredUserVariablesDataEvent,
     WiredUserVariablesRequestComposer,
@@ -40,6 +41,8 @@ export interface IWiredRoomSettings {
     isLoaded: boolean;
     modifyMask: number;
     roomId: number;
+    /** The room's wired timezone as the server keeps it; empty when the hotel's own applies. */
+    timezone: string;
 }
 
 export interface IWiredUserVariableDefinition {
@@ -133,7 +136,8 @@ const DEFAULT_ROOM_SETTINGS: IWiredRoomSettings = {
     canInspect: false,
     canModify: false,
     canManageSettings: false,
-    isLoaded: false
+    isLoaded: false,
+    timezone: ''
 };
 
 /**
@@ -260,7 +264,8 @@ export const useWiredToolsStore = () => {
             canInspect: parser.canInspect,
             canModify: parser.canModify,
             canManageSettings: parser.canManageSettings,
-            isLoaded: true
+            isLoaded: true,
+            timezone: parser.timezone ?? ''
         });
     });
 
@@ -297,20 +302,42 @@ export const useWiredToolsStore = () => {
         }));
     }, []);
 
+    // The official permissions packet carries the timezone too, so every save sends all three and
+    // the server answers with the settings it kept.
     const saveRoomSettings = useCallback(
-        (inspectMask: number, modifyMask: number) => {
+        (inspectMask: number, modifyMask: number, timezone: string = roomSettings.timezone) => {
             if (!roomSettings.canManageSettings) return;
 
             setRoomSettings((prevValue) => ({
                 ...prevValue,
                 inspectMask,
-                modifyMask
+                modifyMask,
+                timezone
             }));
 
-            SendMessageComposer(new WiredRoomSettingsSaveComposer(inspectMask, modifyMask));
+            SendMessageComposer(new WiredMenuPermissionsSaveComposer(modifyMask, inspectMask, timezone));
         },
-        [roomSettings.canManageSettings]
+        [roomSettings.canManageSettings, roomSettings.timezone]
     );
+
+    const saveRoomTimezone = useCallback(
+        (timezone: string) => saveRoomSettings(roomSettings.inspectMask, roomSettings.modifyMask, timezone),
+        [saveRoomSettings, roomSettings.inspectMask, roomSettings.modifyMask]
+    );
+
+    /** Drops the room's cached wired stacks so its boxes are wired up again from the furniture as it stands. */
+    const reloadRoomWired = useCallback(() => {
+        if (!roomSettings.canModify) return;
+
+        SendMessageComposer(new WiredRoomStateActionComposer(false));
+    }, [roomSettings.canModify]);
+
+    /** Re-reads every box from storage, discarding edits that were never saved, then rebuilds the stacks. */
+    const rollbackRoomWired = useCallback(() => {
+        if (!roomSettings.canModify) return;
+
+        SendMessageComposer(new WiredRoomStateActionComposer(true));
+    }, [roomSettings.canModify]);
 
     const updateUserVariableValue = useCallback(
         (userId: number, variableItemId: number, value: number) => {
@@ -679,6 +706,9 @@ export const useWiredToolsStore = () => {
         areUserVariablesLoaded,
         updateAccountPreferences,
         saveRoomSettings,
+        saveRoomTimezone,
+        reloadRoomWired,
+        rollbackRoomWired,
         requestUserVariables,
         assignUserVariable,
         removeUserVariable,

@@ -927,3 +927,7 @@ export class WiredVariableHoldersPageComposer extends RecordingComposer {}
 export class WiredLogPageEvent extends StubClass {}
 export class WiredVariableHoldersPageEvent extends StubClass {}
 export class WiredClickSettingsEvent extends StubClass {}
+export class WiredMenuPermissionsSaveComposer extends RecordingComposer {}
+export class WiredRoomStateActionComposer extends RecordingComposer {}
+export class SelfDonationMessageComposer extends RecordingComposer {}
+export class SelfDonationResultMessageEvent extends StubClass {}

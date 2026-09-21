@@ -122,6 +122,7 @@ import {
 import { WiredInspectionTabView } from './WiredInspectionTabView';
 import { WiredMonitorTabView } from './WiredMonitorTabView';
 import { WiredRoomLogsView } from './WiredRoomLogsView';
+import { WiredSelfDonationView } from './WiredSelfDonationView';
 import { WiredToolsSettingsTabView } from './WiredToolsSettingsTabView';
 import { HOLDER_TYPE_FURNI, HOLDER_TYPE_USER, WiredHolderDescription, WiredVariableOwnersView, wiredVariableIdOf } from './WiredVariableOwnersView';
 import { WiredVariablesTabView } from './WiredVariablesTabView';
@@ -165,6 +166,8 @@ export const WiredCreatorToolsView: FC<{}> = () => {
     const isMonitorHistoryOpen = useWiredCreatorToolsUiStore((s) => s.isMonitorHistoryOpen);
     const setIsMonitorHistoryOpen = useWiredCreatorToolsUiStore((s) => s.setIsMonitorHistoryOpen);
     const isRoomLogsOpen = useWiredCreatorToolsUiStore((s) => s.isRoomLogsOpen);
+    const isSelfDonationOpen = useWiredCreatorToolsUiStore((s) => s.isSelfDonationOpen);
+    const setIsSelfDonationOpen = useWiredCreatorToolsUiStore((s) => s.setIsSelfDonationOpen);
     const setIsRoomLogsOpen = useWiredCreatorToolsUiStore((s) => s.setIsRoomLogsOpen);
     const isMonitorInfoOpen = useWiredCreatorToolsUiStore((s) => s.isMonitorInfoOpen);
     const setIsMonitorInfoOpen = useWiredCreatorToolsUiStore((s) => s.setIsMonitorInfoOpen);
@@ -3197,7 +3200,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
                             selectedVariableTextValues={selectedVariableTextValues}
                         />
                     )}
-                    {activeTab === 'settings' && <WiredToolsSettingsTabView />}
+                    {activeTab === 'settings' && <WiredToolsSettingsTabView onOpenSelfDonation={() => setIsSelfDonationOpen(true)} />}
                     {activeTab === 'chests' && <WiredChestsTabView />}
                 </OctaneCardContentView>
             </OctaneCardView>
@@ -3317,6 +3320,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
                 />
             )}
             {isRoomLogsOpen && <WiredRoomLogsView onClose={() => setIsRoomLogsOpen(false)} />}
+            {isSelfDonationOpen && <WiredSelfDonationView onClose={() => setIsSelfDonationOpen(false)} />}
             {!!selectedManagedVariableEntry && !!selectedVariableDefinition && (
                 <OctaneCardView
                     className="min-w-[430px] max-w-[430px] max-h-[620px]"

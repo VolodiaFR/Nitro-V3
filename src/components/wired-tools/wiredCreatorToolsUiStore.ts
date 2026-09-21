@@ -30,6 +30,7 @@ interface WiredCreatorToolsUiState {
     isVariableManageOpen: boolean;
     isManagedGiveOpen: boolean;
     isRoomLogsOpen: boolean;
+    isSelfDonationOpen: boolean;
 
     monitorHistorySeverityFilter: MonitorSeverityFilter;
     monitorHistoryTypeFilter: string;
@@ -130,6 +131,7 @@ interface WiredCreatorToolsUiState {
     setIsVariableManageOpen: (next: boolean) => void;
     setIsManagedGiveOpen: (next: Updater<boolean>) => void;
     setIsRoomLogsOpen: (next: boolean) => void;
+    setIsSelfDonationOpen: (next: boolean) => void;
 
     setMonitorHistorySeverityFilter: (next: MonitorSeverityFilter) => void;
     setMonitorHistoryTypeFilter: (next: string) => void;
@@ -176,6 +178,7 @@ export const useWiredCreatorToolsUiStore = createOctaneStore<WiredCreatorToolsUi
     isVariableManageOpen: false,
     isManagedGiveOpen: false,
     isRoomLogsOpen: false,
+    isSelfDonationOpen: false,
 
     monitorHistorySeverityFilter: 'ALL',
     monitorHistoryTypeFilter: 'ALL',
@@ -217,6 +220,7 @@ export const useWiredCreatorToolsUiStore = createOctaneStore<WiredCreatorToolsUi
     setIsInspectionGiveOpen: (next) => set((state) => ({ isInspectionGiveOpen: apply(state.isInspectionGiveOpen, next) })),
     setIsVariableManageOpen: (next) => set({ isVariableManageOpen: next }),
     setIsRoomLogsOpen: (next) => set({ isRoomLogsOpen: next }),
+    setIsSelfDonationOpen: (next) => set({ isSelfDonationOpen: next }),
     setIsManagedGiveOpen: (next) => set((state) => ({ isManagedGiveOpen: apply(state.isManagedGiveOpen, next) })),
 
     setMonitorHistorySeverityFilter: (next) => set({ monitorHistorySeverityFilter: next }),

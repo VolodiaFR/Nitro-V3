@@ -13,6 +13,7 @@ const INITIAL = {
     isVariableManageOpen: false,
     isManagedGiveOpen: false,
     isRoomLogsOpen: false,
+    isSelfDonationOpen: false,
     monitorHistorySeverityFilter: 'ALL' as const,
     monitorHistoryTypeFilter: 'ALL',
     monitorSnapshot: createEmptyMonitorSnapshot(),
@@ -57,6 +58,7 @@ describe('useWiredCreatorToolsUiStore', () => {
         expect(state.monitorHistorySeverityFilter).toBe('ALL');
         expect(state.monitorHistoryTypeFilter).toBe('ALL');
         expect(state.isRoomLogsOpen).toBe(false);
+        expect(state.isSelfDonationOpen).toBe(false);
         expect(state.monitorSnapshot).toEqual(createEmptyMonitorSnapshot());
         expect(state.selectedFurni).toBeNull();
         expect(state.selectedFurniLiveState).toBeNull();
