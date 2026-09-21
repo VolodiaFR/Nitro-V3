@@ -47,7 +47,12 @@ vi.mock('../../../common', () => ({
         </button>
     ),
     OctaneCardView: ({ children }: PropsWithChildren) => <div>{children}</div>,
-    OctaneCardHeaderView: ({ headerText }: { headerText: string }) => <div>{headerText}</div>,
+    OctaneCardHeaderView: ({ headerText, children }: PropsWithChildren<{ headerText: string }>) => (
+        <div>
+            {headerText}
+            {children}
+        </div>
+    ),
     OctaneCardContentView: ({ children }: PropsWithChildren) => <div>{children}</div>,
     Text: ({ children }: PropsWithChildren) => <span>{children}</span>
 }));

@@ -147,19 +147,27 @@
     }
 
     /* The quick menu: a small toggle in the summary corner and a list under it. */
+    /* Lives in the header, on the close button's line and just before it. */
     .octane-wired__menu {
         position: absolute;
-        top: 4px;
-        right: 4px;
+        top: 50%;
+        right: 28px;
+        transform: translateY(-50%);
         z-index: 3;
+        pointer-events: auto;
     }
 
     .octane-wired__menu-toggle {
-        width: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
         height: 18px;
-        border: 1px solid rgba(0, 0, 0, 0.45);
-        border-radius: 3px;
-        background: rgba(255, 255, 255, 0.85);
+        padding: 0;
+        border: 1px solid #777;
+        border-radius: 5px;
+        background: linear-gradient(180deg, #f9f9f9 0%, #cacaca 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
         color: #222;
         font-size: 13px;
         line-height: 1;
@@ -167,7 +175,7 @@
     }
 
     .octane-wired__menu-toggle:hover {
-        background: #fff;
+        background: linear-gradient(180deg, #ffffff 0%, #dcdcdc 100%);
     }
 
     .octane-wired__menu-list {

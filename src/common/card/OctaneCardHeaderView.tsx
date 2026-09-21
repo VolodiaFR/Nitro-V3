@@ -62,6 +62,7 @@ export const OctaneCardHeaderView: FC<OctaneCardHeaderViewProps> = (props) => {
                 {isInfoToHabboPages && (
                     <Base className="absolute right-8 octane-card-header-info-habbopages cursor-pointer" position="absolute" onClick={onClickInfoHabboPages} />
                 )}
+                {children}
                 <div
                     className="absolute flex items-center justify-center cursor-pointer right-2 octane-card-close-button"
                     onClick={onCloseClick}

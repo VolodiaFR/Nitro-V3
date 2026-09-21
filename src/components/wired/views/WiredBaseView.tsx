@@ -1,5 +1,5 @@
 import { GetRoomEngine, GetSessionDataManager } from '@octane/renderer';
-import { CSSProperties, FC, PropsWithChildren, ReactNode, useEffect, useState } from 'react';
+import { CSSProperties, FC, MouseEvent, PropsWithChildren, ReactNode, useEffect, useState } from 'react';
 import { LocalizeText, localizeWithFallback, WiredFurniType, WiredSelectionVisualizer, wiredStyleClassName } from '../../../api';
 import wiredBgLeft from '../../../assets/images/wired/wired_bg_left.png';
 import wiredBgRight from '../../../assets/images/wired/wired_bg_right.png';
@@ -92,6 +92,12 @@ export const WiredBaseView: FC<PropsWithChildren<WiredBaseViewProps>> = (props) 
     // The quick menu. Copy pushes the view's current settings into the hook first (the same
     // step "ready" takes), so the clipboard holds what is on screen and not what was last saved.
     const canEdit = !!roomSettings.canModify;
+    // The header is the drag handle; a press on the menu is a click, not the start of a drag.
+    const stopDrag = (event: MouseEvent<HTMLElement>) => {
+        event.stopPropagation();
+        event.nativeEvent.stopImmediatePropagation();
+    };
+
     const runMenuAction = (action: () => void) => {
         setIsMenuOpen(false);
         action();
@@ -201,17 +207,7 @@ export const WiredBaseView: FC<PropsWithChildren<WiredBaseViewProps>> = (props) 
             isResizable={false}
             style={resolvedCardStyle}
         >
-            <OctaneCardHeaderView classNames={['octane-wired__header']} headerText={LocalizeText('wiredfurni.title')} onCloseClick={onClose} />
-            <OctaneCardContentView classNames={['octane-wired__content']} gap={0}>
-                <div className="octane-wired__section octane-wired__summary">
-                    <img className="octane-wired__summary-bg octane-wired__summary-bg--left" src={wiredBgLeft} alt="" />
-                    <img className="octane-wired__summary-bg octane-wired__summary-bg--right" src={wiredBgRight} alt="" />
-                    <div className="octane-wired__summary-copy">
-                        <Text bold className="octane-wired__summary-title">
-                            {wiredName}
-                        </Text>
-                    </div>
-                </div>
+            <OctaneCardHeaderView classNames={['octane-wired__header']} headerText={LocalizeText('wiredfurni.title')} onCloseClick={onClose}>
                 <div className="octane-wired__menu">
                     <button
                         aria-expanded={isMenuOpen}
@@ -221,11 +217,12 @@ export const WiredBaseView: FC<PropsWithChildren<WiredBaseViewProps>> = (props) 
                         title={localizeWithFallback('wiredfurni.params.menu', 'Menu')}
                         type="button"
                         onClick={() => setIsMenuOpen((value) => !value)}
+                        onMouseDownCapture={stopDrag}
                     >
                         &#8801;
                     </button>
                     {isMenuOpen && (
-                        <div className="octane-wired__menu-list" role="menu">
+                        <div className="octane-wired__menu-list" role="menu" onMouseDownCapture={stopDrag}>
                             {menuItems.map((item, index) =>
                                 item ? (
                                     <button
@@ -246,6 +243,17 @@ export const WiredBaseView: FC<PropsWithChildren<WiredBaseViewProps>> = (props) 
                             )}
                         </div>
                     )}
+                </div>
+            </OctaneCardHeaderView>
+            <OctaneCardContentView classNames={['octane-wired__content']} gap={0}>
+                <div className="octane-wired__section octane-wired__summary">
+                    <img className="octane-wired__summary-bg octane-wired__summary-bg--left" src={wiredBgLeft} alt="" />
+                    <img className="octane-wired__summary-bg octane-wired__summary-bg--right" src={wiredBgRight} alt="" />
+                    <div className="octane-wired__summary-copy">
+                        <Text bold className="octane-wired__summary-title">
+                            {wiredName}
+                        </Text>
+                    </div>
                 </div>
                 <div className="octane-wired__body">
                     {!!children && <div className="octane-wired__divider" />}
