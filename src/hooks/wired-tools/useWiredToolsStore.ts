@@ -49,6 +49,8 @@ export interface IWiredUserVariableDefinition {
     isTextConnected: boolean;
     itemId: number;
     name: string;
+    /** The value-to-text table of a text connected definition, when the server sent one. */
+    textConnector?: Array<{ key: number; value: string }>;
 }
 
 export interface IWiredUserVariableAssignment {
@@ -66,6 +68,8 @@ export interface IWiredFurniVariableDefinition {
     isTextConnected: boolean;
     itemId: number;
     name: string;
+    /** The value-to-text table of a text connected definition, when the server sent one. */
+    textConnector?: Array<{ key: number; value: string }>;
 }
 
 export interface IWiredFurniVariableAssignment {
@@ -83,6 +87,8 @@ export interface IWiredRoomVariableDefinition {
     isTextConnected: boolean;
     itemId: number;
     name: string;
+    /** The value-to-text table of a text connected definition, when the server sent one. */
+    textConnector?: Array<{ key: number; value: string }>;
 }
 
 export interface IWiredRoomVariableAssignment {
@@ -100,6 +106,8 @@ export interface IWiredContextVariableDefinition {
     isTextConnected: boolean;
     itemId: number;
     name: string;
+    /** The value-to-text table of a text connected definition, when the server sent one. */
+    textConnector?: Array<{ key: number; value: string }>;
 }
 
 const WIRED_VARIABLE_TARGET_USER = 0;
