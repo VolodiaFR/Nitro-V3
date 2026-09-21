@@ -217,4 +217,38 @@ describe('FloorplanEditorView container', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
         expect(sendMessageComposer).not.toHaveBeenCalled();
     });
+
+    it('opens on the flat preview and only mounts the 3D view when asked', () => {
+        window.localStorage.removeItem('octane.floorplan.preview3d');
+        openEditor();
+        const container = document.getElementById('draggable-windows-container') ?? document.body;
+
+        expect(container.querySelector('[data-testid="floorplan-preview-2d"]')).toBeTruthy();
+        expect(container.querySelector('[data-testid="floorplan-3d"]')).toBeNull();
+        expect(container.querySelector('[data-testid="floorplan-view-2d"]')?.getAttribute('data-active')).toBe('true');
+
+        fireEvent.click(container.querySelector('[data-testid="floorplan-view-3d"]')!);
+
+        expect(container.querySelector('[data-testid="floorplan-3d"]')).toBeTruthy();
+        expect(container.querySelector('[data-testid="floorplan-preview-2d"]')).toBeNull();
+        expect(window.localStorage.getItem('octane.floorplan.preview3d')).toBe('true');
+
+        fireEvent.click(container.querySelector('[data-testid="floorplan-view-2d"]')!);
+
+        expect(container.querySelector('[data-testid="floorplan-3d"]')).toBeNull();
+        expect(window.localStorage.getItem('octane.floorplan.preview3d')).toBe('false');
+    });
+
+    it('remembers a browser that chose the 3D preview', () => {
+        window.localStorage.setItem('octane.floorplan.preview3d', 'true');
+        try {
+            openEditor();
+            const container = document.getElementById('draggable-windows-container') ?? document.body;
+
+            expect(container.querySelector('[data-testid="floorplan-3d"]')).toBeTruthy();
+            expect(container.querySelector('[data-testid="floorplan-preview-2d"]')).toBeNull();
+        } finally {
+            window.localStorage.removeItem('octane.floorplan.preview3d');
+        }
+    });
 });

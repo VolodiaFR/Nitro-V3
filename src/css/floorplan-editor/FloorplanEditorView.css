@@ -290,6 +290,31 @@
     font-variant-numeric: tabular-nums;
 }
 
+.fp-view-switch {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.fp-view-switch .fp-pill {
+    min-width: 30px;
+    background: transparent;
+    color: #3a3a3a;
+}
+
+.fp-view-switch .fp-pill:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.fp-view-switch .fp-pill.is-on {
+    background: var(--fp-blue);
+    color: #ffffff;
+}
+
 .fp-panel-body {
     display: flex;
     gap: 8px;
