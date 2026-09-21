@@ -1,4 +1,4 @@
-import { GetRenderer, GetTicker, OctaneLogger, RoomPreviewer, TextureUtils } from '@octane/renderer';
+import { GetRenderer, GetTicker, RoomPreviewer, TextureUtils } from '@octane/renderer';
 import { FC, useEffect, useRef } from 'react';
 import { PIXEL_ART_RENDERING } from './PixelArtRendering';
 
@@ -11,16 +11,6 @@ export const LayoutRoomPreviewerView: FC<{
     const { roomPreviewer = null, height = 0, fitParent = false, onPreviewClick } = props;
     const elementRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    // Counter that disables further renders once Pixi throws in this
-    // previewer too many times in a row. The Pixi v8 null-texture bug
-    // (see src/pixiPatch.ts) is mostly absorbed at the prototype level,
-    // but any stray throw still cascades every animation frame. Allow
-    // a small number of consecutive failures so a transient bad frame
-    // self-recovers; permanently disable only if the previewer is truly
-    // wedged, which is what produces the "disabling further renders"
-    // log the user sees.
-    const renderFailuresRef = useRef(0);
-    const MAX_RENDER_FAILURES = 6;
 
     const onClick = () => {
         if (onPreviewClick) {
@@ -43,73 +33,45 @@ export const LayoutRoomPreviewerView: FC<{
 
         if (!context) return;
 
-        renderFailuresRef.current = 0;
-
         let textureWidth = 0;
         let textureHeight = 0;
         let texture: ReturnType<typeof TextureUtils.createRenderTexture> = null;
         let roomCanvasInitialized = false;
         let frameImageData: ImageData = null;
 
-        const noteFailure = (label: string, error: unknown) => {
-            renderFailuresRef.current += 1;
-
-            if (renderFailuresRef.current >= MAX_RENDER_FAILURES) {
-                OctaneLogger.error(
-                    `LayoutRoomPreviewerView ${label} failed ${renderFailuresRef.current} times; disabling further renders for this preview`,
-                    error
-                );
-            }
-        };
-
         const paintToDOM = () => {
-            if (renderFailuresRef.current >= MAX_RENDER_FAILURES) return;
             if (!texture) return;
 
             const renderingCanvas = roomPreviewer.getRenderingCanvas();
 
             if (!renderingCanvas) return;
 
-            try {
-                GetRenderer().render({
-                    target: texture,
-                    container: renderingCanvas.master,
-                    clear: true
-                });
+            GetRenderer().render({
+                target: texture,
+                container: renderingCanvas.master,
+                clear: true
+            });
 
-                const { pixels, width, height: frameHeight } = GetRenderer().texture.getPixels(texture);
+            const { pixels, width, height: frameHeight } = GetRenderer().texture.getPixels(texture);
 
-                if (canvas.width !== width || canvas.height !== frameHeight) {
-                    canvas.width = width;
-                    canvas.height = frameHeight;
-                    frameImageData = null;
-                }
-
-                if (!frameImageData || frameImageData.width !== width || frameImageData.height !== frameHeight) {
-                    frameImageData = context.createImageData(width, frameHeight);
-                }
-
-                frameImageData.data.set(pixels);
-                context.putImageData(frameImageData, 0, 0);
-                // A successful paint is the signal we've recovered from
-                // a transient bad frame; reset the failure counter.
-                renderFailuresRef.current = 0;
-            } catch (error) {
-                noteFailure('paint', error);
+            if (canvas.width !== width || canvas.height !== frameHeight) {
+                canvas.width = width;
+                canvas.height = frameHeight;
+                frameImageData = null;
             }
+
+            if (!frameImageData || frameImageData.width !== width || frameImageData.height !== frameHeight) {
+                frameImageData = context.createImageData(width, frameHeight);
+            }
+
+            frameImageData.data.set(pixels);
+            context.putImageData(frameImageData, 0, 0);
         };
 
         const update = () => {
-            if (renderFailuresRef.current >= MAX_RENDER_FAILURES) return;
-
             const wasUpdated = !!roomPreviewer.getRenderingCanvas()?.canvasUpdated;
 
-            try {
-                roomPreviewer.updatePreviewRoomView();
-            } catch (error) {
-                noteFailure('update', error);
-                return;
-            }
+            roomPreviewer.updatePreviewRoomView();
 
             const renderingCanvas = roomPreviewer.getRenderingCanvas();
 
