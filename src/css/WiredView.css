@@ -146,6 +146,73 @@
         z-index: 1;
     }
 
+    /* The quick menu: a small toggle in the summary corner and a list under it. */
+    .octane-wired__menu {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        z-index: 3;
+    }
+
+    .octane-wired__menu-toggle {
+        width: 20px;
+        height: 18px;
+        border: 1px solid rgba(0, 0, 0, 0.45);
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.85);
+        color: #222;
+        font-size: 13px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .octane-wired__menu-toggle:hover {
+        background: #fff;
+    }
+
+    .octane-wired__menu-list {
+        position: absolute;
+        top: 20px;
+        right: 0;
+        min-width: 190px;
+        padding: 2px;
+        border: 1px solid #000;
+        border-radius: 3px;
+        background: #f4f0e8;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .octane-wired__menu-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+        padding: 3px 8px;
+        border: 0;
+        background: transparent;
+        color: #222;
+        font-size: 12px;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .octane-wired__menu-item:hover:not(:disabled) {
+        background: #dbeaf4;
+    }
+
+    .octane-wired__menu-item:disabled {
+        color: #9a9488;
+        cursor: default;
+    }
+
+    .octane-wired__menu-spacer {
+        height: 1px;
+        margin: 2px 6px;
+        background: #b8b2a4;
+    }
+
     .octane-wired__summary-copy {
         display: flex;
         flex-direction: column;

@@ -931,3 +931,68 @@ export class WiredMenuPermissionsSaveComposer extends RecordingComposer {}
 export class WiredRoomStateActionComposer extends RecordingComposer {}
 export class SelfDonationMessageComposer extends RecordingComposer {}
 export class SelfDonationResultMessageEvent extends StubClass {}
+
+// Wired setup definitions (the box a wired window edits); stubs with the private fields the
+// clipboard helpers copy, so instanceof and the getters behave like the renderer's classes.
+export class Triggerable {
+    _intParams: number[] = [];
+    _stringParam = '';
+    _stuffIds: number[] = [];
+    _id = 0;
+    _stuffTypeId = 0;
+    _furniLimit = 0;
+    _stuffTypeSelectionCode = 0;
+    constructor(..._args: unknown[]) {}
+    get id() {
+        return this._id;
+    }
+    get intData() {
+        return this._intParams;
+    }
+    get stringData() {
+        return this._stringParam;
+    }
+    get selectedItems() {
+        return this._stuffIds;
+    }
+    get spriteId() {
+        return this._stuffTypeId;
+    }
+    get maximumItemSelectionCount() {
+        return this._furniLimit;
+    }
+    get stuffTypeSelectionCode() {
+        return this._stuffTypeSelectionCode;
+    }
+    get code() {
+        return 0;
+    }
+}
+export class WiredActionDefinition extends Triggerable {
+    _type = 0;
+    _delayInPulses = 0;
+    get code() {
+        return this._type;
+    }
+    get type() {
+        return this._type;
+    }
+    get delayInPulses() {
+        return this._delayInPulses;
+    }
+}
+export class TriggerDefinition extends Triggerable {
+    _triggerConf = 0;
+    get code() {
+        return this._triggerConf;
+    }
+}
+export class ConditionDefinition extends Triggerable {
+    _type = 0;
+    get code() {
+        return this._type;
+    }
+    get type() {
+        return this._type;
+    }
+}
