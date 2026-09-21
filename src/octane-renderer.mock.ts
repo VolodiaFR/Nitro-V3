@@ -926,3 +926,4 @@ export class WiredRoomLogsPageComposer extends RecordingComposer {}
 export class WiredVariableHoldersPageComposer extends RecordingComposer {}
 export class WiredLogPageEvent extends StubClass {}
 export class WiredVariableHoldersPageEvent extends StubClass {}
+export class WiredClickSettingsEvent extends StubClass {}

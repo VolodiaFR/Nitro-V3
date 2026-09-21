@@ -147,4 +147,9 @@ export class WiredActionLayoutCode {
      * seats empty rather than have the two collide on whichever merges second.
      */
     public static VARIABLE_WEB_API_EXTRA: number = 128;
+    /**
+     * The official click-settings action: what the selected users' clicks on avatars and furni do
+     * (walk behind, pass through). The emulator registers it on wf_act_click_conf.
+     */
+    public static CLICK_SETTINGS: number = 129;
 }

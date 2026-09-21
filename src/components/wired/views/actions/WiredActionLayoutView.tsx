@@ -92,6 +92,7 @@ import { WiredActionMoveFurniAsGroupView } from './WiredActionMoveFurniAsGroupVi
 import { WiredActionMoveFurniToView } from './WiredActionMoveFurniToView';
 import { WiredActionMoveFurniView } from './WiredActionMoveFurniView';
 import { WiredActionMoveRotateUserView } from './WiredActionMoveRotateUserView';
+import { WiredActionClickSettingsView } from './WiredActionClickSettingsView';
 import { WiredActionMuteUserView } from './WiredActionMuteUserView';
 import { WiredActionNegativeCallAnotherStackView } from './WiredActionNegativeCallAnotherStackView';
 import { WiredActionPlaceFurniView } from './WiredActionPlaceFurniView';
@@ -192,6 +193,8 @@ export const WiredActionLayoutView = (code: number) => {
             return <WiredActionMoveFurniToView />;
         case WiredActionLayoutCode.MUTE_USER:
             return <WiredActionMuteUserView />;
+        case WiredActionLayoutCode.CLICK_SETTINGS:
+            return <WiredActionClickSettingsView />;
         case WiredActionLayoutCode.RELATIVE_MOVE:
             return <WiredActionRelativeMoveView />;
         case WiredActionLayoutCode.RESET:

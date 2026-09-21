@@ -36,4 +36,9 @@ export class WiredTriggerLayout {
     public static EXECUTE_ONCE_LONG: number = 30;
     /** Say your username: the keyword dialog without the keyword and the match mode it never read. */
     public static AVATAR_SAYS_USERNAME: number = 31;
+    /**
+     * Furni state is changed by anyone or anything, wired effects included; TOGGLE_FURNI (4) only
+     * answers a user's click. The emulator registers it on wf_trg_state_changed.
+     */
+    public static STATE_CHANGE: number = 32;
 }

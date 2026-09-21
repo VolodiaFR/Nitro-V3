@@ -80,6 +80,8 @@ export const WiredTriggerLayoutView = (code: number) => {
             return <WiredTriggeScoreAchievedView />;
         case WiredTriggerLayout.TOGGLE_FURNI:
             return <WiredTriggerToggleFurniView />;
+        case WiredTriggerLayout.STATE_CHANGE:
+            return <WiredTriggerToggleFurniView includesWiredChanges={true} />;
         case WiredTriggerLayout.RECEIVE_SIGNAL:
             return <WiredTriggerReceiveSignalView />;
         case WiredTriggerLayout.USER_GETS_HANDITEM:
