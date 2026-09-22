@@ -1,3 +1,5 @@
+import './pixiPatch';
+
 import { GetConfiguration } from '@octane/renderer';
 import { derivePetConfig, DerivedPetConfig, PetDefinition } from './api/octane/PetData';
 import { parseJsonDocument, UiJsonMode } from './json/JsonDocumentParser';

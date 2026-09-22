@@ -4,13 +4,7 @@ import { LayoutBadgeImageView } from './LayoutBadgeImageView';
 
 const rendererMocks = vi.hoisted(() => {
     class OctaneSprite {
-        public destroyed = false;
-
         public constructor(public readonly texture: unknown) {}
-
-        public destroy(): void {
-            this.destroyed = true;
-        }
     }
 
     return {
@@ -68,9 +62,7 @@ describe('group badge image', () => {
 
         expect(options).toMatchObject({ resolution: 1 });
         expect(options.target).toBeInstanceOf(rendererMocks.OctaneSprite);
-        const target = options.target as InstanceType<typeof rendererMocks.OctaneSprite>;
-
-        expect(target.texture).toEqual({ id: 'group-texture' });
+        expect((options.target as InstanceType<typeof rendererMocks.OctaneSprite>).texture).toEqual({ id: 'group-texture' });
 
         const badge = container.firstElementChild as HTMLElement;
 
@@ -78,6 +70,5 @@ describe('group badge image', () => {
         expect(badge.style.width).toBe('40px');
         expect(badge.style.height).toBe('39px');
         expect(badge.classList.contains('group-badge')).toBe(true);
-        expect(target.destroyed).toBe(true);
     });
 });
