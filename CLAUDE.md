@@ -64,6 +64,12 @@ read that before starting anything non-trivial.
    cd octane-renderer && yarn install
    ```
 
+   `pixi.js` resolves to the renderer's `node_modules`, so
+   `vite.config.mjs` also checks that the installed copy matches the
+   version the renderer's `package.json` pins and fails fast telling you
+   to rerun `yarn install` there. Re-run it whenever the renderer bumps
+   Pixi.
+
 2. **Install client deps.**
    ```sh
    cd ../octane
