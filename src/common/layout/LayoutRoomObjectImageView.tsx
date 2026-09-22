@@ -1,4 +1,4 @@
-import { GetRoomEngine, TextureUtils, Vector3d } from '@octane/renderer';
+import { GetRoomEngine, Vector3d } from '@octane/renderer';
 import { CSSProperties, FC, useEffect, useMemo, useRef, useState } from 'react';
 import { Base, BaseProps } from '../Base';
 import { PIXEL_ART_RENDERING } from './PixelArtRendering';
@@ -47,7 +47,7 @@ export const LayoutRoomObjectImageView: FC<LayoutRoomObjectImageViewProps> = (pr
     useEffect(() => {
         const imageResult = GetRoomEngine().getRoomObjectImage(roomId, objectId, category, new Vector3d(direction * 45), 64, {
             imageReady: async (result) => {
-                const img = await TextureUtils.generateImage(result.data);
+                const img = await result.getImage();
 
                 if (img && isMounted.current) setImageElement(img);
             },
@@ -59,7 +59,7 @@ export const LayoutRoomObjectImageView: FC<LayoutRoomObjectImageViewProps> = (pr
         if (!imageResult) return;
 
         (async () => {
-            const img = await TextureUtils.generateImage(imageResult.data);
+            const img = await imageResult.getImage();
 
             if (img && isMounted.current) setImageElement(img);
         })();
