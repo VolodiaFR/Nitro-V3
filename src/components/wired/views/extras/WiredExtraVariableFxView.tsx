@@ -165,7 +165,7 @@ export const WiredExtraVariableFxView: FC<WiredExtraVariableFxViewProps> = (prop
         onChange: (enabled: boolean, target: number, token: string) => void,
         scope: string
     ) => (
-        <div className="flex flex-col gap-1 octane-wired-fx__override">
+        <div className="flex flex-col gap-1 octane-wired-fx-editor__override">
             <label className="flex items-center gap-1 cursor-pointer">
                 <input type="checkbox" className="form-check-input" checked={enabled} onChange={(event) => onChange(event.target.checked, target, token)} />
                 <Text bold>{label}</Text>
@@ -194,8 +194,8 @@ export const WiredExtraVariableFxView: FC<WiredExtraVariableFxViewProps> = (prop
     const categoryLabel = localizeWithFallback(title.key, title.fallback);
 
     return (
-        <WiredExtraBaseView hasSpecialInput={true} requiresFurni={WiredFurniType.STUFF_SELECTION_OPTION_NONE} save={save} validate={validate} cardStyle={{ width: 420 }}>
-            <div className="flex flex-col gap-2 octane-wired-fx">
+        <WiredExtraBaseView hasSpecialInput={true} requiresFurni={WiredFurniType.STUFF_SELECTION_OPTION_NONE} save={save} validate={validate}>
+            <div className="flex flex-col gap-2 octane-wired-fx-editor">
                 <Text small={true}>
                     {localizeWithFallback(
                         'wiredfurni.params.variablefx.intro',

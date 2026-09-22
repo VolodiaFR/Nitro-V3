@@ -55,6 +55,7 @@ export const CameraWidgetCaptureView: FC<CameraWidgetCaptureViewProps> = (props)
         if (!target || !video || !source) return;
 
         let frame = 0;
+        let last = 0;
         let stream: MediaStream = null;
         let streamIsReady = false;
         let previousPosition = '';
@@ -99,8 +100,9 @@ export const CameraWidgetCaptureView: FC<CameraWidgetCaptureViewProps> = (props)
             // AIR registers CameraViewFinder as a 100 ms update receiver. Keep
             // that cadence only for browsers where canvas.captureStream is not
             // available; the normal path stays entirely in the compositor.
-            if (!streamIsReady) {
-                blitRoomCanvasToViewfinder(target, 320, 320, AIR_FALLBACK_FRAME_INTERVAL, now);
+            if (!streamIsReady && now - last >= AIR_FALLBACK_FRAME_INTERVAL) {
+                last = now;
+                blitRoomCanvasToViewfinder(target, 320, 320);
             }
 
             frame = window.requestAnimationFrame(tick);

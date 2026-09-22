@@ -8,6 +8,7 @@ import {
     RoomObjectCategory,
     RoomObjectVariable,
     RoomSessionPresentEvent,
+    TextureUtils,
     Vector3d
 } from '@octane/renderer';
 import { useMemo, useState } from 'react';
@@ -68,7 +69,11 @@ const useFurniturePresentWidgetState = () => {
         return {
             imageReady: (result) => {
                 (async () => {
-                    const image = await result.getImage();
+                    let image = result.image;
+
+                    if (!image && result.data) {
+                        image = await TextureUtils.generateImage(result.data);
+                    }
 
                     if (image) setImageUrl(image.src);
                 })();
