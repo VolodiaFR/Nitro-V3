@@ -25,6 +25,7 @@ import './css/catalog/CatalogView.css';
 import './css/catalog/CatalogExperience.css';
 import './css/catalog/CatalogVipBuyView.css';
 import './css/emustats/EmuStatsView.css';
+import './css/floorplan-editor/FloorplanEditorView.css';
 
 import './css/chat/Chats.css';
 import './css/chat/ChatHistoryView.css';
@@ -73,6 +74,7 @@ import './css/room/InfoStand.css';
 import './css/room/NavigatorRoomInfo.css';
 import './css/room/NavigatorRoomSettings.css';
 import './css/room/RoomWidgets.css';
+import './css/room/WiredVariableFx.css';
 
 import './css/slider.css';
 

@@ -963,6 +963,8 @@
     align-items: flex-end;
     overflow: hidden;
     flex-wrap: nowrap;
+    /* Same grey as the stage below, so the strip and the page read as one surface. */
+    background: var(--catalog-standard-bg);
 }
 
 /*
