@@ -8,11 +8,14 @@ import { MONITOR_ERROR_INFO, MONITOR_LOG_ORDER } from './WiredCreatorTools.const
 import { WiredPagedTable, WiredTableCell, WiredTableColumn } from './WiredPagedTable';
 import { calculateLastPage, NO_PAGE } from './WiredPaging.helpers';
 
+/** Rows per page, as the official log list shows them. */
 export const WIRED_ROOM_LOGS_PAGE_SIZE = 50;
-
+/** Above the server's own 250 ms limit on the page request. */
 const REQUEST_PAGE_RATELIMIT = 300;
 const REFRESH_TIME_MS = 2500;
 const FILTER_MAX_CHARS = 400;
+/** Habbo's log levels, by the number the server sends: engine notes are warnings and errors, and
+ * "write to logs" boxes can write at any of the four. */
 const LOG_LEVELS = ['DEBUG', 'INFO', 'WARNING', 'ERROR'];
 const LEVEL_CLASS: Record<number, string> = { 0: 'text-[#6b6b6b]', 1: 'text-[#1f5fa8]', 2: 'text-[#b36b00]', 3: 'text-[#c70d0d]' };
 

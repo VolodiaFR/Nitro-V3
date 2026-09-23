@@ -140,4 +140,13 @@ export class WiredActionLayoutCode {
 
     public static PROJECTILE_EXTRA: number = 136;
     public static WRITE_TO_LOGS: number = 137;
+    public static TELEPORT_TO_ROOM: number = 138;
+
+    public static PROGRESS_ACHIEVEMENT: number = 150;
+    public static ACHIEVEMENT_ENABLER_EXTRA: number = 151;
+    public static PROGRESS_REWARD_TRACK: number = 152;
+    public static RESET_REWARD_TRACK: number = 153;
+
+    public static GLOBAL_PLACEHOLDER_EXTRA: number = 2000;
+    public static DAILY_TASK_EXTRA: number = 2008;
 }

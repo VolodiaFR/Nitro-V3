@@ -1792,7 +1792,8 @@ export const WiredCreatorToolsView: FC<{}> = () => {
             case '@room_entry.method':
                 return [
                     { value: 'door', text: 'Door' },
-                    { value: 'teleport', text: 'Teleport' }
+                    { value: 'teleport', text: 'Teleport' },
+                    { value: 'room_network', text: 'Room network' }
                 ];
             case '@team_color':
                 return [1, 2, 3, 4].map((value) => ({

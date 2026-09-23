@@ -168,7 +168,14 @@ export const VARIABLE_DEFINITIONS: Record<VariablesElementType, VariableDefiniti
         createVariableDefinition('@is_stackable', 'Furni', 'Conditional'),
         createVariableDefinition('@dimensions.x', 'Furni'),
         createVariableDefinition('@dimensions.y', 'Furni'),
-        createVariableDefinition('@owner_id', 'Furni')
+        createVariableDefinition('@owner_id', 'Furni'),
+        createVariableDefinition('@projectile.animation.position.x', 'Furni', 'Conditional'),
+        createVariableDefinition('@projectile.animation.position.y', 'Furni', 'Conditional'),
+        createVariableDefinition('@projectile.animation.position.altitude', 'Furni', 'Conditional'),
+        { ...createVariableDefinition('@projectile.animation.is_traveling', 'Furni', 'Conditional'), hasValue: false },
+        createVariableDefinition('@projectile.animation.tiles_traveled', 'Furni', 'Conditional'),
+        createVariableDefinition('@projectile.animation.furni_collisions', 'Furni', 'Conditional'),
+        createVariableDefinition('@projectile.animation.user_collisions', 'Furni', 'Conditional')
     ],
     user: [
         createVariableDefinition('@index', 'User'),
