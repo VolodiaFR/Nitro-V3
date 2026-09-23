@@ -2,6 +2,8 @@ import {
     ConditionDefinition,
     GetRoomEngine,
     GetSessionDataManager,
+    IFurnitureData,
+    IRoomObject,
     OpenMessageComposer,
     RoomObjectCategory,
     RoomObjectVariable,
@@ -37,6 +39,9 @@ import { useNotification } from '../notification';
 import { useLiveState } from '../useLiveState';
 import { useWiredTools } from '../wired-tools/useWiredTools';
 
+/** Whether a clicked floor furni may be picked, from its room object and furnidata. */
+export type WiredFurniPickCheck = (roomObject: IRoomObject, furniData: IFurnitureData) => boolean;
+
 const useWiredState = () => {
     const [trigger, setTrigger, triggerRef] = useLiveState<Triggerable>(null);
     const [intParams, setIntParams, intParamsRef] = useLiveState<number[]>([]);
@@ -49,6 +54,9 @@ const useWiredState = () => {
     const [neighborhoodInvert, setNeighborhoodInvert] = useState<boolean>(false);
     const [allowedInteractionTypes, setAllowedInteractionTypes] = useState<string[] | null>(null);
     const [allowedInteractionErrorKey, setAllowedInteractionErrorKey] = useState<string | null>(null);
+    // A view's own test for a floor furni pick, next to the interaction names.
+    const [allowedFurniCheck, setAllowedFurniCheckState] = useState<WiredFurniPickCheck | null>(null);
+    const setAllowedFurniCheck = useCallback((check: WiredFurniPickCheck | null) => setAllowedFurniCheckState(() => check), []);
     const { showConfirm = null, simpleAlert = null } = useNotification();
     const { requestUserVariables = null, roomSettings = null } = useWiredTools();
     // The quick menu's clipboard: one entry per holder and code, kept for the session.
@@ -228,7 +236,7 @@ const useWiredState = () => {
             return;
         }
 
-        if (category === RoomObjectCategory.FLOOR && allowedInteractionTypes && allowedInteractionTypes.length) {
+        if (category === RoomObjectCategory.FLOOR && ((allowedInteractionTypes && allowedInteractionTypes.length) || allowedFurniCheck)) {
             const roomId = GetRoomSession().roomId;
             const clickedObject = GetRoomEngine().getRoomObject(roomId, objectId, RoomObjectCategory.FLOOR);
 
@@ -238,7 +246,7 @@ const useWiredState = () => {
             const sourceFurniData = GetSessionDataManager().getFloorItemData(typeId);
 
             if (!sourceFurniData) return;
-            if (!isAllowedInteraction(sourceFurniData)) {
+            if (!isAllowedInteraction(sourceFurniData) || (allowedFurniCheck && !allowedFurniCheck(clickedObject, sourceFurniData))) {
                 handleDisallowedInteraction();
                 setFurniIds((prevValue) => {
                     if (!prevValue.includes(objectId)) return prevValue;
@@ -412,6 +420,7 @@ const useWiredState = () => {
             setNeighborhoodInvert(false);
             setAllowedInteractionTypes(null);
             setAllowedInteractionErrorKey(null);
+            setAllowedFurniCheckState(null);
         };
     }, [trigger]);
 
@@ -438,7 +447,8 @@ const useWiredState = () => {
         setNeighborhoodTiles,
         setNeighborhoodInvert,
         setAllowedInteractionTypes,
-        setAllowedInteractionErrorKey
+        setAllowedInteractionErrorKey,
+        setAllowedFurniCheck
     };
 };
 

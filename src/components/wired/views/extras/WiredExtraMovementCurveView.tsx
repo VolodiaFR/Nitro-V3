@@ -19,6 +19,13 @@ import {
 } from '../WiredVariablePickerData';
 import { WiredExtraBaseView } from './WiredExtraBaseView';
 
+/**
+ * Habbo's "movement curve" (wf_xtra_mov_curve): how high the furni the stack moves jump, typed or
+ * read from a variable. Our easing curves sit under the advanced options.
+ * Int params: [curve, intensity, strength, from variable, variable target, user source, furni source];
+ * string param: the variable token.
+ */
+
 type VariableTarget = 'user' | 'furni' | 'global' | 'context';
 
 const CURVE_OPTIONS: { value: number; label: string }[] = [
