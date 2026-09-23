@@ -116,6 +116,7 @@ import { WiredActionTeleportView } from './WiredActionTeleportView';
 import { WiredActionToggleFurniStateView } from './WiredActionToggleFurniStateView';
 import { WiredActionToggleToRandomStateView } from './WiredActionToggleToRandomStateView';
 import { WiredActionUnfreezeView } from './WiredActionUnfreezeView';
+import { WiredActionWriteToLogsView } from './WiredActionWriteToLogsView';
 
 export const WiredActionLayoutView = (code: number) => {
     switch (code) {
@@ -203,6 +204,8 @@ export const WiredActionLayoutView = (code: number) => {
             return <WiredActionModifyArrayView />;
         case WiredActionLayoutCode.ARRAY_CAPTURE_VARIABLE_EXTRA:
             return <WiredExtraArrayCaptureView />;
+        case WiredActionLayoutCode.WRITE_TO_LOGS:
+            return <WiredActionWriteToLogsView />;
         case WiredActionLayoutCode.PROJECTILE_EXTRA:
             return <WiredExtraProjectileView />;
         case WiredActionLayoutCode.RELATIVE_MOVE:

@@ -139,4 +139,5 @@ export class WiredActionLayoutCode {
     public static VARIABLE_FX_NUMBER_DISPLAY_EXTRA: number = 135;
 
     public static PROJECTILE_EXTRA: number = 136;
+    public static WRITE_TO_LOGS: number = 137;
 }
