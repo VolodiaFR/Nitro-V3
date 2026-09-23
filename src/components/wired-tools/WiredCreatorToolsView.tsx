@@ -124,6 +124,7 @@ import { WiredMonitorTabView } from './WiredMonitorTabView';
 import { WiredRoomLogsView } from './WiredRoomLogsView';
 import { WiredSelfDonationView } from './WiredSelfDonationView';
 import { WiredToolsSettingsTabView } from './WiredToolsSettingsTabView';
+import { WiredArrayInspectorView, wiredArrayVariableTypeOf } from './WiredArrayInspectorView';
 import { HOLDER_TYPE_FURNI, HOLDER_TYPE_USER, WiredHolderDescription, WiredVariableOwnersView, wiredVariableIdOf } from './WiredVariableOwnersView';
 import { WiredVariablesTabView } from './WiredVariablesTabView';
 import { useWiredCreatorToolsUiStore } from './wiredCreatorToolsUiStore';
@@ -189,6 +190,8 @@ export const WiredCreatorToolsView: FC<{}> = () => {
     const setInspectionGiveValue = useWiredCreatorToolsUiStore((s) => s.setInspectionGiveValue);
     const isVariableManageOpen = useWiredCreatorToolsUiStore((s) => s.isVariableManageOpen);
     const setIsVariableManageOpen = useWiredCreatorToolsUiStore((s) => s.setIsVariableManageOpen);
+    const isArrayInspectorOpen = useWiredCreatorToolsUiStore((s) => s.isArrayInspectorOpen);
+    const setIsArrayInspectorOpen = useWiredCreatorToolsUiStore((s) => s.setIsArrayInspectorOpen);
     const selectedManagedVariableEntry = useWiredCreatorToolsUiStore((s) => s.selectedManagedVariableEntry);
     const setSelectedManagedVariableEntry = useWiredCreatorToolsUiStore((s) => s.setSelectedManagedVariableEntry);
     const selectedManagedHolderVariableId = useWiredCreatorToolsUiStore((s) => s.selectedManagedHolderVariableId);
@@ -3196,6 +3199,8 @@ export const WiredCreatorToolsView: FC<{}> = () => {
                                 setSelectedManagedVariableEntry(null);
                                 setIsVariableManageOpen(true);
                             }}
+                            arrayInspectorCanOpen={!!selectedVariableDefinition?.itemId}
+                            onOpenArrayInspector={() => setIsArrayInspectorOpen(true)}
                             selectedVariableProperties={selectedVariableProperties}
                             selectedVariableTextValues={selectedVariableTextValues}
                         />
@@ -3317,6 +3322,14 @@ export const WiredCreatorToolsView: FC<{}> = () => {
                     describeHolder={describeVariableHolder}
                     onManage={setSelectedManagedVariableEntry}
                     onClose={() => setIsVariableManageOpen(false)}
+                />
+            )}
+            {isArrayInspectorOpen && !!selectedVariableDefinition?.itemId && (
+                <WiredArrayInspectorView
+                    definitionItemId={selectedVariableDefinition.itemId}
+                    variableName={selectedVariableDefinition.key}
+                    variableType={wiredArrayVariableTypeOf(variablesType)}
+                    onClose={() => setIsArrayInspectorOpen(false)}
                 />
             )}
             {isRoomLogsOpen && <WiredRoomLogsView onClose={() => setIsRoomLogsOpen(false)} />}

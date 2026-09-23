@@ -112,55 +112,32 @@ export class WiredActionLayoutCode {
     public static CONTRACT_TRADE: number = 112;
     public static CUSTOM_CONTRACT: number = 113;
     public static CHANGE_OPACITY: number = 114;
-    /**
-     * Walking to a furni borrowed TELEPORT, whose window offers a "teleport instantly" checkbox that
-     * this effect never reads — it walks. Same three slots, one control fewer.
-     */
     public static WALK_TO_FURNI: number = 115;
-    /** Sit, lie down, fast walk: they only need to know which users, not a kick message. */
     public static USER_TARGET: number = 116;
-    /** Move a user N tiles — the fourth slot the move/rotate window never sent. */
     public static MOVE_USER_TILES: number = 117;
-    /**
-     * The shapes that borrowed the chat composer. They store one string and a user source like the
-     * chat effects do, but the bubble style and the visibility choice mean nothing to them, and what
-     * the textarea held was never a message.
-     */
     public static EFFECT_AMOUNT: number = 118;
     public static EFFECT_BADGE: number = 119;
     public static EFFECT_TAG: number = 120;
     public static EFFECT_ID: number = 121;
     public static EFFECT_MESSAGE: number = 122;
     public static EFFECT_TEXT: number = 123;
-    /**
-     * Everyone in the room leaves their game, so there is nobody to pick. The stored source still
-     * decides whether the stack needs a triggering user, so it keeps its slot - it is just no longer
-     * a question the window asks.
-     */
     public static ALL_USERS_LEAVE_TEAM: number = 124;
-    /** The official override-height action: a two-way choice and a 0..8000 thousandths slider. */
     public static OVERRIDE_HEIGHT: number = 125;
 
-    /**
-     * Mints and serves a room variable over HTTP; the emulator registers it on
-     * wf_xtra_var_web_api. 126 and 127 are where the array boxes land, so this leaves those
-     * seats empty rather than have the two collide on whichever merges second.
-     */
+    public static MODIFY_ARRAY: number = 126;
+    public static ARRAY_CAPTURE_VARIABLE_EXTRA: number = 127;
+
     public static VARIABLE_WEB_API_EXTRA: number = 128;
-    /**
-     * The official click-settings action: what the selected users' clicks on avatars and furni do
-     * (walk behind, pass through). The emulator registers it on wf_act_click_conf.
-     */
+
     public static CLICK_SETTINGS: number = 129;
-    /**
-     * The six variable fx boxes (wf_xtra_var_fx_*): each draws the user or furni variable box on
-     * its own tile over the avatars or furni that hold a value. One editor serves all six; the
-     * code only picks the category.
-     */
+
     public static VARIABLE_FX_HEALTH_POINTS_EXTRA: number = 130;
     public static VARIABLE_FX_PROGRESS_BAR_EXTRA: number = 131;
     public static VARIABLE_FX_LEVELLING_PROGRESS_EXTRA: number = 132;
     public static VARIABLE_FX_STATUS_BAR_EXTRA: number = 133;
     public static VARIABLE_FX_BOSS_BAR_EXTRA: number = 134;
     public static VARIABLE_FX_NUMBER_DISPLAY_EXTRA: number = 135;
+
+    public static PROJECTILE_EXTRA: number = 136;
+    public static WRITE_TO_LOGS: number = 137;
 }

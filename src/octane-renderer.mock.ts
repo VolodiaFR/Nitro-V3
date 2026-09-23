@@ -924,6 +924,28 @@ class RecordingComposer {
 }
 
 export class WiredRoomLogsPageComposer extends RecordingComposer {}
+export class WiredArrayInspectionRequestComposer extends RecordingComposer {}
+export class WiredArrayInspectionUpdateComposer extends RecordingComposer {}
+export class WiredArrayInspectionDataEvent extends StubClass {}
+export interface IWiredArrayInspectionData {
+    definition: {
+        arrayFormat: 'simple' | 'record';
+        arrayMode: 'list' | 'slots';
+        fields: Array<{ id: number; name: string; order: number; textConnected: boolean }>;
+        itemId: number;
+        maxEntries: number;
+        name: string;
+        variableType: number;
+        writable: boolean;
+    } | null;
+    entries: Array<{ connectedText: Record<string, string>; index: number; occupied: boolean; values: Record<string, string> }>;
+    hasArray: boolean;
+    occupiedCount: number;
+    page: number;
+    pageCount: number;
+    totalIndexes: number;
+}
+
 export class WiredVariableHoldersPageComposer extends RecordingComposer {}
 export class WiredLogPageEvent extends StubClass {}
 export class WiredVariableHoldersPageEvent extends StubClass {}
