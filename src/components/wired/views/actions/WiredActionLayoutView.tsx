@@ -1,4 +1,6 @@
 import { WiredActionLayoutCode, WIRED_FX_CATEGORY } from '../../../../api';
+import { WiredExtraArrayCaptureView } from '../extras/WiredExtraArrayCaptureView';
+import { WiredExtraProjectileView } from '../extras/WiredExtraProjectileView';
 import { WiredChestCurrencyView } from '../extras/WiredChestCurrencyView';
 import { WiredChestFurniView } from '../extras/WiredChestFurniView';
 import { WiredContractPaymentView } from '../extras/WiredContractPaymentView';
@@ -94,6 +96,7 @@ import { WiredActionMoveFurniToView } from './WiredActionMoveFurniToView';
 import { WiredActionMoveFurniView } from './WiredActionMoveFurniView';
 import { WiredActionMoveRotateUserView } from './WiredActionMoveRotateUserView';
 import { WiredActionClickSettingsView } from './WiredActionClickSettingsView';
+import { WiredActionModifyArrayView } from './WiredActionModifyArrayView';
 import { WiredActionMuteUserView } from './WiredActionMuteUserView';
 import { WiredActionNegativeCallAnotherStackView } from './WiredActionNegativeCallAnotherStackView';
 import { WiredActionPlaceFurniView } from './WiredActionPlaceFurniView';
@@ -196,6 +199,12 @@ export const WiredActionLayoutView = (code: number) => {
             return <WiredActionMuteUserView />;
         case WiredActionLayoutCode.CLICK_SETTINGS:
             return <WiredActionClickSettingsView />;
+        case WiredActionLayoutCode.MODIFY_ARRAY:
+            return <WiredActionModifyArrayView />;
+        case WiredActionLayoutCode.ARRAY_CAPTURE_VARIABLE_EXTRA:
+            return <WiredExtraArrayCaptureView />;
+        case WiredActionLayoutCode.PROJECTILE_EXTRA:
+            return <WiredExtraProjectileView />;
         case WiredActionLayoutCode.RELATIVE_MOVE:
             return <WiredActionRelativeMoveView />;
         case WiredActionLayoutCode.RESET:

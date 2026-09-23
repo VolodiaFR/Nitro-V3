@@ -12,19 +12,14 @@ export interface WiredVariablesTabViewProps {
     canVariableHighlight: boolean;
     variableManageCanOpen: boolean;
     onOpenManagePanel: () => void;
+    arrayInspectorCanOpen: boolean;
+    onOpenArrayInspector: () => void;
     canVariableClear: boolean;
     onClearVariable: () => void;
     selectedVariableProperties: { key: string; value: string }[];
     selectedVariableTextValues: VariableTextValue[];
 }
 
-/**
- * The "Variables" tab body of WiredCreatorToolsView. Extracted so the
- * parent module no longer carries 110 lines of inline JSX. Pure
- * presentation: every piece of state and every callback is supplied as
- * a prop, so this component is trivially memoizable and (eventually)
- * testable in isolation.
- */
 export const WiredVariablesTabView: FC<WiredVariablesTabViewProps> = ({
     variablePickerDefinitions,
     selectedVariableDefinition,
@@ -32,6 +27,8 @@ export const WiredVariablesTabView: FC<WiredVariablesTabViewProps> = ({
     canVariableHighlight,
     variableManageCanOpen,
     onOpenManagePanel,
+    arrayInspectorCanOpen,
+    onOpenArrayInspector,
     canVariableClear,
     onClearVariable,
     selectedVariableProperties,
@@ -88,6 +85,9 @@ export const WiredVariablesTabView: FC<WiredVariablesTabViewProps> = ({
                     </Button>
                     <Button disabled={!variableManageCanOpen} variant="secondary" onClick={onOpenManagePanel}>
                         Manage
+                    </Button>
+                    <Button disabled={!arrayInspectorCanOpen} variant="secondary" onClick={onOpenArrayInspector}>
+                        Contents
                     </Button>
                     <Button disabled={!canVariableClear} variant="secondary" onClick={onClearVariable}>
                         {localizeWithFallback('wiredmenu.variable_overview.delete_all.title', 'Clear this variable')}
