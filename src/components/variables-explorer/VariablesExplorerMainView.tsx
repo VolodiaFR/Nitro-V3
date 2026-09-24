@@ -34,6 +34,12 @@ export interface VariablesExplorerMainViewProps {
 
 const FIELD_CLASS = 'rounded border border-[#b8b2a4] bg-white px-2 py-[3px] text-[12px]';
 
+const emptyPickerText = (scope: 'user' | 'furni' | 'global'): string =>
+    localizeWithFallback(
+        `wiredmenu.variables_explorer.empty.${scope}`,
+        `No permanent ${scope} variables in this room. Set a variable to Permanent in its wired box to use it here.`
+    );
+
 export const VariablesExplorerMainView: FC<VariablesExplorerMainViewProps> = ({ connection, initialVariables, onDisconnect, onClose }) => {
     const client = useMemo(() => createVariablesWebApiClient({ ...connection, baseUrl: connection.hotelUrl }), [connection]);
     const hotelName = useMemo(() => GetWebApiHotels().find((hotel) => hotel.url === connection.hotelUrl)?.name ?? connection.hotelUrl, [connection]);
@@ -133,6 +139,7 @@ export const VariablesExplorerMainView: FC<VariablesExplorerMainViewProps> = ({ 
                     </div>
                     <WiredVariablesTabView
                         variablePickerDefinitions={definitions}
+                        emptyPickerText={emptyPickerText(scope)}
                         selectedVariableDefinition={selectedDefinition}
                         onPickVariable={(key) => setSelectedKeys((previous) => ({ ...previous, [variablesType]: key }))}
                         canVariableHighlight={false}

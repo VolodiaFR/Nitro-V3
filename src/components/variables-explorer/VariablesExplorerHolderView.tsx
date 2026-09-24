@@ -23,6 +23,7 @@ const WARNING_TEXT: Record<ExplorerHolderTarget['scope'], string> = {
 
 interface LocalHolder {
     name: string;
+    owner?: string;
     preview: ReactNode;
 }
 
@@ -43,6 +44,7 @@ const describeLocalHolder = (target: ExplorerHolderTarget, entityId: number | nu
 
         return {
             name: data?.name || data?.className || '',
+            owner: roomObject.model?.getValue<string>(RoomObjectVariable.FURNITURE_OWNER_NAME) || '',
             preview: <LayoutRoomObjectImageView category={category} objectId={entityId} roomId={roomId} />
         };
     }
@@ -52,13 +54,14 @@ const describeLocalHolder = (target: ExplorerHolderTarget, entityId: number | nu
         target.kind === 'pets'
             ? users.getPetData(entityId)
             : target.kind === 'bots'
-              ? (users.getBotData(entityId) ?? users.getRentableBotData(entityId))
+              ? (users.getBotData(-entityId) ?? users.getRentableBotData(-entityId) ?? users.getBotData(entityId))
               : users.getUserData(entityId);
 
     if (!userData) return null;
 
     return {
         name: userData.name ?? '',
+        owner: target.kind === 'users' ? '' : (userData.ownerName ?? ''),
         preview:
             target.kind === 'pets' ? (
                 <LayoutPetImageView direction={2} figure={userData.figure} />
@@ -181,7 +184,7 @@ export const VariablesExplorerHolderView: FC<VariablesExplorerHolderViewProps> =
                     />
                 )
             }
-            infoLines={holderInfoLines(target, profile, roomId, local?.name)}
+            infoLines={holderInfoLines(target, profile, roomId, local?.name, local?.owner)}
             variablesTitle={target.scope === 'global' ? 'Room variables:' : 'Assigned variables:'}
             entries={entries.map((entry) => ({
                 id: entry.name,

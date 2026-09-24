@@ -42,7 +42,10 @@ import {
     LocalizeText,
     localizeWithFallback,
     NotificationAlertType,
+    decodeUserVariableHolder,
+    findUserVariableHolderData,
     SendMessageComposer,
+    userVariableHolderKey,
     WiredSelectionVisualizer
 } from '../../api';
 import wiredGlobalPlaceholderImage from '../../assets/images/wiredtools/wired_global_placeholder.png';
@@ -1343,11 +1346,12 @@ export const WiredCreatorToolsView: FC<{}> = () => {
     const canEditSelectedUser = useMemo(() => {
         return !!selectedUser && !!roomSession && roomSettings.canModify;
     }, [selectedUser, roomSession, roomSettings.canModify]);
+    const selectedUserHolderKey = selectedUser ? userVariableHolderKey(selectedUser.kind, selectedUser.userId) : 0;
     const selectedUserAssignments = useMemo(() => {
-        if (!selectedUser) return [];
+        if (!selectedUserHolderKey) return [];
 
-        return userVariableAssignments[selectedUser.userId] ?? [];
-    }, [selectedUser, userVariableAssignments]);
+        return userVariableAssignments[selectedUserHolderKey] ?? [];
+    }, [selectedUserHolderKey, userVariableAssignments]);
     const selectedUserAssignmentMap = useMemo(() => {
         return new Map(selectedUserAssignments.map((assignment) => [assignment.variableItemId, assignment]));
     }, [selectedUserAssignments]);
@@ -1440,7 +1444,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
             ...(selectedUser.roomEntryMethod === 'teleport' && Number(selectedUser.roomEntryTeleportId ?? 0) > 0
                 ? [{ key: '@room_entry.teleport_id', value: String(selectedUser.roomEntryTeleportId) }]
                 : []),
-            { key: identityKey, value: String(selectedUser.userId ?? 0) },
+            { key: identityKey, value: String(selectedUser.kind === 'bot' || selectedUser.kind === 'rentable_bot' ? Math.abs(selectedUser.userId ?? 0) : (selectedUser.userId ?? 0)) },
             ...(petOwnerId > 0 ? [{ key: '@pet_owner_id', value: String(petOwnerId) }] : [])
         ];
     }, [
@@ -1877,12 +1881,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
     const describeVariableHolder = useCallback(
         (entityType: number, entityId: number, entityName: string): WiredHolderDescription => {
             if (entityType === HOLDER_TYPE_USER) {
-                const userData = roomSession
-                    ? (roomSession.userDataManager.getUserData(entityId) ??
-                      roomSession.userDataManager.getBotData(entityId) ??
-                      roomSession.userDataManager.getRentableBotData(entityId) ??
-                      roomSession.userDataManager.getPetData(entityId))
-                    : null;
+                const userData = findUserVariableHolderData(roomSession?.userDataManager, entityId);
                 let categoryLabel = 'Habbo';
 
                 switch (userData?.type) {
@@ -1897,7 +1896,10 @@ export const WiredCreatorToolsView: FC<{}> = () => {
                         break;
                 }
 
-                return { categoryLabel, entityName: userData?.name || entityName || `#${entityId}` };
+                return {
+                    categoryLabel,
+                    entityName: userData?.name || entityName || `#${decodeUserVariableHolder(entityId)?.id ?? entityId}`
+                };
             }
 
             if (entityType === HOLDER_TYPE_FURNI) {
@@ -1938,12 +1940,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
 
                 if (!assignment) continue;
 
-                const userId = Number(userIdString);
-                const userData =
-                    roomSession.userDataManager.getUserData(userId) ??
-                    roomSession.userDataManager.getBotData(userId) ??
-                    roomSession.userDataManager.getRentableBotData(userId) ??
-                    roomSession.userDataManager.getPetData(userId);
+                const userData = findUserVariableHolderData(roomSession.userDataManager, Number(userIdString));
                 const roomIndex = Number(userData?.roomIndex ?? -1);
 
                 if (roomIndex < 0) continue;
@@ -2198,24 +2195,30 @@ export const WiredCreatorToolsView: FC<{}> = () => {
         if (!selectedManagedVariableEntry || !roomSession) return [];
 
         if (variablesType === 'user') {
-            const userData =
-                roomSession.userDataManager.getUserData(selectedManagedVariableEntry.entityId) ??
-                roomSession.userDataManager.getBotData(selectedManagedVariableEntry.entityId) ??
-                roomSession.userDataManager.getRentableBotData(selectedManagedVariableEntry.entityId) ??
-                roomSession.userDataManager.getPetData(selectedManagedVariableEntry.entityId);
+            const userData = findUserVariableHolderData(roomSession.userDataManager, selectedManagedVariableEntry.entityId);
+            const holder = decodeUserVariableHolder(selectedManagedVariableEntry.entityId);
+            const idLabel = holder?.kind === 'pet' ? 'Pet id' : holder?.kind === 'bot' ? 'Bot id' : 'User id';
 
             return [
                 `${variableManageCategoryHeader}: ${selectedManagedVariableEntry.categoryLabel}`,
                 `Name: ${selectedManagedVariableEntry.entityName}`,
-                `User id: ${selectedManagedVariableEntry.entityId}`,
+                ...(holder?.kind !== 'user' && userData?.ownerName ? [`Owner: ${userData.ownerName}`] : []),
+                `${idLabel}: ${holder?.id ?? selectedManagedVariableEntry.entityId}`,
                 ...(userData?.type === RoomObjectType.PET ? [`Pet level: ${Number(userData.petLevel ?? 0)}`] : [])
             ];
         }
 
         if (variablesType === 'furni') {
+            const category = selectedManagedVariableEntry.categoryLabel === 'Wall furni' ? RoomObjectCategory.WALL : RoomObjectCategory.FLOOR;
+            const owner =
+                GetRoomEngine()
+                    .getRoomObject(roomSession.roomId, selectedManagedVariableEntry.entityId, category)
+                    ?.model?.getValue<string>(RoomObjectVariable.FURNITURE_OWNER_NAME) || '';
+
             return [
                 `${variableManageCategoryHeader}: ${selectedManagedVariableEntry.categoryLabel}`,
                 `Name: ${selectedManagedVariableEntry.entityName}`,
+                ...(owner ? [`Owner: ${owner}`] : []),
                 `Furni id: ${selectedManagedVariableEntry.entityId}`
             ];
         }
@@ -2245,12 +2248,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
     const managedHolderUserData = useMemo(() => {
         if (variablesType !== 'user' || !selectedManagedVariableEntry || !roomSession) return null;
 
-        return (
-            roomSession.userDataManager.getUserData(selectedManagedVariableEntry.entityId) ??
-            roomSession.userDataManager.getBotData(selectedManagedVariableEntry.entityId) ??
-            roomSession.userDataManager.getRentableBotData(selectedManagedVariableEntry.entityId) ??
-            roomSession.userDataManager.getPetData(selectedManagedVariableEntry.entityId)
-        );
+        return findUserVariableHolderData(roomSession.userDataManager, selectedManagedVariableEntry.entityId);
     }, [variablesType, selectedManagedVariableEntry, roomSession]);
     const managedHolderFurniCategory = useMemo(() => {
         if (variablesType !== 'furni' || !selectedManagedVariableEntry) return RoomObjectCategory.FLOOR;
@@ -2497,7 +2495,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
                     return;
                 }
 
-                updateUserVariableValue(selectedUser.userId, customDefinition.itemId, parsed);
+                updateUserVariableValue(selectedUserHolderKey, customDefinition.itemId, parsed);
                 setEditingVariable(null);
                 setEditingValue('');
                 return;
@@ -2965,7 +2963,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
         const nextValue = Number.isFinite(parsedValue) ? parsedValue : 0;
 
         if (inspectionType === 'user' && selectedUser) {
-            assignUserVariable(selectedUser.userId, selectedInspectionGiveDefinition.itemId, nextValue);
+            assignUserVariable(selectedUserHolderKey, selectedInspectionGiveDefinition.itemId, nextValue);
             setSelectedInspectionVariableKeys((prev) => ({ ...prev, user: selectedInspectionGiveDefinition.name }));
         } else if (inspectionType === 'furni' && selectedFurni) {
             assignFurniVariable(selectedFurni.objectId, selectedInspectionGiveDefinition.itemId, nextValue);
@@ -2980,6 +2978,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
         inspectionGiveValue,
         inspectionType,
         selectedUser,
+        selectedUserHolderKey,
         assignUserVariable,
         selectedFurni,
         assignFurniVariable
@@ -2990,7 +2989,7 @@ export const WiredCreatorToolsView: FC<{}> = () => {
         cancelVariableEdit();
 
         if (inspectionType === 'user' && selectedUser) {
-            removeUserVariable(selectedUser.userId, selectedInspectionCustomDefinition.itemId);
+            removeUserVariable(selectedUserHolderKey, selectedInspectionCustomDefinition.itemId);
             setSelectedInspectionVariableKeys((prev) => ({ ...prev, user: '' }));
         } else if (inspectionType === 'furni' && selectedFurni) {
             removeFurniVariable(selectedFurni.objectId, selectedInspectionCustomDefinition.itemId);

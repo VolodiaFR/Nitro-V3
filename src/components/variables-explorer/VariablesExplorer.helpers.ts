@@ -96,19 +96,27 @@ export const holderPanelTitle = (target: ExplorerHolderTarget): string => {
 };
 
 /** The same lines as the creator tools' holder window; `localName` is what the room you stand in knows. */
-export const holderInfoLines = (target: ExplorerHolderTarget, profile: WebApiProfile | null, roomId: number, localName = ''): string[] => {
+export const holderInfoLines = (target: ExplorerHolderTarget, profile: WebApiProfile | null, roomId: number, localName = '', localOwner = ''): string[] => {
     if (target.scope === 'global') return ['Scope: Room', `Room id: ${roomId}`];
 
     const entityId = resolvedEntityId(target, profile);
     const idText = entityId === null ? '?' : String(entityId);
 
-    if (target.scope === 'furni') return [`Furni type: ${targetKindLabel(target.kind)}`, ...(localName ? [`Name: ${localName}`] : []), `Furni id: ${idText}`];
+    if (target.scope === 'furni') {
+        return [
+            `Furni type: ${targetKindLabel(target.kind)}`,
+            ...(localName ? [`Name: ${localName}`] : []),
+            ...(localOwner ? [`Owner: ${localOwner}`] : []),
+            `Furni id: ${idText}`
+        ];
+    }
 
     const name = profile?.name || localName || ('username' in target ? target.username : '');
 
     return [
         `User type: ${targetKindLabel(target.kind as WebApiUserTargetKind)}`,
         ...(name ? [`Name: ${name}`] : []),
+        ...(localOwner ? [`Owner: ${localOwner}`] : []),
         `${target.kind === 'pets' ? 'Pet' : target.kind === 'bots' ? 'Bot' : 'User'} id: ${idText}`
     ];
 };

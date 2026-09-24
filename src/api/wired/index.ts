@@ -12,6 +12,7 @@ export * from './WiredSelectionVisualizer';
 export * from './WiredStringDelimeter';
 export * from './WiredStyle';
 export * from './WiredTriggerLayoutCode';
+export * from './WiredUserVariableHolders';
 export * from './WiredClipboard';
 export * from './WiredVariableFx';
 export * from './WiredTeleportToRoom';

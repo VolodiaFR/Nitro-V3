@@ -112,7 +112,7 @@ export const WiredVariableOwnersPanel = (props: WiredVariableOwnersPanelProps) =
             case 'type':
                 return { content: description.categoryLabel };
             case 'name':
-                return holder.entityType === HOLDER_TYPE_USER && onOpenUserProfile
+                return holder.entityType === HOLDER_TYPE_USER && holder.entityId > 0 && onOpenUserProfile
                     ? {
                           content: (
                               <button className={LINK_CLASS} type="button" onClick={() => onOpenUserProfile(holder.entityId)}>

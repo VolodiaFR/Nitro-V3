@@ -3,6 +3,7 @@ import { FC, useMemo } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { AvatarInfoRentableBot, BotSkillsEnum, LocalizeText, SendMessageComposer } from '../../../../../api';
 import { Button, Column, Flex, LayoutAvatarImageView, LayoutBadgeImageView, Text, UserProfileIconView } from '../../../../../common';
+import { InfoStandUnitIdView } from './InfoStandUnitIdView';
 
 interface InfoStandWidgetRentableBotViewProps {
     avatarInfo: AvatarInfoRentableBot;
@@ -66,6 +67,7 @@ export const InfoStandWidgetRentableBotView: FC<InfoStandWidgetRentableBotViewPr
                                 {LocalizeText('infostand.text.botowner', ['name'], [avatarInfo.ownerName])}
                             </Text>
                         </div>
+                        <InfoStandUnitIdView id={avatarInfo.webID} ownerId={avatarInfo.ownerId} />
                         {avatarInfo.carryItem > 0 && (
                             <>
                                 <hr className="m-0" />

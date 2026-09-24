@@ -27,6 +27,8 @@ export interface WiredVariablesTabViewProps {
     showTextValues?: boolean;
     clearLabel?: string;
     onOpenWebApiExplorer?: () => void;
+    /** Shown in the picker while it has nothing to list. */
+    emptyPickerText?: string;
 }
 
 export const WiredVariablesTabView: FC<WiredVariablesTabViewProps> = ({
@@ -49,7 +51,8 @@ export const WiredVariablesTabView: FC<WiredVariablesTabViewProps> = ({
     showArrayInspector = true,
     showTextValues = true,
     clearLabel,
-    onOpenWebApiExplorer
+    onOpenWebApiExplorer,
+    emptyPickerText
 }) => {
     const storeVariablesType = useWiredCreatorToolsUiStore((s) => s.variablesType);
     const setStoreVariablesType = useWiredCreatorToolsUiStore((s) => s.setVariablesType);
@@ -94,6 +97,11 @@ export const WiredVariablesTabView: FC<WiredVariablesTabViewProps> = ({
                                             <td className="px-3 py-1 text-[#444]">{variable.key}</td>
                                         </tr>
                                     ))}
+                                    {!variablePickerDefinitions.length && !!emptyPickerText && (
+                                        <tr>
+                                            <td className="px-3 py-2 text-[#777] text-center">{emptyPickerText}</td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
