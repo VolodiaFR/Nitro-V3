@@ -1,7 +1,8 @@
-import { FC, KeyboardEvent, useMemo, useState } from 'react';
-import { giveableVariables, parseInt32, profileToEntries, VariablesWebApiClient, WebApiVariable } from '../../api';
+import { GetRoomEngine, GetSessionDataManager, RoomObjectCategory, RoomObjectVariable } from '@octane/renderer';
+import { FC, KeyboardEvent, ReactNode, useMemo, useState } from 'react';
+import { GetRoomSession, giveableVariables, parseInt32, profileToEntries, VariablesWebApiClient, WebApiVariable } from '../../api';
 import wiredGlobalPlaceholderImage from '../../assets/images/wiredtools/wired_global_placeholder.png';
-import { Button } from '../../common';
+import { Button, LayoutAvatarImageView, LayoutPetImageView, LayoutRoomObjectImageView } from '../../common';
 import { useVariablesExplorerProfile } from '../../hooks/variables-explorer/useVariablesExplorerProfile';
 import { WiredVariableHolderPanelView } from '../wired-tools/WiredVariableHolderPanelView';
 import { EXPLORER_VARIABLE_ELEMENTS, ExplorerHolderTarget, holderInfoLines, holderPanelTitle, resolvedEntityId } from './VariablesExplorer.helpers';
@@ -18,6 +19,53 @@ const WARNING_TEXT: Record<ExplorerHolderTarget['scope'], string> = {
     user: 'Changes go through the Variables Web API and fire the room wired like any other variable change.',
     furni: 'Only furni placed in this room can hold furni variables.',
     global: 'Global variables are room-scoped. Values can be changed, not removed.'
+};
+
+interface LocalHolder {
+    name: string;
+    preview: ReactNode;
+}
+
+/** What the room you stand in knows about the holder: its name and picture. Null outside that room. */
+const describeLocalHolder = (target: ExplorerHolderTarget, entityId: number | null, roomId: number): LocalHolder | null => {
+    const session = GetRoomSession();
+
+    if (target.scope === 'global' || entityId === null || !session || session.roomId !== roomId) return null;
+
+    if (target.scope === 'furni') {
+        const category = target.kind === 'wall' ? RoomObjectCategory.WALL : RoomObjectCategory.FLOOR;
+        const roomObject = GetRoomEngine().getRoomObject(roomId, entityId, category);
+
+        if (!roomObject) return null;
+
+        const typeId = roomObject.model?.getValue<number>(RoomObjectVariable.FURNITURE_TYPE_ID);
+        const data = target.kind === 'wall' ? GetSessionDataManager().getWallItemData(typeId) : GetSessionDataManager().getFloorItemData(typeId);
+
+        return {
+            name: data?.name || data?.className || '',
+            preview: <LayoutRoomObjectImageView category={category} objectId={entityId} roomId={roomId} />
+        };
+    }
+
+    const users = session.userDataManager;
+    const userData =
+        target.kind === 'pets'
+            ? users.getPetData(entityId)
+            : target.kind === 'bots'
+              ? (users.getBotData(entityId) ?? users.getRentableBotData(entityId))
+              : users.getUserData(entityId);
+
+    if (!userData) return null;
+
+    return {
+        name: userData.name ?? '',
+        preview:
+            target.kind === 'pets' ? (
+                <LayoutPetImageView direction={2} figure={userData.figure} />
+            ) : (
+                <LayoutAvatarImageView direction={2} figure={userData.figure} />
+            )
+    };
 };
 
 /** The creator tools' holder window, fed from a Variables Web API profile. */
@@ -114,6 +162,7 @@ export const VariablesExplorerHolderView: FC<VariablesExplorerHolderViewProps> =
     };
 
     const icon = EXPLORER_VARIABLE_ELEMENTS.find((element) => element.key === target.scope)?.icon;
+    const local = describeLocalHolder(target, entityId, roomId);
 
     return (
         <WiredVariableHolderPanelView
@@ -122,15 +171,17 @@ export const VariablesExplorerHolderView: FC<VariablesExplorerHolderViewProps> =
             onRefresh={() => void reload()}
             onClose={onClose}
             preview={
-                <img
-                    alt=""
-                    className={
-                        target.scope === 'global' ? 'max-w-full max-h-full object-contain p-3' : 'w-auto h-auto max-w-[48px] max-h-[48px] object-contain'
-                    }
-                    src={target.scope === 'global' ? wiredGlobalPlaceholderImage : icon}
-                />
+                local?.preview ?? (
+                    <img
+                        alt=""
+                        className={
+                            target.scope === 'global' ? 'max-w-full max-h-full object-contain p-3' : 'w-auto h-auto max-w-[48px] max-h-[48px] object-contain'
+                        }
+                        src={target.scope === 'global' ? wiredGlobalPlaceholderImage : icon}
+                    />
+                )
             }
-            infoLines={holderInfoLines(target, profile, roomId)}
+            infoLines={holderInfoLines(target, profile, roomId, local?.name)}
             variablesTitle={target.scope === 'global' ? 'Room variables:' : 'Assigned variables:'}
             entries={entries.map((entry) => ({
                 id: entry.name,

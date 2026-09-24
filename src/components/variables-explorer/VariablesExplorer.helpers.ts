@@ -95,15 +95,16 @@ export const holderPanelTitle = (target: ExplorerHolderTarget): string => {
     }
 };
 
-export const holderInfoLines = (target: ExplorerHolderTarget, profile: WebApiProfile | null, roomId: number): string[] => {
+/** The same lines as the creator tools' holder window; `localName` is what the room you stand in knows. */
+export const holderInfoLines = (target: ExplorerHolderTarget, profile: WebApiProfile | null, roomId: number, localName = ''): string[] => {
     if (target.scope === 'global') return ['Scope: Room', `Room id: ${roomId}`];
 
     const entityId = resolvedEntityId(target, profile);
     const idText = entityId === null ? '?' : String(entityId);
 
-    if (target.scope === 'furni') return [`Furni type: ${targetKindLabel(target.kind)}`, `Furni id: ${idText}`];
+    if (target.scope === 'furni') return [`Furni type: ${targetKindLabel(target.kind)}`, ...(localName ? [`Name: ${localName}`] : []), `Furni id: ${idText}`];
 
-    const name = profile?.name ?? ('username' in target ? target.username : '');
+    const name = profile?.name || localName || ('username' in target ? target.username : '');
 
     return [
         `User type: ${targetKindLabel(target.kind as WebApiUserTargetKind)}`,

@@ -18,6 +18,12 @@ describe('VariablesExplorer helpers', () => {
         expect(resolvedEntityId(target, { entityId: 44, variables: {} })).toBe(44);
         expect(holderInfoLines(target, { entityId: 44, name: 'Bob', variables: {} }, 1)).toEqual(['User type: Habbo', 'Name: Bob', 'User id: 44']);
         expect(holderInfoLines({ scope: 'global' }, null, 5)).toEqual(['Scope: Room', 'Room id: 5']);
+        expect(holderInfoLines({ scope: 'furni', kind: 'floor', entityId: 9 }, null, 5, 'Highscore')).toEqual([
+            'Furni type: Floor furni',
+            'Name: Highscore',
+            'Furni id: 9'
+        ]);
+        expect(holderInfoLines({ scope: 'furni', kind: 'floor', entityId: 9 }, null, 5)).toEqual(['Furni type: Floor furni', 'Furni id: 9']);
     });
 
     it('shows api variables in the creator tools picker as permanent custom variables', () => {
