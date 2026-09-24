@@ -952,5 +952,7 @@
     "wiredmenu.chests.chest_control.result.locked": "تم قفل %count% صندوق.",
     "wiredmenu.chests.chest_control.result.unlocked": "تم فتح %count% صندوق.",
     "wiredmenu.chests.chest_control.result.none": "لم يتغير شيء - كانت الصناديق بالفعل على هذه الحالة.",
-    "wiredmenu.chests.chest_control.owner_only": "مالك الغرفة وحده يمكنه قفل كل الصناديق."
+    "wiredmenu.chests.chest_control.owner_only": "مالك الغرفة وحده يمكنه قفل كل الصناديق.",
+    "wiredfurni.web_api.error.own_room_only": "يمكنك وضع إضافة Variables Web API في غرفتك فقط.",
+    "wiredfurni.web_api.error.max_per_user": "لديك بالفعل الحد الأقصى من إضافات Variables Web API."
 }

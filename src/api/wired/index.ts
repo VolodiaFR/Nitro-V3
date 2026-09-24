@@ -15,3 +15,7 @@ export * from './WiredTriggerLayoutCode';
 export * from './WiredClipboard';
 export * from './WiredVariableFx';
 export * from './WiredTeleportToRoom';
+export * from './WiredWebApi';
+export * from './variablesWebApi';
+export * from './variablesExplorer';
+export * from './WiredWebApiConfig';
