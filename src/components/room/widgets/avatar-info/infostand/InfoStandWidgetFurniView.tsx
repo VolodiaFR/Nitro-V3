@@ -36,7 +36,7 @@ import {
     Text,
     UserProfileIconView
 } from '../../../../../common';
-import { useHasPermission, useMessageEvent, useOctaneEvent, useRareValues, useRoom, useWiredTools } from '../../../../../hooks';
+import { useFurniPickupGuard, useHasPermission, useMessageEvent, useOctaneEvent, useRareValues, useRoom, useWiredTools } from '../../../../../hooks';
 import { OctaneInput } from '../../../../../layout';
 import { ImagePositionEditorView } from './ImagePositionEditorView';
 
@@ -138,6 +138,7 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
     const [canMove, setCanMove] = useState(false);
     const [canRotate, setCanRotate] = useState(false);
     const [canUse, setCanUse] = useState(false);
+    const { pickupRoomObject } = useFurniPickupGuard();
     const [canRemoveBackground, setCanRemoveBackground] = useState(false);
     const [furniKeys, setFurniKeys] = useState<string[]>([]);
     const [furniValues, setFurniValues] = useState<string[]>([]);
@@ -573,11 +574,11 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                     GetRoomEngine().processRoomObjectOperation(avatarInfo.id, avatarInfo.category, RoomObjectOperationType.OBJECT_ROTATE_POSITIVE);
                     break;
                 case 'pickup':
-                    if (pickupMode === PICKUP_MODE_FULL) {
-                        GetRoomEngine().processRoomObjectOperation(avatarInfo.id, avatarInfo.category, RoomObjectOperationType.OBJECT_PICKUP);
-                    } else {
-                        GetRoomEngine().processRoomObjectOperation(avatarInfo.id, avatarInfo.category, RoomObjectOperationType.OBJECT_EJECT);
-                    }
+                    pickupRoomObject(
+                        avatarInfo.id,
+                        avatarInfo.category,
+                        pickupMode === PICKUP_MODE_FULL ? RoomObjectOperationType.OBJECT_PICKUP : RoomObjectOperationType.OBJECT_EJECT
+                    );
                     break;
                 case 'use':
                     GetRoomEngine().useRoomObject(avatarInfo.id, avatarInfo.category);
@@ -615,7 +616,7 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                 }
             }
         },
-        [avatarInfo, pickupMode, customKeys, customValues, getFurniSettingsAsString]
+        [avatarInfo, pickupMode, customKeys, customValues, getFurniSettingsAsString, pickupRoomObject]
     );
 
     const getGroupBadgeCode = useCallback(() => {

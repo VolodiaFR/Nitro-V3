@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { AvatarInfoUser, LocalizeText } from '../../../../../api';
 import { Column, Flex, LayoutAvatarImageView, LayoutBadgeImageView, Text } from '../../../../../common';
+import { InfoStandUnitIdView } from './InfoStandUnitIdView';
 
 interface InfoStandWidgetBotViewProps {
     avatarInfo: AvatarInfoUser;
@@ -52,6 +53,7 @@ export const InfoStandWidgetBotView: FC<InfoStandWidgetBotViewProps> = (props) =
                         </Text>
                     </div>
                 )}
+                <InfoStandUnitIdView id={avatarInfo.webID} />
             </Column>
         </Column>
     );

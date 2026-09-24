@@ -4,6 +4,7 @@ import { FaTimes } from 'react-icons/fa';
 import { ConvertSeconds, GetConfigurationValue, LocalizeText, SendMessageComposer } from '../../../../../api';
 import { Button, Column, Flex, LayoutCounterTimeView, LayoutPetImageView, LayoutRarityLevelView, Text, UserProfileIconView } from '../../../../../common';
 import { useRoom, useSessionInfo } from '../../../../../hooks';
+import { InfoStandUnitIdView } from './InfoStandUnitIdView';
 
 // TypeScript interface for AvatarInfoPet
 interface AvatarInfoPet {
@@ -302,6 +303,7 @@ export const InfoStandWidgetPetView: FC<InfoStandWidgetPetViewProps> = ({ avatar
                                 {LocalizeText('infostand.text.petowner', ['name'], [avatarInfo.ownerName])}
                             </Text>
                         </div>
+                        <InfoStandUnitIdView id={avatarInfo.id} ownerId={avatarInfo.ownerId} />
                     </div>
                 </Column>
             </Column>

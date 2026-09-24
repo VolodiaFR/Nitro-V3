@@ -949,6 +949,8 @@ export interface IWiredArrayInspectionData {
 export class WiredVariableHoldersPageComposer extends RecordingComposer {}
 export class WiredLogPageEvent extends StubClass {}
 export class WiredVariableHoldersPageEvent extends StubClass {}
+export class WiredGenerateWebApiKeyComposer extends RecordingComposer {}
+export class WiredWebApiKeyResultEvent extends StubClass {}
 export class WiredClickSettingsEvent extends StubClass {}
 export class WiredVariableFxConfigsEvent extends StubClass {}
 export class WiredVariableFxConfigsRemovedEvent extends StubClass {}
