@@ -1,0 +1,10 @@
+/*
+ * The card theme flattens every .bg-white inside a card to a 4% tint
+ * (OctaneCardView.css, .octane-card-shell :where(.bg-white ...)). That suits
+ * flat panels, but a menu that floats over the content has to be opaque or
+ * the rows underneath read through it.
+ */
+.octane-housekeeping .octane-hk-popover {
+    background: #ffffff !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22) !important;
+}

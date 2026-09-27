@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { formatCompactNumber, formatHousekeepingDate, formatRelativePast, formatUptime, resolveHousekeepingTarget } from './HousekeepingFormatters';
+import {
+    formatCompactNumber,
+    formatHousekeepingDate,
+    formatRelativePast,
+    formatUptime,
+    isAuditEntryAboutRoom,
+    isAuditEntryAboutUser,
+    resolveHousekeepingTarget
+} from './HousekeepingFormatters';
 
 describe('formatHousekeepingDate', () => {
     it('reads unix seconds, not milliseconds', () => {
@@ -110,5 +118,19 @@ describe('formatCompactNumber', () => {
         expect(formatCompactNumber(1_000_000)).toBe('1.0M');
         expect(formatCompactNumber(2_300_000)).toBe('2.3M');
         expect(formatCompactNumber(15_000_000)).toBe('15M');
+    });
+});
+
+describe('audit entry filters', () => {
+    it('matches a user by target id only for user entries', () => {
+        expect(isAuditEntryAboutUser({ targetType: 'user', targetId: 7, detail: '' }, 7)).toBe(true);
+        expect(isAuditEntryAboutUser({ targetType: 'user', targetId: 8, detail: '' }, 7)).toBe(false);
+        expect(isAuditEntryAboutUser({ targetType: 'room', targetId: 7, detail: '' }, 7)).toBe(false);
+    });
+
+    it('matches a room by target or by the room id in the detail, without prefix collisions', () => {
+        expect(isAuditEntryAboutRoom({ targetType: 'room', targetId: 41, detail: '' }, 41)).toBe(true);
+        expect(isAuditEntryAboutRoom({ targetType: 'user', targetId: null, detail: 'roomId=41 open=true' }, 41)).toBe(true);
+        expect(isAuditEntryAboutRoom({ targetType: 'user', targetId: null, detail: 'roomId=411 open=true' }, 41)).toBe(false);
     });
 });

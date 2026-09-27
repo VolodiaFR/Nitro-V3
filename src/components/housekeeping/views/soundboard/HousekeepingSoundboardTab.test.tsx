@@ -153,7 +153,7 @@ describe('HousekeepingSoundboardTab', () => {
         const source = readFileSync(resolve(process.cwd(), 'src/components/housekeeping/HousekeepingView.tsx'), 'utf8');
 
         expect(source).toContain("useHasPermission('acc_soundboard_manage')");
-        expect(source).toContain('showSoundboard');
+        expect(source).toContain('id !== HousekeepingTabId.SOUNDBOARD || canManageSoundboard');
         expect(source).toContain('activeTab === HousekeepingTabId.SOUNDBOARD && !canManageSoundboard');
         expect(source).toContain('setActiveTab(HousekeepingTabId.USERS)');
     });

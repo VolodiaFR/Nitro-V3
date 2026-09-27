@@ -197,8 +197,8 @@ export const HousekeepingDashboardTab: FC = () => {
                         </div>
                     </div>
 
-                    {/* 4-card grid */}
-                    <div className="grid grid-cols-2 gap-1.5">
+                    {/* Rooms, tickets and server side by side */}
+                    <div className="grid grid-cols-3 gap-1.5">
                         <StatCard
                             icon={<FaHome size={14} />}
                             label={LocalizeText('housekeeping.dashboard.rooms_active')}
@@ -214,15 +214,13 @@ export const HousekeepingDashboardTab: FC = () => {
                             subtle={LocalizeText('housekeeping.dashboard.sanctions_24h', ['count'], [String(dashboard.sanctionsLast24h)])}
                             tone={dashboard.pendingTickets > 0 ? 'rose' : 'emerald'}
                         />
-                        <div className="col-span-2">
-                            <StatCard
-                                icon={<FaServer size={14} />}
-                                label={LocalizeText('housekeeping.dashboard.server')}
-                                value={formatUptime(dashboard.serverUptimeSeconds)}
-                                subtle={dashboard.serverVersion}
-                                tone="violet"
-                            />
-                        </div>
+                        <StatCard
+                            icon={<FaServer size={14} />}
+                            label={LocalizeText('housekeeping.dashboard.server')}
+                            value={formatUptime(dashboard.serverUptimeSeconds)}
+                            subtle={dashboard.serverVersion}
+                            tone="violet"
+                        />
                     </div>
 
                     <form onSubmit={onSubmitAlert} className="flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50/40 p-2.5">

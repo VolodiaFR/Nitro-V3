@@ -78,3 +78,15 @@ export const resolveHousekeepingTarget = (entry: { targetLabel: string; targetId
 
     return roomId ? `#${roomId[1]}` : '-';
 };
+
+type AuditEntryTarget = { targetType: string; targetId: number | null; detail: string };
+
+/** Whether an audit entry acted on this user. */
+export const isAuditEntryAboutUser = (entry: AuditEntryTarget, userId: number): boolean => entry.targetType === 'user' && entry.targetId === userId;
+
+/**
+ * Whether an audit entry acted on this room: room actions carry the room id in
+ * the target once the server writes it, and in the detail ("roomId=12") today.
+ */
+export const isAuditEntryAboutRoom = (entry: AuditEntryTarget, roomId: number): boolean =>
+    (entry.targetType === 'room' && entry.targetId === roomId) || (entry.detail || '').split(/\s+/).includes(`roomId=${roomId}`);

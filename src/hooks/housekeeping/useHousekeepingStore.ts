@@ -4,7 +4,9 @@ import {
     emptySample,
     GetConfigurationValue,
     HousekeepingApi,
+    HousekeepingRoomSection,
     HousekeepingTabId,
+    HousekeepingUserSection,
     IHousekeepingActionLogEntry,
     IHousekeepingDashboard,
     IHousekeepingRoom,
@@ -36,6 +38,10 @@ const useHousekeepingStoreInner = () => {
     const [activeTab, setActiveTab] = useLocalStorage<HousekeepingTabId>('nitro.housekeeping.last_tab', HousekeepingTabId.DASHBOARD);
     const [selectedUser, setSelectedUser] = useState<IHousekeepingUser | null>(null);
     const [selectedRoom, setSelectedRoom] = useState<IHousekeepingRoom | null>(null);
+    // Which sub-page of the user and room pages is open; kept here so a link
+    // (housekeeping/tab/economy) or the global search can land on a sub-page.
+    const [userSection, setUserSection] = useState<HousekeepingUserSection>(HousekeepingUserSection.SANCTIONS);
+    const [roomSection, setRoomSection] = useState<HousekeepingRoomSection>(HousekeepingRoomSection.SETTINGS);
     const [actionLog, setActionLog] = useState<IHousekeepingActionLogEntry[]>([]);
     const [isUserLoading, setIsUserLoading] = useState(false);
     const [isRoomLoading, setIsRoomLoading] = useState(false);
@@ -446,6 +452,10 @@ const useHousekeepingStoreInner = () => {
         setSelectedUser,
         selectedRoom,
         setSelectedRoom,
+        userSection,
+        setUserSection,
+        roomSection,
+        setRoomSection,
         actionLog,
         setActionLog,
         isUserLoading,

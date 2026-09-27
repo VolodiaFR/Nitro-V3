@@ -29,9 +29,30 @@ export const HousekeepingTabId = {
     DASHBOARD: 'dashboard',
     USERS: 'users',
     ROOMS: 'rooms',
+    /** Kept for old links and stored tabs: economy now lives in the user page. */
     ECONOMY: 'economy',
     AUDIT: 'audit',
+    HOTEL: 'hotel',
     SOUNDBOARD: 'soundboard'
 } as const;
 
 export type HousekeepingTabId = (typeof HousekeepingTabId)[keyof typeof HousekeepingTabId];
+
+/** Sub-pages of the user page. */
+export const HousekeepingUserSection = {
+    SANCTIONS: 'sanctions',
+    ECONOMY: 'economy',
+    ACCOUNT: 'account',
+    HISTORY: 'history'
+} as const;
+
+export type HousekeepingUserSection = (typeof HousekeepingUserSection)[keyof typeof HousekeepingUserSection];
+
+/** Sub-pages of the room page. */
+export const HousekeepingRoomSection = {
+    SETTINGS: 'settings',
+    MODERATION: 'moderation',
+    HISTORY: 'history'
+} as const;
+
+export type HousekeepingRoomSection = (typeof HousekeepingRoomSection)[keyof typeof HousekeepingRoomSection];

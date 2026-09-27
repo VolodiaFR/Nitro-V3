@@ -46,8 +46,8 @@ describe('housekeepingTabsForMode', () => {
             HousekeepingTabId.DASHBOARD,
             HousekeepingTabId.USERS,
             HousekeepingTabId.ROOMS,
-            HousekeepingTabId.ECONOMY,
             HousekeepingTabId.AUDIT,
+            HousekeepingTabId.HOTEL,
             HousekeepingTabId.SOUNDBOARD
         ]);
     });
