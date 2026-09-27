@@ -2,7 +2,7 @@ import { FC, useState } from 'react';
 import { FaDoorOpen, FaExchangeAlt, FaLock, FaShieldAlt, FaTrash, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
 import { IHousekeepingRoom, LocalizeText } from '../../../../api';
 import { Button } from '../../../../common';
-import { useHousekeeping, useHousekeepingConfirm } from '../../../../hooks';
+import { useHousekeeping, useHousekeepingConfirm, useHousekeepingDangerConfirm } from '../../../../hooks';
 import { HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
 
 const DEFAULT_MUTE_MINUTES = 10;
@@ -11,6 +11,7 @@ const DEFAULT_MUTE_MINUTES = 10;
 export const HousekeepingRoomModerationView: FC<{ room: IHousekeepingRoom }> = ({ room }) => {
     const { isActionPending, openRoom, closeRoom, muteRoom, kickAllFromRoom, transferRoomOwnership, deleteRoom } = useHousekeeping();
     const confirm = useHousekeepingConfirm();
+    const confirmDanger = useHousekeepingDangerConfirm();
     const [muteMinutes, setMuteMinutes] = useState<number>(DEFAULT_MUTE_MINUTES);
     const [newOwnerId, setNewOwnerId] = useState<number>(0);
 
@@ -66,8 +67,11 @@ export const HousekeepingRoomModerationView: FC<{ room: IHousekeepingRoom }> = (
                         gap={1}
                         variant="primary"
                         onClick={() =>
-                            confirm(LocalizeText('housekeeping.room.transfer.confirm', ['id'], [String(newOwnerId)]), () =>
-                                transferRoomOwnership(room.id, newOwnerId)
+                            confirmDanger(
+                                LocalizeText('housekeeping.room.transfer.confirm', ['id'], [String(newOwnerId)]),
+                                String(newOwnerId),
+                                () => transferRoomOwnership(room.id, newOwnerId),
+                                LocalizeText('housekeeping.room.transfer')
                             )
                         }
                     >
@@ -85,7 +89,14 @@ export const HousekeepingRoomModerationView: FC<{ room: IHousekeepingRoom }> = (
                         disabled={isActionPending}
                         gap={1}
                         variant="danger"
-                        onClick={() => confirm(LocalizeText('housekeeping.room.delete.confirm'), () => deleteRoom(room.id))}
+                        onClick={() =>
+                            confirmDanger(
+                                LocalizeText('housekeeping.room.delete.confirm'),
+                                String(room.id),
+                                () => deleteRoom(room.id),
+                                LocalizeText('housekeeping.room.delete')
+                            )
+                        }
                     >
                         <FaTrash size={10} />
                         <span>{LocalizeText('housekeeping.room.delete')}</span>

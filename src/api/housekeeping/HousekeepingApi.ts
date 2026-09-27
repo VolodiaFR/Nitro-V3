@@ -52,6 +52,9 @@ import {
 
 const USER_SEARCH_LIMIT = 8;
 
+/** Action key of the immediate answer a server sends when it refuses the housekeeping permission. */
+export const HOUSEKEEPING_DENIED_ACTION_KEY = 'housekeeping.denied';
+
 const searchUsersViaPacket = async (prefix: string, signal?: AbortSignal): Promise<IHousekeepingUserSummary[]> => {
     SendMessageComposer(new HabboSearchComposer(prefix));
 
@@ -163,7 +166,8 @@ const runHkAction = async (composer: IMessageComposer<unknown[]>, expectedAction
     try {
         return await awaitMessageEvent<HousekeepingActionResultEvent, IHousekeepingActionResult>(HousekeepingActionResultEvent, {
             timeoutMs,
-            accept: (e) => e.getParser()?.actionKey === expectedActionKey,
+            // A server that refuses the permission answers at once under its own key.
+            accept: (e) => e.getParser()?.actionKey === expectedActionKey || e.getParser()?.actionKey === HOUSEKEEPING_DENIED_ACTION_KEY,
             select: (event) => {
                 const parser = event.getParser();
 

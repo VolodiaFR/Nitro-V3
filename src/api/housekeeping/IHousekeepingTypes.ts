@@ -112,3 +112,12 @@ export interface IHousekeepingDashboard {
     serverUptimeSeconds: number;
     serverVersion: string;
 }
+
+/** A dangerous action waiting for the operator to type its target before it runs. */
+export interface IHousekeepingDangerRequest {
+    message: string;
+    /** What the operator has to type, e.g. the room id or the username. */
+    expected: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+}

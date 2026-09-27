@@ -90,3 +90,48 @@ export const isAuditEntryAboutUser = (entry: AuditEntryTarget, userId: number): 
  */
 export const isAuditEntryAboutRoom = (entry: AuditEntryTarget, roomId: number): boolean =>
     (entry.targetType === 'room' && entry.targetId === roomId) || (entry.detail || '').split(/\s+/).includes(`roomId=${roomId}`);
+
+/**
+ * Splits an audit detail ("roomId=12 reason=spam in chat ip=1.2.3.4") into
+ * its fields. A value runs until the next "key=", so reasons and messages may
+ * contain spaces; text before the first key is kept under an empty key.
+ */
+export const parseAuditDetail = (detail: string): { key: string; value: string }[] => {
+    const text = (detail || '').trim();
+
+    if (!text) return [];
+
+    const fields: { key: string; value: string }[] = [];
+    const pattern = /(?:^|\s)([A-Za-z_][A-Za-z0-9_]*)=/g;
+    const marks: { key: string; start: number; valueStart: number }[] = [];
+    let match: RegExpExecArray | null;
+
+    while ((match = pattern.exec(text)) !== null) {
+        marks.push({ key: match[1], start: match.index, valueStart: match.index + match[0].length });
+    }
+
+    if (!marks.length) return [{ key: '', value: text }];
+    if (marks[0].start > 0) fields.push({ key: '', value: text.slice(0, marks[0].start).trim() });
+
+    marks.forEach((mark, index) => {
+        const end = index + 1 < marks.length ? marks[index + 1].start : text.length;
+
+        fields.push({ key: mark.key, value: text.slice(mark.valueStart, end).trim() });
+    });
+
+    return fields;
+};
+
+/** Full local date and time of a timestamp in milliseconds. */
+export const formatHousekeepingDateTime = (timestampMs: number, locale?: string): string => {
+    if (!Number.isFinite(timestampMs) || timestampMs <= 0) return '-';
+
+    return new Date(timestampMs).toLocaleString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+};

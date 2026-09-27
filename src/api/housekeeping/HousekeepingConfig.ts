@@ -1,5 +1,6 @@
 import { GetConfigurationValue } from '../octane';
 import { HousekeepingTabId } from './HousekeepingActionType';
+import { HousekeepingSanctionTemplate, resolveSanctionTemplates } from './HousekeepingSanctionTemplates';
 
 export type HousekeepingMode = 'light' | 'full';
 
@@ -52,3 +53,9 @@ export const housekeepingTabsForMode = (mode: HousekeepingMode): HousekeepingTab
 
     return all.filter((tab) => isHousekeepingTabAvailable(tab, mode));
 };
+
+export const HOUSEKEEPING_SANCTION_TEMPLATES_KEY = 'housekeeping.sanction_templates';
+
+/** The sanction templates for this hotel: `housekeeping.sanction_templates` when set and valid, else the defaults. */
+export const getHousekeepingSanctionTemplates = (): HousekeepingSanctionTemplate[] =>
+    resolveSanctionTemplates(GetConfigurationValue<unknown>(HOUSEKEEPING_SANCTION_TEMPLATES_KEY, null));

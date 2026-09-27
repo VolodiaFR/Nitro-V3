@@ -2,7 +2,7 @@ import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { FaBan, FaCircle, FaCoins, FaGavel, FaHistory, FaSearch, FaTimes, FaUserCog, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
 import { HousekeepingUserSection, isAuditEntryAboutUser, LocalizeText } from '../../../../api';
 import { Button } from '../../../../common';
-import { useHousekeeping, useHousekeepingConfirm, useRoomUserListSnapshot } from '../../../../hooks';
+import { useHousekeeping, useHousekeepingDangerConfirm, useRoomUserListSnapshot } from '../../../../hooks';
 import { HousekeepingHistoryView } from '../common/HousekeepingHistoryView';
 import { HousekeepingEmptyState } from '../common/HousekeepingParts';
 import { HousekeepingSubTab, HousekeepingSubTabs } from '../common/HousekeepingSubTabs';
@@ -38,7 +38,7 @@ export const HousekeepingUsersTab: FC = () => {
         setUserSection,
         actionLog
     } = useHousekeeping();
-    const confirm = useHousekeepingConfirm();
+    const confirmDanger = useHousekeepingDangerConfirm();
     const roomUsers = useRoomUserListSnapshot();
     const [query, setQuery] = useState('');
     const [isFocused, setIsFocused] = useState(false);
@@ -77,7 +77,12 @@ export const HousekeepingUsersTab: FC = () => {
         if (selectedUserIds.length === 0) return;
 
         if (selectedUserIds.length >= BULK_CONFIRM_THRESHOLD) {
-            confirm(LocalizeText('housekeeping.bulk.confirm', ['action', 'count'], [actionLabel, String(selectedUserIds.length)]), runner);
+            confirmDanger(
+                LocalizeText('housekeeping.bulk.confirm', ['action', 'count'], [actionLabel, String(selectedUserIds.length)]),
+                String(selectedUserIds.length),
+                runner,
+                actionLabel
+            );
 
             return;
         }

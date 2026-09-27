@@ -100,3 +100,7 @@ export const validateRoomSettings = (input: IHousekeepingRoomSettingsInput): Hou
 
     return HousekeepingErrorKey.NONE;
 };
+
+/** Whether the typed text matches the target a dangerous action asks for; case and outer spaces do not matter. */
+export const matchesDangerConfirmation = (typed: string, expected: string): boolean =>
+    !!expected && (typed || '').trim().toLowerCase() === expected.trim().toLowerCase();

@@ -7,6 +7,7 @@ import {
     HK_ROOM_NAME_MAX,
     HK_MIN_RANK,
     HousekeepingErrorKey,
+    matchesDangerConfirmation,
     parseRoomTags,
     validateAmount,
     validateBanHours,
@@ -141,5 +142,17 @@ describe('validateRoomSettings', () => {
         expect(validateRoomSettings({ ...valid, tradeMode: 3 })).toBe(HousekeepingErrorKey.INVALID_TRADE_MODE);
         expect(validateRoomSettings({ ...valid, tags: ['a', 'b', 'c'] })).toBe(HousekeepingErrorKey.INVALID_TAGS);
         expect(validateRoomSettings({ ...valid, tags: ['x'.repeat(16)] })).toBe(HousekeepingErrorKey.INVALID_TAGS);
+    });
+});
+
+describe('matchesDangerConfirmation', () => {
+    it('matches the expected target ignoring case and outer spaces', () => {
+        expect(matchesDangerConfirmation(' Tester ', 'tester')).toBe(true);
+        expect(matchesDangerConfirmation('411', '411')).toBe(true);
+    });
+
+    it('refuses anything else, and an empty target', () => {
+        expect(matchesDangerConfirmation('41', '411')).toBe(false);
+        expect(matchesDangerConfirmation('', '')).toBe(false);
     });
 });

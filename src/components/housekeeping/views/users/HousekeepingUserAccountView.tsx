@@ -2,13 +2,13 @@ import { FC, useState } from 'react';
 import { FaKey, FaUserShield } from 'react-icons/fa';
 import { HK_MAX_RANK, IHousekeepingUser, LocalizeText } from '../../../../api';
 import { Button } from '../../../../common';
-import { useHousekeeping, useHousekeepingConfirm } from '../../../../hooks';
+import { useHousekeeping, useHousekeepingDangerConfirm } from '../../../../hooks';
 import { HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
 
 /** Rank and password of the selected user. */
 export const HousekeepingUserAccountView: FC<{ user: IHousekeepingUser }> = ({ user }) => {
     const { isActionPending, setUserRank, resetUserPassword } = useHousekeeping();
-    const confirm = useHousekeepingConfirm();
+    const confirmDanger = useHousekeepingDangerConfirm();
     const [rankDraft, setRankDraft] = useState<number>(user.rank || 1);
 
     return (
@@ -29,8 +29,11 @@ export const HousekeepingUserAccountView: FC<{ user: IHousekeepingUser }> = ({ u
                         gap={1}
                         variant="primary"
                         onClick={() =>
-                            confirm(LocalizeText('housekeeping.user.account.rank_confirm', ['rank'], [String(rankDraft)]), () =>
-                                setUserRank(user.id, rankDraft)
+                            confirmDanger(
+                                LocalizeText('housekeeping.user.account.rank_confirm', ['rank'], [String(rankDraft)]),
+                                user.username,
+                                () => setUserRank(user.id, rankDraft),
+                                LocalizeText('housekeeping.action.set_rank')
                             )
                         }
                     >
@@ -47,7 +50,14 @@ export const HousekeepingUserAccountView: FC<{ user: IHousekeepingUser }> = ({ u
                         disabled={isActionPending}
                         gap={1}
                         variant="secondary"
-                        onClick={() => confirm(LocalizeText('housekeeping.action.reset_password.confirm'), () => resetUserPassword(user.id))}
+                        onClick={() =>
+                            confirmDanger(
+                                LocalizeText('housekeeping.action.reset_password.confirm'),
+                                user.username,
+                                () => resetUserPassword(user.id),
+                                LocalizeText('housekeeping.action.reset_password')
+                            )
+                        }
                     >
                         <FaKey size={10} />
                         <span>{LocalizeText('housekeeping.action.reset_password')}</span>

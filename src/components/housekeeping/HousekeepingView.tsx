@@ -3,6 +3,7 @@ import { FC, useEffect, useMemo } from 'react';
 import { getHousekeepingMode, HousekeepingTabId, HousekeepingUserSection, isHousekeepingEnabled, isHousekeepingTabAvailable, LocalizeText } from '../../api';
 import { DraggableWindowPosition, OctaneCardContentView, OctaneCardHeaderView, OctaneCardView, WidgetErrorBoundary } from '../../common';
 import { useHasPermission, useHousekeepingStore } from '../../hooks';
+import { HousekeepingDangerConfirmView } from './HousekeepingDangerConfirmView';
 import { HousekeepingPasswordReveal } from './HousekeepingPasswordReveal';
 import { HousekeepingStatusBanner } from './HousekeepingStatusBanner';
 import { HousekeepingAuditTab } from './views/audit/HousekeepingAuditTab';
@@ -212,7 +213,7 @@ export const HousekeepingView: FC = () => {
                 windowPosition={DraggableWindowPosition.TOP_CENTER}
             >
                 <OctaneCardHeaderView headerText={`${LocalizeText('housekeeping.title')}${headerSuffix}`} onCloseClick={() => closePanel()} />
-                <div className="flex min-h-0 grow text-black">
+                <div className="relative flex min-h-0 grow text-black">
                     <HousekeepingSidebar active={activeTab} groups={navGroups} onSelect={setActiveTab} />
                     <div className="flex min-w-0 grow flex-col">
                         <HousekeepingStatusBanner />
@@ -221,6 +222,7 @@ export const HousekeepingView: FC = () => {
                             {activeView}
                         </OctaneCardContentView>
                     </div>
+                    <HousekeepingDangerConfirmView />
                 </div>
             </OctaneCardView>
         </WidgetErrorBoundary>

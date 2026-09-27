@@ -1,6 +1,13 @@
-import { Dispatch, FC, SetStateAction } from 'react';
+import { Dispatch, FC, SetStateAction, useMemo } from 'react';
 import { FaBan, FaBolt, FaGavel, FaLock, FaPlug, FaUndo, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
-import { findTemplateById, HK_SANCTION_TEMPLATES, HousekeepingSanctionType, IHousekeepingUser, LocalizeText } from '../../../../api';
+import {
+    findTemplateById,
+    getHousekeepingSanctionTemplates,
+    HousekeepingSanctionType,
+    IHousekeepingUser,
+    localizeSanctionTemplate,
+    LocalizeText
+} from '../../../../api';
 import { Button } from '../../../../common';
 import { useHousekeeping } from '../../../../hooks';
 import { HOUSEKEEPING_INPUT_CLASS, HousekeepingField, HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
@@ -40,11 +47,12 @@ export const HousekeepingUserSanctionsView: FC<HousekeepingUserSanctionsViewProp
         muteInCurrentRoom
     } = useHousekeeping();
     const reason = sanctionReason(draft);
+    const templates = useMemo(() => getHousekeepingSanctionTemplates(), []);
     const update = <K extends keyof HousekeepingSanctionDraft>(key: K, value: HousekeepingSanctionDraft[K]) =>
         setDraft((previous) => ({ ...previous, [key]: value }));
 
     const applyTemplate = (id: string) => {
-        const template = findTemplateById(id);
+        const template = findTemplateById(id, templates);
 
         setDraft((previous) => {
             if (!template) return { ...previous, templateId: id };
@@ -52,7 +60,7 @@ export const HousekeepingUserSanctionsView: FC<HousekeepingUserSanctionsViewProp
             return {
                 ...previous,
                 templateId: id,
-                reason: template.defaultReason,
+                reason: localizeSanctionTemplate(template).reason,
                 banHours: template.type === HousekeepingSanctionType.BAN ? template.durationValue : previous.banHours,
                 muteMinutes: template.type === HousekeepingSanctionType.MUTE ? template.durationValue : previous.muteMinutes,
                 tradeLockHours: template.type === HousekeepingSanctionType.TRADE_LOCK ? template.durationValue : previous.tradeLockHours
@@ -89,9 +97,9 @@ export const HousekeepingUserSanctionsView: FC<HousekeepingUserSanctionsViewProp
                     <HousekeepingField label={LocalizeText('housekeeping.field.template')}>
                         <select className={HOUSEKEEPING_INPUT_CLASS} value={draft.templateId} onChange={(event) => applyTemplate(event.target.value)}>
                             <option value="">{LocalizeText('housekeeping.field.template.none')}</option>
-                            {HK_SANCTION_TEMPLATES.map((template) => (
+                            {templates.map((template) => (
                                 <option key={template.id} value={template.id}>
-                                    {template.name}
+                                    {localizeSanctionTemplate(template).name}
                                 </option>
                             ))}
                         </select>

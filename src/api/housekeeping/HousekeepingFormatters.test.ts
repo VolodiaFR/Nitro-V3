@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
     formatCompactNumber,
     formatHousekeepingDate,
+    parseAuditDetail,
     formatRelativePast,
     formatUptime,
     isAuditEntryAboutRoom,
@@ -132,5 +133,24 @@ describe('audit entry filters', () => {
         expect(isAuditEntryAboutRoom({ targetType: 'room', targetId: 41, detail: '' }, 41)).toBe(true);
         expect(isAuditEntryAboutRoom({ targetType: 'user', targetId: null, detail: 'roomId=41 open=true' }, 41)).toBe(true);
         expect(isAuditEntryAboutRoom({ targetType: 'user', targetId: null, detail: 'roomId=411 open=true' }, 41)).toBe(false);
+    });
+});
+
+describe('parseAuditDetail', () => {
+    it('splits key=value pairs and keeps spaces inside values', () => {
+        expect(parseAuditDetail('roomId=12 reason=spam in chat ip=1.2.3.4')).toEqual([
+            { key: 'roomId', value: '12' },
+            { key: 'reason', value: 'spam in chat' },
+            { key: 'ip', value: '1.2.3.4' }
+        ]);
+    });
+
+    it('keeps free text and an empty detail', () => {
+        expect(parseAuditDetail('')).toEqual([]);
+        expect(parseAuditDetail('manual note')).toEqual([{ key: '', value: 'manual note' }]);
+        expect(parseAuditDetail('note first minutes=5')).toEqual([
+            { key: '', value: 'note first' },
+            { key: 'minutes', value: '5' }
+        ]);
     });
 });

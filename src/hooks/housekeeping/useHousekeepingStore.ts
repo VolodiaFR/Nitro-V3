@@ -8,6 +8,7 @@ import {
     HousekeepingTabId,
     HousekeepingUserSection,
     IHousekeepingActionLogEntry,
+    IHousekeepingDangerRequest,
     IHousekeepingDashboard,
     IHousekeepingRoom,
     IHousekeepingRoomSummary,
@@ -42,6 +43,8 @@ const useHousekeepingStoreInner = () => {
     // (housekeeping/tab/economy) or the global search can land on a sub-page.
     const [userSection, setUserSection] = useState<HousekeepingUserSection>(HousekeepingUserSection.SANCTIONS);
     const [roomSection, setRoomSection] = useState<HousekeepingRoomSection>(HousekeepingRoomSection.SETTINGS);
+    // The dangerous action waiting for its typed confirmation, if any.
+    const [dangerRequest, setDangerRequest] = useState<IHousekeepingDangerRequest | null>(null);
     const [actionLog, setActionLog] = useState<IHousekeepingActionLogEntry[]>([]);
     const [isUserLoading, setIsUserLoading] = useState(false);
     const [isRoomLoading, setIsRoomLoading] = useState(false);
@@ -456,6 +459,8 @@ const useHousekeepingStoreInner = () => {
         setUserSection,
         roomSection,
         setRoomSection,
+        dangerRequest,
+        setDangerRequest,
         actionLog,
         setActionLog,
         isUserLoading,
