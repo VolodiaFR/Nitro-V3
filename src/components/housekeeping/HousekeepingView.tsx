@@ -20,6 +20,14 @@ import { HousekeepingRoomsTab } from './views/rooms/HousekeepingRoomsTab';
 import { HousekeepingSoundboardTab } from './views/soundboard/HousekeepingSoundboardTab';
 import { HousekeepingUsersTab } from './views/users/HousekeepingUsersTab';
 
+/** Only the active tab spells its name, so all six fit; the others keep icon and tooltip. */
+const HousekeepingTabLabel: FC<{ icon: string; label: string; isActive: boolean }> = ({ icon, label, isActive }) => (
+    <div className="flex items-center gap-1.5 text-xs" title={label}>
+        <span className={`octane-icon octane-icon-hk-tab ${icon}`} />
+        {isActive && <span className="whitespace-nowrap">{label}</span>}
+    </div>
+);
+
 const TAB_IDS: HousekeepingTabId[] = [
     HousekeepingTabId.DASHBOARD,
     HousekeepingTabId.USERS,
@@ -186,46 +194,55 @@ export const HousekeepingView: FC = () => {
                 <OctaneCardTabsView>
                     {showDashboard && (
                         <OctaneCardTabsItemView isActive={activeTab === HousekeepingTabId.DASHBOARD} onClick={() => setActiveTab(HousekeepingTabId.DASHBOARD)}>
-                            <div className="flex items-center gap-1.5 text-xs">
-                                <span className="octane-icon octane-icon-hk-tab icon-housekeeping" />
-                                <span>{LocalizeText('housekeeping.tab.dashboard')}</span>
-                            </div>
+                            <HousekeepingTabLabel
+                                icon="icon-housekeeping"
+                                isActive={activeTab === HousekeepingTabId.DASHBOARD}
+                                label={LocalizeText('housekeeping.tab.dashboard')}
+                            />
                         </OctaneCardTabsItemView>
                     )}
                     <OctaneCardTabsItemView isActive={activeTab === HousekeepingTabId.USERS} onClick={() => setActiveTab(HousekeepingTabId.USERS)}>
-                        <div className="flex items-center gap-1.5 text-xs">
-                            <span className="octane-icon octane-icon-hk-tab icon-modtools" />
-                            <span>{LocalizeText('housekeeping.tab.users')}</span>
-                        </div>
+                        <HousekeepingTabLabel
+                            icon="icon-modtools"
+                            isActive={activeTab === HousekeepingTabId.USERS}
+                            label={LocalizeText('housekeeping.tab.users')}
+                        />
                     </OctaneCardTabsItemView>
                     <OctaneCardTabsItemView isActive={activeTab === HousekeepingTabId.ROOMS} onClick={() => setActiveTab(HousekeepingTabId.ROOMS)}>
-                        <div className="flex items-center gap-1.5 text-xs">
-                            <span className="octane-icon octane-icon-hk-tab icon-rooms" />
-                            <span>{LocalizeText('housekeeping.tab.rooms')}</span>
-                        </div>
+                        <HousekeepingTabLabel
+                            icon="icon-rooms"
+                            isActive={activeTab === HousekeepingTabId.ROOMS}
+                            label={LocalizeText('housekeeping.tab.rooms')}
+                        />
                     </OctaneCardTabsItemView>
                     {showEconomy && (
                         <OctaneCardTabsItemView isActive={activeTab === HousekeepingTabId.ECONOMY} onClick={() => setActiveTab(HousekeepingTabId.ECONOMY)}>
-                            <div className="flex items-center gap-1.5 text-xs">
-                                <span className="octane-icon octane-icon-hk-tab icon-catalog" />
-                                <span>{LocalizeText('housekeeping.tab.economy')}</span>
-                            </div>
+                            <HousekeepingTabLabel
+                                icon="icon-catalog"
+                                isActive={activeTab === HousekeepingTabId.ECONOMY}
+                                label={LocalizeText('housekeeping.tab.economy')}
+                            />
                         </OctaneCardTabsItemView>
                     )}
                     {showAudit && (
                         <OctaneCardTabsItemView isActive={activeTab === HousekeepingTabId.AUDIT} onClick={() => setActiveTab(HousekeepingTabId.AUDIT)}>
-                            <div className="flex items-center gap-1.5 text-xs">
-                                <span className="octane-icon octane-icon-hk-tab icon-message" />
-                                <span>{LocalizeText('housekeeping.tab.audit')}</span>
-                            </div>
+                            <HousekeepingTabLabel
+                                icon="icon-message"
+                                isActive={activeTab === HousekeepingTabId.AUDIT}
+                                label={LocalizeText('housekeeping.tab.audit')}
+                            />
                         </OctaneCardTabsItemView>
                     )}
                     {showSoundboard && (
-                        <OctaneCardTabsItemView isActive={activeTab === HousekeepingTabId.SOUNDBOARD} onClick={() => setActiveTab(HousekeepingTabId.SOUNDBOARD)}>
-                            <div className="flex items-center gap-1.5 text-xs">
-                                <span className="octane-icon octane-icon-hk-tab icon-soundboard" />
-                                <span>{LocalizeText('housekeeping.tab.soundboard')}</span>
-                            </div>
+                        <OctaneCardTabsItemView
+                            isActive={activeTab === HousekeepingTabId.SOUNDBOARD}
+                            onClick={() => setActiveTab(HousekeepingTabId.SOUNDBOARD)}
+                        >
+                            <HousekeepingTabLabel
+                                icon="icon-soundboard"
+                                isActive={activeTab === HousekeepingTabId.SOUNDBOARD}
+                                label={LocalizeText('housekeeping.tab.soundboard')}
+                            />
                         </OctaneCardTabsItemView>
                     )}
                 </OctaneCardTabsView>

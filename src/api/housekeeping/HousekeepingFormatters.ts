@@ -11,7 +11,7 @@ const DAY = 24 * HOUR;
  * fresh-boot cases.
  */
 export const formatUptime = (seconds: number): string => {
-    if (!Number.isFinite(seconds) || seconds < 0) return '—';
+    if (!Number.isFinite(seconds) || seconds < 0) return '-';
     if (seconds < MINUTE) return `${Math.floor(seconds)}s`;
 
     const d = Math.floor(seconds / DAY);
@@ -30,7 +30,7 @@ export const formatUptime = (seconds: number): string => {
  * date string so the log entries stay scannable even after a week.
  */
 export const formatRelativePast = (timestampMs: number, nowMs: number = Date.now()): string => {
-    if (!Number.isFinite(timestampMs) || timestampMs <= 0) return '—';
+    if (!Number.isFinite(timestampMs) || timestampMs <= 0) return '-';
 
     const deltaSeconds = Math.max(0, Math.floor((nowMs - timestampMs) / 1000));
 
@@ -46,7 +46,7 @@ export const formatRelativePast = (timestampMs: number, nowMs: number = Date.now
 };
 
 export const formatCompactNumber = (value: number): string => {
-    if (!Number.isFinite(value)) return '—';
+    if (!Number.isFinite(value)) return '-';
 
     const abs = Math.abs(value);
 
@@ -54,4 +54,27 @@ export const formatCompactNumber = (value: number): string => {
     if (abs >= 1_000) return `${(value / 1_000).toFixed(abs >= 10_000 ? 0 : 1)}K`;
 
     return value.toString();
+};
+
+/**
+ * Calendar date for a unix time in seconds, as the server sends it (account
+ * creation, room creation). Zero or a missing value shows a dash.
+ */
+export const formatHousekeepingDate = (unixSeconds: number | null | undefined, locale?: string): string => {
+    if (!Number.isFinite(unixSeconds) || unixSeconds <= 0) return '-';
+
+    return new Date(unixSeconds * 1000).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+/**
+ * Readable target of an audit entry. The server leaves the label empty and,
+ * for room actions, keeps the room id only in the detail ("roomId=12 ...").
+ */
+export const resolveHousekeepingTarget = (entry: { targetLabel: string; targetId: number | null; detail: string }): string => {
+    if (entry.targetLabel) return entry.targetLabel;
+    if (entry.targetId) return `#${entry.targetId}`;
+
+    const roomId = /(?:^|\s)roomId=(\d+)/.exec(entry.detail || '');
+
+    return roomId ? `#${roomId[1]}` : '-';
 };

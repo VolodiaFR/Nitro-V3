@@ -1,11 +1,35 @@
 import { describe, expect, it } from 'vitest';
-import { formatCompactNumber, formatRelativePast, formatUptime } from './HousekeepingFormatters';
+import { formatCompactNumber, formatHousekeepingDate, formatRelativePast, formatUptime, resolveHousekeepingTarget } from './HousekeepingFormatters';
+
+describe('formatHousekeepingDate', () => {
+    it('reads unix seconds, not milliseconds', () => {
+        expect(formatHousekeepingDate(1_790_000_000, 'en-GB')).toContain('2026');
+    });
+
+    it('shows a dash for a missing or zero time', () => {
+        expect(formatHousekeepingDate(0)).toBe('-');
+        expect(formatHousekeepingDate(null)).toBe('-');
+        expect(formatHousekeepingDate(Number.NaN)).toBe('-');
+    });
+});
+
+describe('resolveHousekeepingTarget', () => {
+    it('prefers the label, then the target id', () => {
+        expect(resolveHousekeepingTarget({ targetLabel: 'alice', targetId: 4, detail: '' })).toBe('alice');
+        expect(resolveHousekeepingTarget({ targetLabel: '', targetId: 4, detail: '' })).toBe('#4');
+    });
+
+    it('falls back to the room id kept in the detail of room actions', () => {
+        expect(resolveHousekeepingTarget({ targetLabel: '', targetId: null, detail: 'roomId=411 open=false' })).toBe('#411');
+        expect(resolveHousekeepingTarget({ targetLabel: '', targetId: null, detail: 'minutes=5' })).toBe('-');
+    });
+});
 
 describe('formatUptime', () => {
-    it('renders 0/negative/NaN/Infinity as "—"', () => {
-        expect(formatUptime(-1)).toBe('—');
-        expect(formatUptime(NaN)).toBe('—');
-        expect(formatUptime(Infinity)).toBe('—');
+    it('renders 0/negative/NaN/Infinity as "-"', () => {
+        expect(formatUptime(-1)).toBe('-');
+        expect(formatUptime(NaN)).toBe('-');
+        expect(formatUptime(Infinity)).toBe('-');
     });
 
     it('renders seconds only for the fresh-boot case', () => {
@@ -33,10 +57,10 @@ describe('formatUptime', () => {
 describe('formatRelativePast', () => {
     const NOW = 1_700_000_000_000; // fixed reference
 
-    it('renders "—" for invalid input', () => {
-        expect(formatRelativePast(0, NOW)).toBe('—');
-        expect(formatRelativePast(-100, NOW)).toBe('—');
-        expect(formatRelativePast(NaN, NOW)).toBe('—');
+    it('renders "-" for invalid input', () => {
+        expect(formatRelativePast(0, NOW)).toBe('-');
+        expect(formatRelativePast(-100, NOW)).toBe('-');
+        expect(formatRelativePast(NaN, NOW)).toBe('-');
     });
 
     it('renders "now" for the first 5 seconds', () => {
@@ -65,9 +89,9 @@ describe('formatRelativePast', () => {
 });
 
 describe('formatCompactNumber', () => {
-    it('returns "—" for non-finite input', () => {
-        expect(formatCompactNumber(NaN)).toBe('—');
-        expect(formatCompactNumber(Infinity)).toBe('—');
+    it('returns "-" for non-finite input', () => {
+        expect(formatCompactNumber(NaN)).toBe('-');
+        expect(formatCompactNumber(Infinity)).toBe('-');
     });
 
     it('passes through small values', () => {

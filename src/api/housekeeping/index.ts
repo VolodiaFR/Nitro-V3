@@ -1,3 +1,4 @@
+export * from './HousekeepingActionLabel';
 export * from './HousekeepingActionType';
 export * from './HousekeepingApi';
 export * from './HousekeepingConfig';

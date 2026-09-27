@@ -27,14 +27,16 @@ vi.mock('../../../../hooks', () => ({
 vi.mock('../../../../api', () => {
     return {
         LocalizeText: (key: string) => key,
-        formatCompactNumber: (value: number) => (Number.isFinite(value) ? String(value) : '—'),
+        formatCompactNumber: (value: number) => (Number.isFinite(value) ? String(value) : '-'),
         formatRelativePast: () => 'now',
-        formatUptime: (value: number) => (Number.isFinite(value) ? `${value}s` : '—'),
+        formatUptime: (value: number) => (Number.isFinite(value) ? `${value}s` : '-'),
         HousekeepingApi: {
             sendHotelAlert: vi.fn(() => Promise.resolve({ ok: true, actionId: null, message: '' }))
         },
         HousekeepingTabId: { DASHBOARD: 'dashboard', USERS: 'users', ROOMS: 'rooms', ECONOMY: 'economy', AUDIT: 'audit' },
-        NotificationBubbleType: { INFO: 'INFO' }
+        localizeHousekeepingAction: (action: string) => action,
+        NotificationBubbleType: { INFO: 'INFO' },
+        resolveHousekeepingTarget: (entry: { targetLabel: string }) => entry.targetLabel || '-'
     };
 });
 

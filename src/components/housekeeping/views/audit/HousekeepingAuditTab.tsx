@@ -1,6 +1,14 @@
 import { FC, useMemo, useState } from 'react';
 import { FaCaretDown, FaCaretRight, FaCheck, FaExclamationCircle, FaFilter, FaStopwatch, FaSync, FaTrash } from 'react-icons/fa';
-import { formatRelativePast, GetConfigurationValue, IHousekeepingActionLogEntry, LocalizeText, sampleToMetric } from '../../../../api';
+import {
+    formatRelativePast,
+    GetConfigurationValue,
+    IHousekeepingActionLogEntry,
+    localizeHousekeepingAction,
+    LocalizeText,
+    resolveHousekeepingTarget,
+    sampleToMetric
+} from '../../../../api';
 import { Button } from '../../../../common';
 import { useHousekeepingStore, useLocalStorage } from '../../../../hooks';
 
@@ -149,18 +157,18 @@ export const HousekeepingAuditTab: FC = () => {
                                 {entry.actorName}
                             </span>
                             <span className="text-zinc-400 shrink-0">→</span>
-                            <span className="truncate grow" title={entry.targetLabel}>
+                            <span className="truncate grow" title={entry.detail}>
                                 <span
                                     className={`inline-block px-1 mr-1 rounded text-[9px] uppercase font-bold ${entry.targetType === 'user' ? 'bg-sky-100 text-sky-700' : entry.targetType === 'room' ? 'bg-violet-100 text-violet-700' : 'bg-amber-100 text-amber-700'}`}
                                 >
-                                    {entry.targetType}
+                                    {LocalizeText(`housekeeping.audit.target.${entry.targetType}`)}
                                 </span>
-                                {entry.targetLabel}
+                                {resolveHousekeepingTarget(entry)}
                             </span>
                             <span
                                 className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium ${entry.success ? 'bg-zinc-100 text-zinc-700' : 'bg-rose-100 text-rose-700'}`}
                             >
-                                {entry.action}
+                                {localizeHousekeepingAction(entry.action)}
                             </span>
                         </li>
                     ))}

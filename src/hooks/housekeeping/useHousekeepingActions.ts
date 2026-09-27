@@ -4,13 +4,15 @@ import {
     HousekeepingApi,
     HousekeepingErrorKey,
     IHousekeepingActionResult,
+    IHousekeepingRoomSettingsInput,
     LocalizeText,
     NotificationBubbleType,
     validateAmount,
     validateBanHours,
     validatePositiveId,
     validateRank,
-    validateReason
+    validateReason,
+    validateRoomSettings
 } from '../../api';
 import { useNotification } from '../notification';
 import { useHousekeepingStore } from './useHousekeepingStore';
@@ -247,7 +249,7 @@ export const useHousekeepingActions = () => {
             const result = await runAction(() => HousekeepingApi.openRoom(roomId), 'openRoom');
 
             if (result && result.ok !== false && selectedRoom && selectedRoom.id === roomId) {
-                setSelectedRoom({ ...selectedRoom, isLocked: false });
+                setSelectedRoom({ ...selectedRoom, isLocked: false, settings: selectedRoom.settings ? { ...selectedRoom.settings, state: 0 } : null });
             }
 
             return result;
@@ -262,7 +264,34 @@ export const useHousekeepingActions = () => {
             const result = await runAction(() => HousekeepingApi.closeRoom(roomId), 'closeRoom');
 
             if (result && result.ok !== false && selectedRoom && selectedRoom.id === roomId) {
-                setSelectedRoom({ ...selectedRoom, isLocked: true });
+                setSelectedRoom({ ...selectedRoom, isLocked: true, settings: selectedRoom.settings ? { ...selectedRoom.settings, state: 1 } : null });
+            }
+
+            return result;
+        },
+        [runAction, markActionDone, selectedRoom, setSelectedRoom]
+    );
+
+    const saveRoomSettings = useCallback(
+        async (roomId: number, input: IHousekeepingRoomSettingsInput) => {
+            if (!validationOr(validatePositiveId(roomId, 'room'), markActionDone)) return null;
+            if (!validationOr(validateRoomSettings(input), markActionDone)) return null;
+
+            const result = await runAction(() => HousekeepingApi.saveRoomSettings(roomId, input), 'saveRoomSettings');
+
+            if (result && result.ok !== false && selectedRoom && selectedRoom.id === roomId) {
+                setSelectedRoom({
+                    ...selectedRoom,
+                    name: input.name,
+                    description: input.description,
+                    maxUsers: input.maxUsers,
+                    settings: {
+                        state: selectedRoom.settings?.state ?? (selectedRoom.isLocked ? 1 : 0),
+                        categoryId: input.categoryId,
+                        tradeMode: input.tradeMode,
+                        tags: input.tags
+                    }
+                });
             }
 
             return result;
@@ -528,6 +557,7 @@ export const useHousekeepingActions = () => {
         tradeLockUser,
         openRoom,
         closeRoom,
+        saveRoomSettings,
         muteRoom,
         kickAllFromRoom,
         transferRoomOwnership,

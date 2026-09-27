@@ -6,8 +6,10 @@ import {
     formatUptime,
     HousekeepingApi,
     HousekeepingTabId,
+    localizeHousekeepingAction,
     LocalizeText,
-    NotificationBubbleType
+    NotificationBubbleType,
+    resolveHousekeepingTarget
 } from '../../../../api';
 import { Button } from '../../../../common';
 import { useHousekeepingStore, useNotification } from '../../../../hooks';
@@ -89,7 +91,7 @@ export const HousekeepingDashboardTab: FC = () => {
 
     const ageMs = refreshedAt ? now - refreshedAt : null;
     const isStale = ageMs !== null && ageMs > STALE_AFTER_MS;
-    const ageLabel = ageMs === null ? '—' : ageMs < 5_000 ? 'now' : `${Math.floor(ageMs / 1000)}s ago`;
+    const ageLabel = ageMs === null ? '-' : ageMs < 5_000 ? 'now' : `${Math.floor(ageMs / 1000)}s ago`;
 
     const recentSanctions = useMemo(() => actionLog.filter((entry) => entry && entry.success && entry.targetType === 'user').slice(0, 5), [actionLog]);
 
@@ -270,10 +272,12 @@ export const HousekeepingDashboardTab: FC = () => {
                                     {entry.actorName}
                                 </span>
                                 <span className="text-zinc-400">→</span>
-                                <span className="truncate" title={entry.targetLabel}>
-                                    {entry.targetLabel}
+                                <span className="truncate" title={entry.detail}>
+                                    {resolveHousekeepingTarget(entry)}
                                 </span>
-                                <span className="ml-auto px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-medium shrink-0 text-[10px]">{entry.action}</span>
+                                <span className="ml-auto px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-medium shrink-0 text-[10px]" title={entry.action}>
+                                    {localizeHousekeepingAction(entry.action)}
+                                </span>
                             </li>
                         ))}
                     </ul>

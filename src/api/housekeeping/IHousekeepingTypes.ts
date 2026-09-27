@@ -15,6 +15,39 @@ export interface IHousekeepingUser {
     isBanned: boolean;
     isMuted: boolean;
     isTradeLocked: boolean;
+    /** Profile block; null when the server predates it. */
+    profile: IHousekeepingUserProfile | null;
+}
+
+export interface IHousekeepingWornBadge {
+    slot: number;
+    code: string;
+}
+
+export interface IHousekeepingUserProfile {
+    accountCreatedAt: number | null;
+    achievementScore: number;
+    friendsCount: number;
+    groupsCount: number;
+    wornBadges: IHousekeepingWornBadge[];
+}
+
+/** The editable settings of a room, sent with the room detail only. */
+export interface IHousekeepingRoomSettings {
+    categoryId: number;
+    tradeMode: number;
+    /** 0 open, 1 locked, 2 password, 3 invisible. */
+    state: number;
+    tags: string[];
+}
+
+export interface IHousekeepingRoomSettingsInput {
+    name: string;
+    description: string;
+    maxUsers: number;
+    categoryId: number;
+    tradeMode: number;
+    tags: string[];
 }
 
 export interface IHousekeepingRoom {
@@ -29,6 +62,8 @@ export interface IHousekeepingRoom {
     isMuted: boolean;
     isPublic: boolean;
     createdAt: number;
+    /** Present on a room detail from a server that sends it; null on list rows. */
+    settings: IHousekeepingRoomSettings | null;
 }
 
 export interface IHousekeepingActionResult {

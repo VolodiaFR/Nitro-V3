@@ -261,7 +261,8 @@ const useHousekeepingStoreInner = () => {
                 ipLast: '',
                 isBanned: false,
                 isMuted: false,
-                isTradeLocked: false
+                isTradeLocked: false,
+                profile: null
             };
 
             setSelectedUser(hint);

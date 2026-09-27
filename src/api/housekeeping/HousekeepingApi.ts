@@ -24,6 +24,7 @@ import {
     HousekeepingRoomDetailEvent,
     HousekeepingRoomListEvent,
     HousekeepingRoomStateComposer,
+    HousekeepingSaveRoomSettingsComposer,
     HousekeepingSearchRoomsComposer,
     HousekeepingSendHotelAlertComposer,
     HousekeepingSetHcSubscriptionComposer,
@@ -42,6 +43,8 @@ import {
     IHousekeepingActionResult,
     IHousekeepingDashboard,
     IHousekeepingRoom,
+    IHousekeepingRoomSettings,
+    IHousekeepingRoomSettingsInput,
     IHousekeepingRoomSummary,
     IHousekeepingUser,
     IHousekeepingUserSummary
@@ -103,7 +106,18 @@ const mapUserDetail = (user: HousekeepingUserDetailData): IHousekeepingUser => (
     ipLast: user.ipLast,
     isBanned: user.isBanned,
     isMuted: user.isMuted,
-    isTradeLocked: user.isTradeLocked
+    isTradeLocked: user.isTradeLocked,
+    // An account always has a creation time, so zero means the server sent no profile block.
+    profile:
+        user.accountCreatedAt > 0
+            ? {
+                  accountCreatedAt: user.accountCreatedAt,
+                  achievementScore: user.achievementScore,
+                  friendsCount: user.friendsCount,
+                  groupsCount: user.groupsCount,
+                  wornBadges: user.wornBadges.map((badge) => ({ slot: badge.slot, code: badge.code }))
+              }
+            : null
 });
 
 const awaitUserDetail = (): Promise<IHousekeepingUser | null> =>
@@ -203,7 +217,8 @@ const mapRoom = (room: HousekeepingRoomData): IHousekeepingRoom => ({
     isLocked: room.isLocked,
     isMuted: room.isMuted,
     isPublic: room.isPublic,
-    createdAt: room.createdAt
+    createdAt: room.createdAt,
+    settings: null
 });
 
 const findRoomByIdViaPacket = (roomId: number): Promise<IHousekeepingRoom | null> => {
@@ -218,7 +233,11 @@ const findRoomByIdViaPacket = (roomId: number): Promise<IHousekeepingRoom | null
 
             if (!parser || !parser.found || !parser.room) return null;
 
-            return mapRoom(parser.room);
+            // Category ids start at 1, so zero means the server sent no settings tail.
+            const settings: IHousekeepingRoomSettings | null =
+                parser.categoryId > 0 ? { categoryId: parser.categoryId, tradeMode: parser.tradeMode, state: parser.state, tags: [...parser.tags] } : null;
+
+            return { ...mapRoom(parser.room), settings };
         }
     });
 };
@@ -258,6 +277,12 @@ const searchRoomsViaPacket = (prefix: string, signal?: AbortSignal): Promise<IHo
 
 const setRoomStateViaPacket = (roomId: number, open: boolean): Promise<IHousekeepingActionResult> =>
     runHkAction(new HousekeepingRoomStateComposer(roomId, open), open ? 'room.open' : 'room.close');
+
+const saveRoomSettingsViaPacket = (roomId: number, input: IHousekeepingRoomSettingsInput): Promise<IHousekeepingActionResult> =>
+    runHkAction(
+        new HousekeepingSaveRoomSettingsComposer(roomId, input.name, input.description, input.maxUsers, input.categoryId, input.tradeMode, input.tags),
+        'room.settings'
+    );
 
 const muteRoomViaPacket = (roomId: number, minutes: number): Promise<IHousekeepingActionResult> =>
     runHkAction(new HousekeepingMuteRoomComposer(roomId, minutes), 'room.mute');
@@ -342,7 +367,8 @@ const listActionLogViaPacket = (limit: number, signal?: AbortSignal): Promise<IH
         select: (event) =>
             event.getParser()?.entries.map((entry) => ({
                 id: entry.id,
-                timestamp: entry.timestamp,
+                // The log stores unix seconds; the formatters work in milliseconds.
+                timestamp: entry.timestamp * 1000,
                 actorId: entry.actorId,
                 actorName: entry.actorName,
                 targetType: entry.targetType === 'room' || entry.targetType === 'hotel' ? entry.targetType : 'user',
@@ -382,6 +408,7 @@ export const HousekeepingApi = {
     // -- room actions ----------------------------------------------
     openRoom: (roomId: number) => setRoomStateViaPacket(roomId, true),
     closeRoom: (roomId: number) => setRoomStateViaPacket(roomId, false),
+    saveRoomSettings: (roomId: number, input: IHousekeepingRoomSettingsInput) => saveRoomSettingsViaPacket(roomId, input),
     muteRoom: (roomId: number, minutes: number) => muteRoomViaPacket(roomId, minutes),
     kickAllFromRoom: (roomId: number) => kickAllFromRoomViaPacket(roomId),
     transferRoomOwnership: (roomId: number, newOwnerId: number) => transferRoomOwnershipViaPacket(roomId, newOwnerId),

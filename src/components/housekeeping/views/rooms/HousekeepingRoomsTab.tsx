@@ -1,23 +1,63 @@
 import { FC, useState } from 'react';
 import {
+    FaCalendarAlt,
     FaCrown,
     FaDoorOpen,
+    FaEyeSlash,
     FaExchangeAlt,
     FaHome,
+    FaKey,
     FaLock,
     FaMapMarkerAlt,
     FaSearch,
+    FaTags,
     FaTimes,
     FaTrash,
     FaUserSlash,
     FaUsers,
     FaVolumeMute
 } from 'react-icons/fa';
-import { LocalizeText } from '../../../../api';
+import { formatHousekeepingDate, IHousekeepingRoom, LocalizeText } from '../../../../api';
 import { Button } from '../../../../common';
-import { useHousekeeping, useHousekeepingConfirm, useRoom } from '../../../../hooks';
+import { useHousekeeping, useHousekeepingConfirm, useNavigatorData, useRoom } from '../../../../hooks';
+import { HousekeepingEmptyState, HousekeepingFact, HousekeepingNumberField, HousekeepingPill, HousekeepingSection } from '../common/HousekeepingParts';
+import { HousekeepingRoomSettingsForm } from './HousekeepingRoomSettingsForm';
 
 const DEFAULT_MUTE_MINUTES = 10;
+
+/** Remount key for the settings form: a new server snapshot resets its draft. */
+const settingsKey = (room: IHousekeepingRoom) => JSON.stringify([room.id, room.name, room.description, room.maxUsers, room.settings]);
+
+const RoomStatePill: FC<{ room: IHousekeepingRoom }> = ({ room }) => {
+    const state = room.settings?.state ?? (room.isLocked ? 1 : 0);
+
+    switch (state) {
+        case 1:
+            return (
+                <HousekeepingPill icon={<FaLock size={8} />} tone="danger">
+                    {LocalizeText('housekeeping.room.state.locked')}
+                </HousekeepingPill>
+            );
+        case 2:
+            return (
+                <HousekeepingPill icon={<FaKey size={8} />} tone="warning">
+                    {LocalizeText('housekeeping.room.state.password')}
+                </HousekeepingPill>
+            );
+        case 3:
+            return (
+                <HousekeepingPill icon={<FaEyeSlash size={8} />} tone="neutral">
+                    {LocalizeText('housekeeping.room.state.invisible')}
+                </HousekeepingPill>
+            );
+        default:
+            return (
+                <HousekeepingPill icon={<FaDoorOpen size={8} />} tone="success">
+                    {LocalizeText('housekeeping.room.state.open')}
+                </HousekeepingPill>
+            );
+    }
+};
 
 export const HousekeepingRoomsTab: FC = () => {
     const {
@@ -28,53 +68,54 @@ export const HousekeepingRoomsTab: FC = () => {
         isActionPending,
         openRoom,
         closeRoom,
+        saveRoomSettings,
         muteRoom,
         kickAllFromRoom,
         transferRoomOwnership,
         deleteRoom
     } = useHousekeeping();
     const { roomSession = null } = useRoom();
+    const { categories = null } = useNavigatorData();
     const [query, setQuery] = useState('');
     const [muteMinutes, setMuteMinutes] = useState<number>(DEFAULT_MUTE_MINUTES);
     const [newOwnerId, setNewOwnerId] = useState<number>(0);
     const confirm = useHousekeepingConfirm();
     const currentRoomId = roomSession && roomSession.roomId > 0 ? roomSession.roomId : 0;
+
     const submitLookup = () => {
-        const trimmed = query.trim();
-        const idFromQuery = parseInt(trimmed);
+        const idFromQuery = parseInt(query.trim());
         const id = Number.isFinite(idFromQuery) && idFromQuery > 0 ? idFromQuery : currentRoomId;
 
-        if (id <= 0) return;
-
-        lookupRoomById(id);
+        if (id > 0) lookupRoomById(id);
     };
 
     const useCurrentRoom = () => {
         if (currentRoomId <= 0) return;
+
         setQuery(String(currentRoomId));
         lookupRoomById(currentRoomId);
     };
 
     const disableActions = !selectedRoom || isActionPending;
-
     const confirmAndRun = (key: string, fn: () => void) => confirm(LocalizeText(key), fn);
-
     const occupancyPct = selectedRoom && selectedRoom.maxUsers > 0 ? Math.min(100, Math.round((selectedRoom.userCount / selectedRoom.maxUsers) * 100)) : 0;
+    const categoryName = (() => {
+        const id = selectedRoom?.settings?.categoryId ?? 0;
+        const category = id > 0 ? categories?.find((entry) => entry.id === id) : null;
+
+        return category ? LocalizeText(category.name) : id > 0 ? `#${id}` : '-';
+    })();
 
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex gap-1.5 items-center">
-                <div className="flex items-center gap-1 grow rounded-md border border-zinc-300 bg-white px-2 py-1 shadow-sm focus-within:ring-1 focus-within:ring-sky-300 focus-within:border-sky-400 transition-colors">
-                    <FaSearch className="text-zinc-400 shrink-0" size={11} />
+            <div className="flex items-center gap-1.5">
+                <div className="flex grow items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-1 shadow-sm focus-within:border-sky-400 focus-within:ring-1 focus-within:ring-sky-300">
+                    <FaSearch className="shrink-0 text-zinc-400" size={11} />
                     <input
-                        type="number"
+                        className="grow bg-transparent text-sm outline-none placeholder:italic placeholder:text-zinc-500"
                         min={1}
-                        className="grow text-sm bg-transparent outline-none placeholder:text-black placeholder:italic"
-                        placeholder={
-                            currentRoomId > 0
-                                ? `${LocalizeText('housekeeping.room.search.placeholder')} · empty → current #${currentRoomId}`
-                                : LocalizeText('housekeeping.room.search.placeholder')
-                        }
+                        placeholder={LocalizeText('housekeeping.room.search.placeholder')}
+                        type="number"
                         value={query}
                         onChange={(event) => setQuery(event.target.value)}
                         onKeyDown={(event) => {
@@ -83,145 +124,181 @@ export const HousekeepingRoomsTab: FC = () => {
                     />
                 </div>
                 {currentRoomId > 0 && currentRoomId !== selectedRoom?.id && (
-                    <Button gap={1} variant="secondary" disabled={isRoomLoading} title={`Lookup current room #${currentRoomId}`} onClick={useCurrentRoom}>
-                        <FaMapMarkerAlt size={10} className="text-sky-500" />
-                        <span>here</span>
+                    <Button
+                        disabled={isRoomLoading}
+                        gap={1}
+                        title={LocalizeText('housekeeping.room.here.title', ['id'], [String(currentRoomId)])}
+                        variant="secondary"
+                        onClick={useCurrentRoom}
+                    >
+                        <FaMapMarkerAlt className="text-sky-500" size={10} />
+                        <span>{LocalizeText('housekeeping.room.here')}</span>
                     </Button>
                 )}
-                <Button gap={1} disabled={isRoomLoading} onClick={submitLookup}>
-                    <FaSearch size={10} className={isRoomLoading ? 'animate-pulse' : ''} />
+                <Button disabled={isRoomLoading} gap={1} onClick={submitLookup}>
+                    <FaSearch className={isRoomLoading ? 'animate-pulse' : ''} size={10} />
                     <span>{LocalizeText('housekeeping.room.search.button')}</span>
                 </Button>
             </div>
-            {selectedRoom ? (
-                <div className="relative overflow-hidden rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-violet-50 p-3 shadow-sm">
-                    <div className="flex items-start gap-3">
-                        <div className="rounded-full bg-sky-100 p-2 shrink-0 flex items-center justify-center">
-                            <span className="octane-icon octane-icon-hk-hero icon-rooms" />
-                        </div>
-                        <div className="grow min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="font-bold text-base truncate">{selectedRoom.name}</span>
-                                <span className="text-[10px] text-zinc-500 tabular-nums">#{selectedRoom.id}</span>
-                                {selectedRoom.isPublic && (
-                                    <span className="text-[9px] uppercase font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800">
-                                        public
-                                    </span>
-                                )}
-                                {selectedRoom.isLocked && (
-                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 border border-rose-200 text-rose-700">
-                                        <FaLock size={8} /> closed
-                                    </span>
-                                )}
-                                {selectedRoom.isMuted && (
-                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 border border-amber-200 text-amber-700">
-                                        <FaVolumeMute size={8} /> muted
-                                    </span>
-                                )}
+
+            {!selectedRoom && <HousekeepingEmptyState icon={<FaHome size={14} />}>{LocalizeText('housekeeping.room.none')}</HousekeepingEmptyState>}
+
+            {selectedRoom && (
+                <>
+                    <div className="rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-violet-50 p-2.5 shadow-sm">
+                        <div className="flex items-start gap-2.5">
+                            <div className="flex shrink-0 items-center justify-center rounded-full bg-sky-100 p-2">
+                                <span className="octane-icon octane-icon-hk-hero icon-rooms" />
                             </div>
-                            <div className="text-xs text-zinc-600 truncate mt-0.5">{selectedRoom.description || '—'}</div>
-                            <div className="flex items-center gap-3 text-[11px] text-zinc-700 mt-1.5">
-                                <span className="inline-flex items-center gap-1" title={`${selectedRoom.userCount} / ${selectedRoom.maxUsers}`}>
-                                    <FaUsers size={10} className="text-sky-600" />
-                                    <span className="tabular-nums font-semibold">{selectedRoom.userCount}</span>
-                                    <span className="text-zinc-400">/</span>
-                                    <span className="tabular-nums">{selectedRoom.maxUsers}</span>
-                                </span>
-                                <span className="inline-flex items-center gap-1 truncate" title={selectedRoom.ownerName}>
-                                    <FaCrown size={10} className="text-amber-500" />
-                                    <span className="truncate">{selectedRoom.ownerName}</span>
-                                    <span className="text-zinc-400 tabular-nums">#{selectedRoom.ownerId}</span>
-                                </span>
-                            </div>
-                            {selectedRoom.maxUsers > 0 && (
-                                <div className="h-1 mt-1.5 rounded-full bg-zinc-100 overflow-hidden">
-                                    <div
-                                        className={`h-full transition-all ${occupancyPct > 85 ? 'bg-rose-500' : occupancyPct > 60 ? 'bg-amber-500' : 'bg-emerald-500'}`}
-                                        style={{ width: `${occupancyPct}%` }}
-                                    />
+                            <div className="min-w-0 grow">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="truncate text-base font-bold">{selectedRoom.name}</span>
+                                    <span className="text-[10px] tabular-nums text-zinc-500">#{selectedRoom.id}</span>
+                                    <RoomStatePill room={selectedRoom} />
+                                    {selectedRoom.isPublic && <HousekeepingPill tone="info">{LocalizeText('housekeeping.room.public')}</HousekeepingPill>}
+                                    {selectedRoom.isMuted && (
+                                        <HousekeepingPill icon={<FaVolumeMute size={8} />} tone="warning">
+                                            {LocalizeText('housekeeping.room.muted')}
+                                        </HousekeepingPill>
+                                    )}
                                 </div>
-                            )}
+                                <div className="mt-0.5 line-clamp-2 text-xs text-zinc-600">
+                                    {selectedRoom.description || LocalizeText('housekeeping.room.no_description')}
+                                </div>
+                            </div>
+                            <button
+                                className="p-1 text-zinc-400 transition-colors hover:text-rose-600"
+                                title={LocalizeText('housekeeping.room.clear')}
+                                onClick={() => setSelectedRoom(null)}
+                            >
+                                <FaTimes size={12} />
+                            </button>
                         </div>
-                        <button
-                            className="text-zinc-400 hover:text-rose-600 transition-colors p-1"
-                            onClick={() => setSelectedRoom(null)}
-                            title={LocalizeText('housekeeping.room.clear')}
-                        >
-                            <FaTimes size={12} />
-                        </button>
+                        <div className="mt-2 grid grid-cols-4 gap-1">
+                            <HousekeepingFact
+                                icon={<FaUsers size={8} />}
+                                label={LocalizeText('housekeeping.room.fact.users')}
+                                value={`${selectedRoom.userCount} / ${selectedRoom.maxUsers}`}
+                            />
+                            <HousekeepingFact
+                                icon={<FaCrown className="text-amber-500" size={8} />}
+                                label={LocalizeText('housekeeping.room.fact.owner')}
+                                title={`#${selectedRoom.ownerId}`}
+                                value={selectedRoom.ownerName || `#${selectedRoom.ownerId}`}
+                            />
+                            <HousekeepingFact label={LocalizeText('navigator.category')} value={categoryName} />
+                            <HousekeepingFact
+                                icon={<FaCalendarAlt size={8} />}
+                                label={LocalizeText('housekeeping.room.fact.created')}
+                                value={formatHousekeepingDate(selectedRoom.createdAt)}
+                            />
+                        </div>
+                        {selectedRoom.maxUsers > 0 && (
+                            <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-zinc-100">
+                                <div
+                                    className={`h-full transition-all ${occupancyPct > 85 ? 'bg-rose-500' : occupancyPct > 60 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                                    style={{ width: `${occupancyPct}%` }}
+                                />
+                            </div>
+                        )}
+                        {!!selectedRoom.settings?.tags.length && (
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                                <FaTags className="text-zinc-400" size={9} />
+                                {selectedRoom.settings.tags.map((tag) => (
+                                    <HousekeepingPill key={tag}>{tag}</HousekeepingPill>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                </div>
-            ) : (
-                <div className="flex items-center gap-2 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-3 text-xs text-zinc-500 italic">
-                    <FaHome size={14} />
-                    {LocalizeText('housekeeping.room.none')}
-                </div>
+
+                    {selectedRoom.settings ? (
+                        <HousekeepingRoomSettingsForm
+                            key={settingsKey(selectedRoom)}
+                            disabled={isActionPending}
+                            room={selectedRoom}
+                            onSave={(input) => saveRoomSettings(selectedRoom.id, input)}
+                        />
+                    ) : (
+                        <HousekeepingEmptyState>{LocalizeText('housekeeping.room.settings.unavailable')}</HousekeepingEmptyState>
+                    )}
+                </>
             )}
-            <div className="grid grid-cols-2 gap-1.5">
-                <Button variant="success" disabled={disableActions || !selectedRoom?.isLocked} onClick={() => openRoom(selectedRoom.id)}>
-                    <FaDoorOpen size={10} />
-                    <span className="ml-1 text-white">{LocalizeText('housekeeping.room.open')}</span>
-                </Button>
-                <Button variant="danger" disabled={disableActions || selectedRoom?.isLocked} onClick={() => closeRoom(selectedRoom.id)}>
-                    <FaLock size={10} />
-                    <span className="ml-1 text-white">{LocalizeText('housekeeping.room.close')}</span>
-                </Button>
-                <div className="col-span-2 flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50/40 px-2 py-1.5">
-                    <FaVolumeMute size={11} className="text-amber-600" />
-                    <input
-                        type="number"
-                        min={1}
-                        className="w-14 px-1.5 py-0.5 rounded border border-amber-200 bg-white text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-amber-400"
-                        value={muteMinutes}
-                        onChange={(event) => setMuteMinutes(parseInt(event.target.value) || 0)}
-                    />
-                    <span className="text-[11px] text-zinc-600">min</span>
-                    <Button variant="warning" disabled={disableActions} className="ml-auto" onClick={() => muteRoom(selectedRoom.id, muteMinutes)}>
-                        <span>{LocalizeText('housekeeping.room.mute_min', ['m'], [String(muteMinutes)])}</span>
-                    </Button>
-                </div>
-                <Button
-                    variant="warning"
-                    disabled={disableActions}
-                    onClick={() => confirmAndRun('housekeeping.room.kick_all.confirm', () => kickAllFromRoom(selectedRoom.id))}
+
+            {selectedRoom && (
+                <HousekeepingSection title={LocalizeText('housekeeping.room.section.actions')} tone="neutral">
+                    <div className="grid grid-cols-2 gap-1.5">
+                        {selectedRoom.isLocked ? (
+                            <Button classNames={['col-span-2']} disabled={disableActions} gap={1} variant="success" onClick={() => openRoom(selectedRoom.id)}>
+                                <FaDoorOpen size={10} />
+                                <span>{LocalizeText('housekeeping.room.open')}</span>
+                            </Button>
+                        ) : (
+                            <Button classNames={['col-span-2']} disabled={disableActions} gap={1} variant="danger" onClick={() => closeRoom(selectedRoom.id)}>
+                                <FaLock size={10} />
+                                <span>{LocalizeText('housekeeping.room.close')}</span>
+                            </Button>
+                        )}
+                        <div className="col-span-2 flex items-center gap-1.5">
+                            <FaVolumeMute className="text-amber-600" size={11} />
+                            <HousekeepingNumberField unit={LocalizeText('housekeeping.unit.minutes')} value={muteMinutes} onChange={setMuteMinutes} />
+                            <Button
+                                classNames={['grow']}
+                                disabled={disableActions}
+                                gap={1}
+                                variant="warning"
+                                onClick={() => muteRoom(selectedRoom.id, muteMinutes)}
+                            >
+                                <span>{LocalizeText('housekeeping.room.mute_min', ['m'], [String(muteMinutes)])}</span>
+                            </Button>
+                        </div>
+                        <Button
+                            disabled={disableActions}
+                            gap={1}
+                            variant="warning"
+                            onClick={() => confirmAndRun('housekeeping.room.kick_all.confirm', () => kickAllFromRoom(selectedRoom.id))}
+                        >
+                            <FaUserSlash size={10} />
+                            <span>{LocalizeText('housekeeping.room.kick_all')}</span>
+                        </Button>
+                        <Button
+                            disabled={disableActions}
+                            gap={1}
+                            variant="danger"
+                            onClick={() => confirmAndRun('housekeeping.room.delete.confirm', () => deleteRoom(selectedRoom.id))}
+                        >
+                            <FaTrash size={10} />
+                            <span>{LocalizeText('housekeeping.room.delete')}</span>
+                        </Button>
+                    </div>
+                </HousekeepingSection>
+            )}
+
+            {selectedRoom && (
+                <HousekeepingSection
+                    icon={<FaExchangeAlt className="text-violet-500" size={8} />}
+                    title={LocalizeText('housekeeping.room.transfer.label')}
+                    tone="accent"
                 >
-                    <FaUserSlash size={10} />
-                    <span className="ml-1">{LocalizeText('housekeeping.room.kick_all')}</span>
-                </Button>
-                <Button
-                    variant="danger"
-                    disabled={disableActions}
-                    onClick={() => confirmAndRun('housekeeping.room.delete.confirm', () => deleteRoom(selectedRoom.id))}
-                >
-                    <FaTrash size={10} />
-                    <span className="ml-1 text-white">{LocalizeText('housekeeping.room.delete')}</span>
-                </Button>
-            </div>
-            <div className="flex flex-col gap-1.5 rounded-md border border-violet-200 bg-violet-50/40 p-2">
-                <label className="text-[10px] uppercase tracking-wider font-semibold opacity-60 flex items-center gap-1">
-                    <FaExchangeAlt size={8} className="text-violet-500" />
-                    {LocalizeText('housekeeping.room.transfer.label')}
-                </label>
-                <div className="flex items-center gap-1.5">
-                    <input
-                        type="number"
-                        min={1}
-                        className="w-24 px-1.5 py-1 rounded border border-violet-200 bg-white text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-violet-400 placeholder:text-black placeholder:italic"
-                        placeholder={LocalizeText('housekeeping.room.transfer.new_owner')}
-                        value={newOwnerId || ''}
-                        onChange={(event) => setNewOwnerId(parseInt(event.target.value) || 0)}
-                    />
-                    <Button
-                        variant="primary"
-                        disabled={disableActions || !newOwnerId}
-                        className="grow"
-                        onClick={() => transferRoomOwnership(selectedRoom.id, newOwnerId)}
-                    >
-                        <FaExchangeAlt size={10} />
-                        <span className="ml-1 text-white">{LocalizeText('housekeeping.room.transfer')}</span>
-                    </Button>
-                </div>
-            </div>
+                    <div className="flex items-center gap-1.5">
+                        <HousekeepingNumberField
+                            label={LocalizeText('housekeeping.room.transfer.new_owner')}
+                            value={newOwnerId}
+                            widthClass="w-20"
+                            onChange={setNewOwnerId}
+                        />
+                        <Button
+                            classNames={['grow']}
+                            disabled={disableActions || !newOwnerId}
+                            gap={1}
+                            variant="primary"
+                            onClick={() => transferRoomOwnership(selectedRoom.id, newOwnerId)}
+                        >
+                            <FaExchangeAlt size={10} />
+                            <span>{LocalizeText('housekeeping.room.transfer')}</span>
+                        </Button>
+                    </div>
+                </HousekeepingSection>
+            )}
         </div>
     );
 };
