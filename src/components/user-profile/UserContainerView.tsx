@@ -1,8 +1,8 @@
 import { CreateLinkEvent, GetSessionDataManager, RelationshipStatusInfoMessageParser, RequestFriendComposer, UserProfileParser } from '@octane/renderer';
 import { FC, useEffect, useMemo, useState } from 'react';
-import { ensureBadgeLeaderboardLoaded, FriendlyTime, getBadgesRank, LocalizeText, SanitizeHtml, SendMessageComposer } from '../../api';
+import { ensureBadgeLeaderboardLoaded, FriendlyTime, GetConfigurationValue, getBadgesRank, LocalizeText, localizeWithFallback, SanitizeHtml, SendMessageComposer } from '../../api';
 import { badgeEmblemDefault } from '../../assets/images/leaderboard_badge';
-import { level as profileLevelIcon, rooms as profileRoomsIcon } from '../../assets/images/user-profile';
+import { block as profileBlockIcon, level as profileLevelIcon, rooms as profileRoomsIcon } from '../../assets/images/user-profile';
 import { LayoutAvatarImageView, LayoutBadgeImageView, Text, UserIdentityView } from '../../common';
 import { RelationshipsContainerView } from './RelationshipsContainerView';
 
@@ -13,10 +13,13 @@ interface UserContainerViewProps {
     onOpenRooms?: () => void;
     /** Closes the profile window (the official find-friends link closes it). */
     onClose?: () => void;
+    /** Official block_button / blocked_container: the user is on the session block list. */
+    isBlocked?: boolean;
+    onToggleBlock?: () => void;
 }
 
 export const UserContainerView: FC<UserContainerViewProps> = (props) => {
-    const { userProfile = null, userBadges = [], userRelationships = null, onOpenRooms = null, onClose = null } = props;
+    const { userProfile = null, userBadges = [], userRelationships = null, onOpenRooms = null, onClose = null, isBlocked = false, onToggleBlock = null } = props;
 
     const [requestSent, setRequestSent] = useState(userProfile.requestSent);
     const isOwnProfile = userProfile.id === GetSessionDataManager().userId;
@@ -48,6 +51,15 @@ export const UserContainerView: FC<UserContainerViewProps> = (props) => {
         };
     }, [userProfile.id]);
 
+    // Official presence: onlineStatus 1 online, 0 offline, 2 hidden (sent only to the user
+    // themself). A server without the presence block leaves it at -1 and isOnline decides.
+    const isHidden = userProfile.onlineStatus === 2;
+    const isOnline = userProfile.onlineStatus === 1 || (userProfile.onlineStatus < 0 && userProfile.isOnline);
+    // Official levelRegion: the account level; without it the achievement score stands in.
+    const level = userProfile.level ?? 0;
+    // Official user_activity_points is hidden unless activity.point.display.enabled.
+    const showActivityPoints = GetConfigurationValue<boolean>('activity.point.display.enabled', false);
+
     const addFriend = () => {
         setRequestSent(true);
         SendMessageComposer(new RequestFriendComposer(userProfile.username));
@@ -58,7 +70,19 @@ export const UserContainerView: FC<UserContainerViewProps> = (props) => {
     }, [userProfile]);
 
     return (
-        <div className="octane-extended-profile">
+        <div className={`octane-extended-profile${isBlocked ? ' is-blocked' : ''}`}>
+            {!isOwnProfile && onToggleBlock && (
+                <button
+                    type="button"
+                    className={`octane-extended-profile__block-button${isBlocked ? ' is-active' : ''}`}
+                    title={isBlocked ? localizeWithFallback('extendedprofile.unblock_player.title', 'Unblock user') : localizeWithFallback('extendedprofile.block_player.title', 'Block user')}
+                    aria-pressed={isBlocked}
+                    onClick={onToggleBlock}
+                >
+                    {/* The official extended_profile_block_icon, 16x16. */}
+                    <img src={profileBlockIcon} alt="" draggable={false} />
+                </button>
+            )}
             <div className="octane-extended-profile__top">
                 <div className="octane-extended-profile__left">
                     <div className="octane-extended-profile__identity">
@@ -90,14 +114,19 @@ export const UserContainerView: FC<UserContainerViewProps> = (props) => {
                                 <span
                                     dangerouslySetInnerHTML={{ __html: SanitizeHtml(LocalizeText('extendedprofile.last.login').replace(/%\w+%/g, '').trim()) }}
                                 />{' '}
-                                {FriendlyTime.format(userProfile.secondsSinceLastVisit, '.ago', 2)}
+                                {userProfile.secondsSinceLastVisit < 0 ? '-' : FriendlyTime.format(userProfile.secondsSinceLastVisit, '.ago', 2)}
                             </p>
-                            <p className="octane-extended-profile__meta octane-extended-profile__meta--strong">
-                                <b>{LocalizeText('extendedprofile.achievementscore')}</b> {userProfile.achievementPoints}
-                            </p>
+                            {showActivityPoints && (
+                                <p
+                                    className="octane-extended-profile__meta"
+                                    dangerouslySetInnerHTML={{
+                                        __html: SanitizeHtml(LocalizeText('extendedprofile.activitypoints', ['activitypoints'], [userProfile.achievementPoints.toString()]))
+                                    }}
+                                />
+                            )}
                             <div className="octane-extended-profile__status">
                                 <div className="octane-extended-profile__presence">
-                                    <i className={`octane-icon ${userProfile.isOnline ? 'icon-pf-online' : 'icon-pf-offline'}`} />
+                                    <i className={`octane-icon ${isOnline ? 'icon-pf-online' : 'icon-pf-offline'}${isHidden ? ' octane-extended-profile__presence--hidden' : ''}`} />
                                 </div>
                                 <div className="octane-extended-profile__status-copy">
                                     {canSendFriendRequest && (
@@ -174,15 +203,12 @@ export const UserContainerView: FC<UserContainerViewProps> = (props) => {
                     <span className="octane-extended-profile__summary-value">{totalBadges}</span>
                     {badgesRank > 0 && <span className="octane-extended-profile__summary-rank">(#{badgesRank})</span>}
                 </button>
-                <button
-                    className="octane-extended-profile__summary-button octane-extended-profile__summary-button--center"
-                    type="button"
-                    onClick={() => CreateLinkEvent('achievements/toggle')}
-                >
+                {/* Official levelRegion: "Level N", no click and no tooltip. */}
+                <div className="octane-extended-profile__summary-button octane-extended-profile__summary-button--center octane-extended-profile__summary-button--level">
                     <img className="octane-extended-profile__summary-icon" src={profileLevelIcon} alt="" />
-                    <span className="octane-extended-profile__summary-label">{LocalizeText('extendedprofile.achievementscore')}</span>
-                    <span className="octane-extended-profile__summary-value">{userProfile.achievementPoints}</span>
-                </button>
+                    <span className="octane-extended-profile__summary-label">{level > 0 ? LocalizeText('generic.level') : LocalizeText('extendedprofile.achievementscore')}</span>
+                    <span className="octane-extended-profile__summary-value">{level > 0 ? level : userProfile.achievementPoints}</span>
+                </div>
             </div>
         </div>
     );
