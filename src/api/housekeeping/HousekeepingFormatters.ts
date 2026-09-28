@@ -153,3 +153,9 @@ export const formatHousekeepingListCell = (column: string, value: string, locale
 
     return text || '-';
 };
+
+/** A ban ending this far ahead is shown as permanent; a permanent one is stored as the int maximum, in 2038. */
+const PERMANENT_BAN_AFTER_SECONDS = 5 * 365 * 24 * 3600;
+
+export const isPermanentHousekeepingBan = (expiresSeconds: number, nowSeconds: number = Math.floor(Date.now() / 1000)): boolean =>
+    Number.isFinite(expiresSeconds) && expiresSeconds - nowSeconds >= PERMANENT_BAN_AFTER_SECONDS;

@@ -405,6 +405,15 @@ export const useHousekeepingActions = () => {
         [runAction, markActionDone]
     );
 
+    const revokeBan = useCallback(
+        async (banId: number) => {
+            if (!Number.isInteger(banId) || banId <= 0) return null;
+
+            return runAction(() => HousekeepingApi.revokeBan(banId), 'revokeBan');
+        },
+        [runAction]
+    );
+
     const reloadHotel = useCallback((target: HousekeepingReloadTarget) => runAction(() => HousekeepingApi.reload(target), `reload.${target}`), [runAction]);
 
     // -- LIVE IN-ROOM ACTIONS ---------------------------------------
@@ -572,6 +581,7 @@ export const useHousekeepingActions = () => {
         setHcSubscription,
         sendHotelAlert,
         reloadHotel,
+        revokeBan,
         kickFromCurrentRoom,
         banFromCurrentRoom,
         muteInCurrentRoom,

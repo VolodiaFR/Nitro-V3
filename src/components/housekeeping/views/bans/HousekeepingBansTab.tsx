@@ -1,14 +1,27 @@
 import { FC, useEffect, useState } from 'react';
-import { FaBan, FaExternalLinkAlt, FaSync, FaUndo } from 'react-icons/fa';
-import { formatHousekeepingListCell, HousekeepingApi, HousekeepingTabId, IHousekeepingList, LocalizeText } from '../../../../api';
+import { FaBan, FaExternalLinkAlt, FaInfinity, FaSync, FaUndo, FaUserSlash } from 'react-icons/fa';
+import {
+    formatHousekeepingListCell,
+    HousekeepingApi,
+    housekeepingFailureKey,
+    HousekeepingTabId,
+    IHousekeepingList,
+    isPermanentHousekeepingBan,
+    LocalizeText
+} from '../../../../api';
 import { useHousekeeping, useHousekeepingConfirm } from '../../../../hooks';
 import { HousekeepingButton, HousekeepingEmptyState, HousekeepingPill } from '../common/HousekeepingParts';
 
 const BANS_LIST = 'hotel.bans';
 
-/** Bans still in force, newest first, each with a jump to the user and a revoke. */
+/** Ban types the server writes; anything else is shown as it comes. */
+const KNOWN_BAN_TYPES = ['account', 'ip', 'machine', 'super'];
+
+const localizeBanType = (type: string) => (KNOWN_BAN_TYPES.includes(type) ? LocalizeText(`housekeeping.bans.type.${type}`) : type || '-');
+
+/** Bans still in force, newest first: revoke one ban, or every ban of its user. */
 export const HousekeepingBansTab: FC = () => {
-    const { unbanUser, isActionPending, lookupUserById, setActiveTab } = useHousekeeping();
+    const { unbanUser, revokeBan, isActionPending, lookupUserById, setActiveTab } = useHousekeeping();
     const confirm = useHousekeepingConfirm();
     const [list, setList] = useState<IHousekeepingList | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -28,8 +41,8 @@ export const HousekeepingBansTab: FC = () => {
                 setList(result);
                 setError(result.ok ? null : result.message || 'housekeeping.list.failed');
             })
-            .catch(() => {
-                if (!controller.signal.aborted) setError('housekeeping.list.failed');
+            .catch((reason) => {
+                if (!controller.signal.aborted) setError(housekeepingFailureKey(reason, 'housekeeping.list.failed'));
             })
             .finally(() => {
                 if (!controller.signal.aborted) setIsLoading(false);
@@ -50,9 +63,15 @@ export const HousekeepingBansTab: FC = () => {
         lookupUserById(userId);
     };
 
-    const revoke = (userId: number, username: string) =>
+    const revokeAll = (userId: number, username: string) =>
         confirm(LocalizeText('housekeeping.bans.revoke.confirm', ['username'], [username || `#${userId}`]), async () => {
             await unbanUser(userId);
+            setReload((value) => value + 1);
+        });
+
+    const revokeOne = (banId: number, type: string, username: string) =>
+        confirm(LocalizeText('housekeeping.bans.revoke_one.confirm', ['type', 'username'], [localizeBanType(type), username]), async () => {
+            await revokeBan(banId);
             setReload((value) => value + 1);
         });
 
@@ -82,16 +101,26 @@ export const HousekeepingBansTab: FC = () => {
             {!error &&
                 list?.rows.map((row, index) => {
                     const userId = parseInt(cell(row, 'id')) || 0;
+                    const banId = parseInt(cell(row, 'ban_id')) || 0;
                     const username = cell(row, 'user');
+                    const type = cell(row, 'type');
+                    const permanent = isPermanentHousekeepingBan(parseInt(cell(row, 'expires')) || 0);
+                    const shownName = username || `#${userId}`;
 
                     return (
-                        <div key={`${userId}-${index}`} className="flex flex-col gap-1 rounded border border-rose-200 bg-white p-2 text-[11px]">
+                        <div key={banId || `${userId}-${index}`} className="flex flex-col gap-1 rounded border border-rose-200 bg-white p-2 text-[11px]">
                             <div className="flex flex-wrap items-center gap-1.5">
-                                <span className="font-bold text-zinc-800">{username || `#${userId}`}</span>
-                                <HousekeepingPill tone="danger">{cell(row, 'type')}</HousekeepingPill>
-                                <span className="text-zinc-500">
-                                    {LocalizeText('housekeeping.bans.until', ['date'], [formatHousekeepingListCell('expires', cell(row, 'expires'))])}
-                                </span>
+                                <span className="font-bold text-zinc-800">{shownName}</span>
+                                <HousekeepingPill tone="danger">{localizeBanType(type)}</HousekeepingPill>
+                                {permanent ? (
+                                    <HousekeepingPill icon={<FaInfinity size={8} />} tone="danger">
+                                        {LocalizeText('housekeeping.bans.permanent')}
+                                    </HousekeepingPill>
+                                ) : (
+                                    <span className="text-zinc-500">
+                                        {LocalizeText('housekeeping.bans.until', ['date'], [formatHousekeepingListCell('expires', cell(row, 'expires'))])}
+                                    </span>
+                                )}
                                 <div className="ml-auto flex items-center gap-1">
                                     {userId > 0 && (
                                         <button
@@ -103,16 +132,30 @@ export const HousekeepingBansTab: FC = () => {
                                             <FaExternalLinkAlt size={9} />
                                         </button>
                                     )}
+                                    {banId > 0 && (
+                                        <HousekeepingButton
+                                            disabled={isActionPending}
+                                            gap={1}
+                                            size="sm"
+                                            title={LocalizeText('housekeeping.bans.revoke_one.hint')}
+                                            variant="success"
+                                            onClick={() => revokeOne(banId, type, shownName)}
+                                        >
+                                            <FaUndo size={9} />
+                                            <span>{LocalizeText('housekeeping.bans.revoke_one')}</span>
+                                        </HousekeepingButton>
+                                    )}
                                     {userId > 0 && (
                                         <HousekeepingButton
                                             disabled={isActionPending}
                                             gap={1}
                                             size="sm"
-                                            variant="success"
-                                            onClick={() => revoke(userId, username)}
+                                            title={LocalizeText('housekeeping.bans.revoke_all.hint')}
+                                            variant="secondary"
+                                            onClick={() => revokeAll(userId, username)}
                                         >
-                                            <FaUndo size={9} />
-                                            <span>{LocalizeText('housekeeping.action.unban')}</span>
+                                            <FaUserSlash size={9} />
+                                            <span>{LocalizeText('housekeeping.bans.revoke_all')}</span>
                                         </HousekeepingButton>
                                     )}
                                 </div>

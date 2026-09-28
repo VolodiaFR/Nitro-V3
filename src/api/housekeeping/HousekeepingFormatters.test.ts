@@ -8,6 +8,7 @@ import {
     formatUptime,
     isAuditEntryAboutRoom,
     isAuditEntryAboutUser,
+    isPermanentHousekeepingBan,
     resolveHousekeepingTarget
 } from './HousekeepingFormatters';
 
@@ -167,5 +168,17 @@ describe('formatHousekeepingListCell', () => {
         expect(formatHousekeepingListCell('user', '')).toBe('-');
         expect(formatHousekeepingListCell('mute_minutes', '0')).toBe('-');
         expect(formatHousekeepingListCell('mute_minutes', '15')).toBe('15');
+    });
+});
+
+describe('isPermanentHousekeepingBan', () => {
+    const now = 1_790_622_185;
+
+    it('treats the saturated expiry of a permanent ban as permanent', () => {
+        expect(isPermanentHousekeepingBan(2_147_483_647, now)).toBe(true);
+    });
+
+    it('keeps a timed ban as a date', () => {
+        expect(isPermanentHousekeepingBan(now + 7 * 24 * 3600, now)).toBe(false);
     });
 });

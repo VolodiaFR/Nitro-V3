@@ -956,6 +956,18 @@
     "housekeeping.hotel.reload.wordfilter": "Filtro parole",
     "housekeeping.hotel.reload.wordfilter.hint": "parole filtrate",
     "housekeeping.audit.action.hotel.reload.wordfilter": "Ricarica: filtro parole",
+    "housekeeping.error.no_answer": "Il server non ha risposto. L'emulatore in esecuzione potrebbe non conoscere ancora questo comando: riavvialo con l'ultima versione.",
+    "housekeeping.bans.permanent": "Permanente",
+    "housekeeping.bans.type.account": "Account",
+    "housekeeping.bans.type.ip": "IP",
+    "housekeeping.bans.type.machine": "Macchina",
+    "housekeeping.bans.type.super": "Super (IP + macchina)",
+    "housekeeping.bans.revoke_one": "Revoca",
+    "housekeeping.bans.revoke_one.hint": "Termina solo questo ban; gli altri ban dell'utente restano",
+    "housekeeping.bans.revoke_one.confirm": "Revocare il ban %type% di %username%?",
+    "housekeeping.bans.revoke_all": "Tutti",
+    "housekeeping.bans.revoke_all.hint": "Termina tutti i ban attivi dell'utente",
+    "housekeeping.audit.action.ban.revoke": "Ban revocato",
 
     // ------------------------------------------------------------------------
     // Fortune Wheel

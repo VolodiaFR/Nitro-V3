@@ -23,6 +23,7 @@ import {
     HousekeepingReloadComposer,
     HousekeepingRequestListComposer,
     HousekeepingResetUserPasswordComposer,
+    HousekeepingRevokeBanComposer,
     HousekeepingRoomData,
     HousekeepingRoomDetailEvent,
     HousekeepingRoomListEvent,
@@ -56,6 +57,16 @@ import {
 } from './IHousekeepingTypes';
 
 const USER_SEARCH_LIMIT = 8;
+
+/**
+ * Shown when the server never answers. The usual cause is an emulator older
+ * than the panel: it drops a packet it has no handler for, silently.
+ */
+export const HOUSEKEEPING_NO_ANSWER_KEY = 'housekeeping.error.no_answer';
+
+/** Maps a failed wait to the key the panel shows; a timeout becomes {@link HOUSEKEEPING_NO_ANSWER_KEY}. */
+export const housekeepingFailureKey = (error: unknown, fallback: string): string =>
+    error instanceof Error && error.message === 'timeout' ? HOUSEKEEPING_NO_ANSWER_KEY : fallback;
 
 /** Action key of the immediate answer a server sends when it refuses the housekeeping permission. */
 export const HOUSEKEEPING_DENIED_ACTION_KEY = 'housekeeping.denied';
@@ -186,9 +197,7 @@ const runHkAction = async (composer: IMessageComposer<unknown[]>, expectedAction
             }
         });
     } catch (err) {
-        const reason = err instanceof Error ? err.message : 'unknown';
-
-        return { ok: false, actionId: null, message: reason };
+        return { ok: false, actionId: null, message: housekeepingFailureKey(err, err instanceof Error ? err.message : 'unknown') };
     }
 };
 
@@ -325,6 +334,8 @@ const setHcSubscriptionViaPacket = (userId: number, days: number): Promise<IHous
 const sendHotelAlertViaPacket = (message: string): Promise<IHousekeepingActionResult> =>
     runHkAction(new HousekeepingSendHotelAlertComposer(message || ''), 'hotel.alert');
 
+const revokeBanViaPacket = (banId: number): Promise<IHousekeepingActionResult> => runHkAction(new HousekeepingRevokeBanComposer(banId), 'ban.revoke');
+
 const reloadViaPacket = (target: HousekeepingReloadTarget): Promise<IHousekeepingActionResult> =>
     runHkAction(new HousekeepingReloadComposer(target), `hotel.reload.${target}`);
 
@@ -459,6 +470,7 @@ export const HousekeepingApi = {
     // -- hotel-level -----------------------------------------------
     sendHotelAlert: (message: string) => sendHotelAlertViaPacket(message),
     reload: (target: HousekeepingReloadTarget) => reloadViaPacket(target),
+    revokeBan: (banId: number) => revokeBanViaPacket(banId),
     listActionLog: (limit: number, signal?: AbortSignal) => listActionLogViaPacket(limit, signal),
     requestList: (listKey: string, targetId: number, signal?: AbortSignal) => requestListViaPacket(listKey, targetId, signal)
 } as const;

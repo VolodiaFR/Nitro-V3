@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { FaExternalLinkAlt, FaSync } from 'react-icons/fa';
-import { formatHousekeepingListCell, HousekeepingApi, HousekeepingTabId, IHousekeepingList, LocalizeText } from '../../../../api';
+import { formatHousekeepingListCell, HousekeepingApi, housekeepingFailureKey, HousekeepingTabId, IHousekeepingList, LocalizeText } from '../../../../api';
 import { useHousekeepingStore } from '../../../../hooks';
 import { HousekeepingButton, HousekeepingEmptyState } from './HousekeepingParts';
 import { HousekeepingSubTabs } from './HousekeepingSubTabs';
@@ -41,8 +41,8 @@ export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetI
                 setList(result);
                 setError(result.ok ? null : result.message || 'housekeeping.list.failed');
             })
-            .catch(() => {
-                if (!controller.signal.aborted) setError('housekeeping.list.failed');
+            .catch((reason) => {
+                if (!controller.signal.aborted) setError(housekeepingFailureKey(reason, 'housekeeping.list.failed'));
             })
             .finally(() => {
                 if (!controller.signal.aborted) setIsLoading(false);
