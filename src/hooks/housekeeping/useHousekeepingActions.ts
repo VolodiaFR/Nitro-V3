@@ -3,6 +3,7 @@ import {
     GetRoomSession,
     HousekeepingApi,
     HousekeepingErrorKey,
+    HousekeepingReloadTarget,
     IHousekeepingActionResult,
     IHousekeepingRoomSettingsInput,
     LocalizeText,
@@ -404,6 +405,8 @@ export const useHousekeepingActions = () => {
         [runAction, markActionDone]
     );
 
+    const reloadHotel = useCallback((target: HousekeepingReloadTarget) => runAction(() => HousekeepingApi.reload(target), `reload.${target}`), [runAction]);
+
     // -- LIVE IN-ROOM ACTIONS ---------------------------------------
     // These bridge directly to the active RoomSession so the
     // sanction lands on the current game state (no server roundtrip
@@ -568,6 +571,7 @@ export const useHousekeepingActions = () => {
         grantItem,
         setHcSubscription,
         sendHotelAlert,
+        reloadHotel,
         kickFromCurrentRoom,
         banFromCurrentRoom,
         muteInCurrentRoom,

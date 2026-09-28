@@ -20,6 +20,7 @@ import {
     HousekeepingListActionLogComposer,
     HousekeepingMuteRoomComposer,
     HousekeepingMuteUserComposer,
+    HousekeepingReloadComposer,
     HousekeepingRequestListComposer,
     HousekeepingResetUserPasswordComposer,
     HousekeepingRoomData,
@@ -40,6 +41,7 @@ import {
 } from '@octane/renderer';
 import { awaitMessageEvent } from '../octane/awaitMessageEvent';
 import { SendMessageComposer } from '../octane/SendMessageComposer';
+import { HousekeepingReloadTarget } from './HousekeepingActionType';
 import {
     IHousekeepingActionLogEntry,
     IHousekeepingActionResult,
@@ -323,6 +325,9 @@ const setHcSubscriptionViaPacket = (userId: number, days: number): Promise<IHous
 const sendHotelAlertViaPacket = (message: string): Promise<IHousekeepingActionResult> =>
     runHkAction(new HousekeepingSendHotelAlertComposer(message || ''), 'hotel.alert');
 
+const reloadViaPacket = (target: HousekeepingReloadTarget): Promise<IHousekeepingActionResult> =>
+    runHkAction(new HousekeepingReloadComposer(target), `hotel.reload.${target}`);
+
 const EMPTY_DASHBOARD: IHousekeepingDashboard = {
     onlineUsers: 0,
     totalUsers: 0,
@@ -453,6 +458,7 @@ export const HousekeepingApi = {
 
     // -- hotel-level -----------------------------------------------
     sendHotelAlert: (message: string) => sendHotelAlertViaPacket(message),
+    reload: (target: HousekeepingReloadTarget) => reloadViaPacket(target),
     listActionLog: (limit: number, signal?: AbortSignal) => listActionLogViaPacket(limit, signal),
     requestList: (listKey: string, targetId: number, signal?: AbortSignal) => requestListViaPacket(listKey, targetId, signal)
 } as const;

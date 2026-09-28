@@ -61,3 +61,8 @@ export const HousekeepingRoomSection = {
 } as const;
 
 export type HousekeepingRoomSection = (typeof HousekeepingRoomSection)[keyof typeof HousekeepingRoomSection];
+
+/** Hotel tables the panel can hot reload; each one runs the matching :update_* command on the server. */
+export const HOUSEKEEPING_RELOAD_TARGETS = ['catalog', 'texts', 'permissions', 'items', 'navigator', 'config', 'wordfilter'] as const;
+
+export type HousekeepingReloadTarget = (typeof HOUSEKEEPING_RELOAD_TARGETS)[number];
