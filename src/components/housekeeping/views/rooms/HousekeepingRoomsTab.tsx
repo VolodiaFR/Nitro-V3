@@ -1,14 +1,20 @@
 import { FC, useMemo, useState } from 'react';
-import { FaHistory, FaHome, FaMapMarkerAlt, FaSearch, FaShieldAlt, FaSlidersH } from 'react-icons/fa';
+import { FaComments, FaHistory, FaHome, FaMapMarkerAlt, FaSearch, FaShieldAlt, FaSlidersH } from 'react-icons/fa';
 import { HousekeepingRoomSection, IHousekeepingRoom, isAuditEntryAboutRoom, LocalizeText } from '../../../../api';
 import { Button } from '../../../../common';
 import { useHousekeeping, useRoom } from '../../../../hooks';
 import { HousekeepingHistoryView } from '../common/HousekeepingHistoryView';
+import { HousekeepingListChoice, HousekeepingListView } from '../common/HousekeepingListView';
 import { HousekeepingEmptyState } from '../common/HousekeepingParts';
 import { HousekeepingSubTab, HousekeepingSubTabs } from '../common/HousekeepingSubTabs';
 import { HousekeepingRoomCard } from './HousekeepingRoomCard';
 import { HousekeepingRoomModerationView } from './HousekeepingRoomModerationView';
 import { HousekeepingRoomSettingsForm } from './HousekeepingRoomSettingsForm';
+
+const ROOM_ACTIVITY_LISTS: HousekeepingListChoice[] = [
+    { key: 'room.chatlog', labelKey: 'housekeeping.list.room.chatlog' },
+    { key: 'room.visits', labelKey: 'housekeeping.list.room.visits' }
+];
 
 /** Remount key for the settings form: a new server snapshot resets its draft. */
 const settingsKey = (room: IHousekeepingRoom) => JSON.stringify([room.id, room.name, room.description, room.maxUsers, room.settings]);
@@ -39,6 +45,7 @@ export const HousekeepingRoomsTab: FC = () => {
     const sections: HousekeepingSubTab<HousekeepingRoomSection>[] = [
         { id: HousekeepingRoomSection.SETTINGS, label: LocalizeText('housekeeping.room.section.settings'), icon: <FaSlidersH size={9} /> },
         { id: HousekeepingRoomSection.MODERATION, label: LocalizeText('housekeeping.room.section.actions'), icon: <FaShieldAlt size={9} /> },
+        { id: HousekeepingRoomSection.ACTIVITY, label: LocalizeText('housekeeping.room.section.activity'), icon: <FaComments size={9} /> },
         { id: HousekeepingRoomSection.HISTORY, label: LocalizeText('housekeeping.room.section.history'), icon: <FaHistory size={9} />, count: history.length }
     ];
 
@@ -95,6 +102,9 @@ export const HousekeepingRoomsTab: FC = () => {
                             <HousekeepingEmptyState>{LocalizeText('housekeeping.room.settings.unavailable')}</HousekeepingEmptyState>
                         ))}
                     {roomSection === HousekeepingRoomSection.MODERATION && <HousekeepingRoomModerationView room={selectedRoom} />}
+                    {roomSection === HousekeepingRoomSection.ACTIVITY && (
+                        <HousekeepingListView key={`activity-${selectedRoom.id}`} lists={ROOM_ACTIVITY_LISTS} targetId={selectedRoom.id} />
+                    )}
                     {roomSection === HousekeepingRoomSection.HISTORY && <HousekeepingHistoryView entries={history} />}
                 </>
             )}

@@ -1,9 +1,10 @@
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { FaBan, FaCircle, FaCoins, FaGavel, FaHistory, FaSearch, FaTimes, FaUserCog, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
+import { FaBan, FaCircle, FaCoins, FaComments, FaGavel, FaHistory, FaSearch, FaShieldAlt, FaTimes, FaUserCog, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
 import { HousekeepingUserSection, isAuditEntryAboutUser, LocalizeText } from '../../../../api';
 import { Button } from '../../../../common';
 import { useHousekeeping, useHousekeepingDangerConfirm, useRoomUserListSnapshot } from '../../../../hooks';
 import { HousekeepingHistoryView } from '../common/HousekeepingHistoryView';
+import { HousekeepingListChoice, HousekeepingListView } from '../common/HousekeepingListView';
 import { HousekeepingEmptyState } from '../common/HousekeepingParts';
 import { HousekeepingSubTab, HousekeepingSubTabs } from '../common/HousekeepingSubTabs';
 import { HousekeepingUserAccountView } from './HousekeepingUserAccountView';
@@ -12,6 +13,17 @@ import { HousekeepingUserEconomyView } from './HousekeepingUserEconomyView';
 import { DEFAULT_SANCTION_DRAFT, HousekeepingSanctionDraft, HousekeepingUserSanctionsView, sanctionReason } from './HousekeepingUserSanctionsView';
 
 const BULK_CONFIRM_THRESHOLD = 5;
+
+const USER_ACTIVITY_LISTS: HousekeepingListChoice[] = [
+    { key: 'user.chatlog', labelKey: 'housekeeping.list.user.chatlog' },
+    { key: 'user.visits', labelKey: 'housekeeping.list.user.visits' }
+];
+
+const USER_SECURITY_LISTS: HousekeepingListChoice[] = [
+    { key: 'user.sanctions', labelKey: 'housekeeping.list.user.sanctions' },
+    { key: 'user.clones', labelKey: 'housekeeping.list.user.clones' },
+    { key: 'user.names', labelKey: 'housekeeping.list.user.names' }
+];
 
 /**
  * The user page: search (with multi-select for bulk actions), the user card,
@@ -92,6 +104,8 @@ export const HousekeepingUsersTab: FC = () => {
 
     const sections: HousekeepingSubTab<HousekeepingUserSection>[] = [
         { id: HousekeepingUserSection.SANCTIONS, label: LocalizeText('housekeeping.user.section.sanctions'), icon: <FaGavel size={9} /> },
+        { id: HousekeepingUserSection.ACTIVITY, label: LocalizeText('housekeeping.user.section.activity'), icon: <FaComments size={9} /> },
+        { id: HousekeepingUserSection.SECURITY, label: LocalizeText('housekeeping.user.section.security'), icon: <FaShieldAlt size={9} /> },
         { id: HousekeepingUserSection.ECONOMY, label: LocalizeText('housekeeping.user.section.economy'), icon: <FaCoins size={9} /> },
         { id: HousekeepingUserSection.ACCOUNT, label: LocalizeText('housekeeping.user.section.account'), icon: <FaUserCog size={9} /> },
         { id: HousekeepingUserSection.HISTORY, label: LocalizeText('housekeeping.user.section.history'), icon: <FaHistory size={9} />, count: history.length }
@@ -241,6 +255,12 @@ export const HousekeepingUsersTab: FC = () => {
                     <HousekeepingSubTabs<HousekeepingUserSection> active={userSection} tabs={sections} onChange={setUserSection} />
                     {userSection === HousekeepingUserSection.SANCTIONS && (
                         <HousekeepingUserSanctionsView draft={draft} isInCurrentRoom={isInCurrentRoom} setDraft={setDraft} user={selectedUser} />
+                    )}
+                    {userSection === HousekeepingUserSection.ACTIVITY && (
+                        <HousekeepingListView key={`activity-${selectedUser.id}`} lists={USER_ACTIVITY_LISTS} targetId={selectedUser.id} />
+                    )}
+                    {userSection === HousekeepingUserSection.SECURITY && (
+                        <HousekeepingListView key={`security-${selectedUser.id}`} lists={USER_SECURITY_LISTS} targetId={selectedUser.id} />
                     )}
                     {userSection === HousekeepingUserSection.ECONOMY && <HousekeepingUserEconomyView user={selectedUser} />}
                     {userSection === HousekeepingUserSection.ACCOUNT && <HousekeepingUserAccountView key={selectedUser.id} user={selectedUser} />}

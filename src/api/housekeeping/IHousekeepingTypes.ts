@@ -121,3 +121,13 @@ export interface IHousekeepingDangerRequest {
     confirmLabel: string;
     onConfirm: () => void;
 }
+
+/** One list from the server as a table: column keys and one string per column in each row. */
+export interface IHousekeepingList {
+    listKey: string;
+    targetId: number;
+    ok: boolean;
+    message: string;
+    columns: string[];
+    rows: string[][];
+}

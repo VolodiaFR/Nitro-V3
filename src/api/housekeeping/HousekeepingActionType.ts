@@ -41,6 +41,8 @@ export type HousekeepingTabId = (typeof HousekeepingTabId)[keyof typeof Housekee
 /** Sub-pages of the user page. */
 export const HousekeepingUserSection = {
     SANCTIONS: 'sanctions',
+    ACTIVITY: 'activity',
+    SECURITY: 'security',
     ECONOMY: 'economy',
     ACCOUNT: 'account',
     HISTORY: 'history'
@@ -52,6 +54,7 @@ export type HousekeepingUserSection = (typeof HousekeepingUserSection)[keyof typ
 export const HousekeepingRoomSection = {
     SETTINGS: 'settings',
     MODERATION: 'moderation',
+    ACTIVITY: 'activity',
     HISTORY: 'history'
 } as const;
 

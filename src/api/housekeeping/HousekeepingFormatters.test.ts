@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
     formatCompactNumber,
     formatHousekeepingDate,
+    formatHousekeepingListCell,
     parseAuditDetail,
     formatRelativePast,
     formatUptime,
@@ -152,5 +153,19 @@ describe('parseAuditDetail', () => {
             { key: '', value: 'note first' },
             { key: 'minutes', value: '5' }
         ]);
+    });
+});
+
+describe('formatHousekeepingListCell', () => {
+    it('turns time columns into dates and empty times into a dash', () => {
+        expect(formatHousekeepingListCell('enter', '1790000000', 'en-GB')).toContain('2026');
+        expect(formatHousekeepingListCell('trade_locked_until', '0')).toBe('-');
+    });
+
+    it('keeps other values and dashes the empty ones', () => {
+        expect(formatHousekeepingListCell('message', 'hello')).toBe('hello');
+        expect(formatHousekeepingListCell('user', '')).toBe('-');
+        expect(formatHousekeepingListCell('mute_minutes', '0')).toBe('-');
+        expect(formatHousekeepingListCell('mute_minutes', '15')).toBe('15');
     });
 });

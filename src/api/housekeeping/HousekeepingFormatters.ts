@@ -135,3 +135,21 @@ export const formatHousekeepingDateTime = (timestampMs: number, locale?: string)
         second: '2-digit'
     });
 };
+
+/** List columns the server sends as unix seconds. */
+export const HOUSEKEEPING_TIME_COLUMNS: ReadonlySet<string> = new Set(['time', 'enter', 'last_online', 'probation_until', 'trade_locked_until']);
+
+/** Display text of one list cell: time columns become dates, empty and zero values a dash. */
+export const formatHousekeepingListCell = (column: string, value: string, locale?: string): string => {
+    const text = (value ?? '').trim();
+
+    if (HOUSEKEEPING_TIME_COLUMNS.has(column)) {
+        const seconds = parseInt(text);
+
+        return seconds > 0 ? formatHousekeepingDateTime(seconds * 1000, locale) : '-';
+    }
+
+    if (column === 'mute_minutes') return text && text !== '0' ? text : '-';
+
+    return text || '-';
+};

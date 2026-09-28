@@ -16,9 +16,11 @@ import {
     HousekeepingGrantItemComposer,
     HousekeepingKickAllFromRoomComposer,
     HousekeepingKickUserComposer,
+    HousekeepingListEvent,
     HousekeepingListActionLogComposer,
     HousekeepingMuteRoomComposer,
     HousekeepingMuteUserComposer,
+    HousekeepingRequestListComposer,
     HousekeepingResetUserPasswordComposer,
     HousekeepingRoomData,
     HousekeepingRoomDetailEvent,
@@ -42,6 +44,7 @@ import {
     IHousekeepingActionLogEntry,
     IHousekeepingActionResult,
     IHousekeepingDashboard,
+    IHousekeepingList,
     IHousekeepingRoom,
     IHousekeepingRoomSettings,
     IHousekeepingRoomSettingsInput,
@@ -385,6 +388,29 @@ const listActionLogViaPacket = (limit: number, signal?: AbortSignal): Promise<IH
     });
 };
 
+const requestListViaPacket = (listKey: string, targetId: number, signal?: AbortSignal): Promise<IHousekeepingList> => {
+    SendMessageComposer(new HousekeepingRequestListComposer(listKey, targetId));
+
+    return awaitMessageEvent<HousekeepingListEvent, IHousekeepingList>(HousekeepingListEvent, {
+        signal,
+        timeoutMs: 10_000,
+        // Several lists can be in flight when the operator switches quickly.
+        accept: (event) => event.getParser()?.listKey === listKey && event.getParser()?.targetId === targetId,
+        select: (event) => {
+            const parser = event.getParser();
+
+            return {
+                listKey: parser.listKey,
+                targetId: parser.targetId,
+                ok: parser.ok,
+                message: parser.message,
+                columns: [...parser.columns],
+                rows: parser.rows.map((row) => [...row])
+            };
+        }
+    });
+};
+
 export const HousekeepingApi = {
     // -- dashboard -------------------------------------------------
     getDashboard: (signal?: AbortSignal) => getDashboardViaPacket(signal),
@@ -427,5 +453,6 @@ export const HousekeepingApi = {
 
     // -- hotel-level -----------------------------------------------
     sendHotelAlert: (message: string) => sendHotelAlertViaPacket(message),
-    listActionLog: (limit: number, signal?: AbortSignal) => listActionLogViaPacket(limit, signal)
+    listActionLog: (limit: number, signal?: AbortSignal) => listActionLogViaPacket(limit, signal),
+    requestList: (listKey: string, targetId: number, signal?: AbortSignal) => requestListViaPacket(listKey, targetId, signal)
 } as const;
