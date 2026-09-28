@@ -1,9 +1,9 @@
 import { FC, useEffect, useState } from 'react';
 import { FaExternalLinkAlt, FaSync } from 'react-icons/fa';
 import { formatHousekeepingListCell, HousekeepingApi, HousekeepingTabId, IHousekeepingList, LocalizeText } from '../../../../api';
-import { Button } from '../../../../common';
 import { useHousekeepingStore } from '../../../../hooks';
-import { HousekeepingEmptyState } from './HousekeepingParts';
+import { HousekeepingButton, HousekeepingEmptyState } from './HousekeepingParts';
+import { HousekeepingSubTabs } from './HousekeepingSubTabs';
 
 export interface HousekeepingListChoice {
     key: string;
@@ -71,22 +71,23 @@ export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetI
     return (
         <div className="flex flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-1">
-                {lists.map((choice) => (
-                    <button
-                        key={choice.key}
-                        className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors ${
-                            choice.key === listKey ? 'border-sky-300 bg-sky-100 text-sky-800' : 'border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-50'
-                        }`}
-                        type="button"
-                        onClick={() => setListKey(choice.key)}
-                    >
-                        {LocalizeText(choice.labelKey)}
-                    </button>
-                ))}
-                <Button classNames={['ml-auto']} disabled={isLoading} gap={1} size="sm" variant="secondary" onClick={() => setReload((value) => value + 1)}>
+                <HousekeepingSubTabs
+                    compact
+                    active={listKey}
+                    tabs={lists.map((choice) => ({ id: choice.key, label: LocalizeText(choice.labelKey) }))}
+                    onChange={setListKey}
+                />
+                <HousekeepingButton
+                    classNames={['ml-auto']}
+                    disabled={isLoading}
+                    gap={1}
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setReload((value) => value + 1)}
+                >
                     <FaSync className={isLoading ? 'animate-spin' : ''} size={9} />
                     <span>{LocalizeText('housekeeping.history.refresh')}</span>
-                </Button>
+                </HousekeepingButton>
             </div>
 
             {error && <HousekeepingEmptyState>{LocalizeText(error)}</HousekeepingEmptyState>}

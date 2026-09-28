@@ -1,17 +1,27 @@
 import { AddLinkEventTracker, ILinkEventTracker, RemoveLinkEventTracker } from '@octane/renderer';
 import { FC, useEffect, useMemo } from 'react';
-import { getHousekeepingMode, HousekeepingTabId, HousekeepingUserSection, isHousekeepingEnabled, isHousekeepingTabAvailable, LocalizeText } from '../../api';
+import {
+    getHousekeepingMode,
+    HK_TICKET_STATE_OPEN,
+    HousekeepingTabId,
+    HousekeepingUserSection,
+    isHousekeepingEnabled,
+    isHousekeepingTabAvailable,
+    LocalizeText
+} from '../../api';
 import { DraggableWindowPosition, OctaneCardContentView, OctaneCardHeaderView, OctaneCardView, WidgetErrorBoundary } from '../../common';
-import { useHasPermission, useHousekeepingStore } from '../../hooks';
+import { useHasPermission, useHousekeepingStore, useModTools } from '../../hooks';
 import { HousekeepingDangerConfirmView } from './HousekeepingDangerConfirmView';
 import { HousekeepingPasswordReveal } from './HousekeepingPasswordReveal';
 import { HousekeepingStatusBanner } from './HousekeepingStatusBanner';
 import { HousekeepingAuditTab } from './views/audit/HousekeepingAuditTab';
+import { HousekeepingBansTab } from './views/bans/HousekeepingBansTab';
 import { HousekeepingDashboardTab } from './views/dashboard/HousekeepingDashboardTab';
 import { HousekeepingHotelTab } from './views/hotel/HousekeepingHotelTab';
 import { HousekeepingRoomsTab } from './views/rooms/HousekeepingRoomsTab';
 import { HousekeepingNavGroup, HousekeepingSidebar } from './views/shell/HousekeepingSidebar';
 import { HousekeepingSoundboardTab } from './views/soundboard/HousekeepingSoundboardTab';
+import { HousekeepingSupportTab } from './views/support/HousekeepingSupportTab';
 import { HousekeepingUsersTab } from './views/users/HousekeepingUsersTab';
 
 const TAB_IDS: HousekeepingTabId[] = Object.values(HousekeepingTabId);
@@ -55,6 +65,9 @@ export const HousekeepingView: FC = () => {
     // populated value — no Suspense needed.
     const hkEnabled = useMemo(() => isHousekeepingEnabled(), []);
     const hkMode = useMemo(() => getHousekeepingMode(), []);
+    // Tickets waiting for someone, shown on the Support entry.
+    const { tickets = [] } = useModTools();
+    const openTickets = tickets.filter((ticket) => ticket.state === HK_TICKET_STATE_OPEN).length;
 
     useEffect(() => {
         // Economy moved into the user page; the old tab id lands there.
@@ -163,8 +176,10 @@ export const HousekeepingView: FC = () => {
             {
                 titleKey: 'housekeeping.nav.moderation',
                 items: [
-                    { id: HousekeepingTabId.USERS, icon: 'icon-modtools', labelKey: 'housekeeping.tab.users', count: selectedUserIds.length },
+                    { id: HousekeepingTabId.USERS, icon: 'icon-friendall', labelKey: 'housekeeping.tab.users', count: selectedUserIds.length },
                     { id: HousekeepingTabId.ROOMS, icon: 'icon-rooms', labelKey: 'housekeeping.tab.rooms' },
+                    { id: HousekeepingTabId.SUPPORT, icon: 'icon-help', labelKey: 'housekeeping.tab.support', count: openTickets },
+                    { id: HousekeepingTabId.BANS, icon: 'icon-modtools', labelKey: 'housekeeping.tab.bans' },
                     { id: HousekeepingTabId.AUDIT, icon: 'icon-message', labelKey: 'housekeeping.tab.audit' }
                 ]
             },
@@ -176,12 +191,16 @@ export const HousekeepingView: FC = () => {
         ];
 
         return groups.map((group) => ({ ...group, items: group.items.filter((item) => available(item.id)) }));
-    }, [hkMode, canManageSoundboard, selectedUserIds.length]);
+    }, [hkMode, canManageSoundboard, selectedUserIds.length, openTickets]);
 
     const activeView = useMemo(() => {
         switch (activeTab) {
             case HousekeepingTabId.ROOMS:
                 return <HousekeepingRoomsTab />;
+            case HousekeepingTabId.SUPPORT:
+                return <HousekeepingSupportTab />;
+            case HousekeepingTabId.BANS:
+                return <HousekeepingBansTab />;
             case HousekeepingTabId.AUDIT:
                 return <HousekeepingAuditTab />;
             case HousekeepingTabId.HOTEL:

@@ -1,10 +1,9 @@
 import { FC, useState } from 'react';
 import { FaHistory, FaInfoCircle, FaSync } from 'react-icons/fa';
 import { formatRelativePast, IHousekeepingActionLogEntry, localizeHousekeepingAction, LocalizeText } from '../../../../api';
-import { Button } from '../../../../common';
 import { useHousekeepingStore } from '../../../../hooks';
 import { HousekeepingAuditEntryDetails } from './HousekeepingAuditEntryDetails';
-import { HousekeepingEmptyState } from './HousekeepingParts';
+import { HousekeepingButton, HousekeepingEmptyState } from './HousekeepingParts';
 
 /**
  * Staff actions on one user or one room, read from the loaded action log.
@@ -18,10 +17,10 @@ export const HousekeepingHistoryView: FC<{ entries: IHousekeepingActionLogEntry[
         <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-1.5">
                 <span className="text-[10px] italic text-zinc-500">{LocalizeText('housekeeping.history.hint')}</span>
-                <Button classNames={['ml-auto']} gap={1} size="sm" variant="secondary" onClick={() => refreshAuditLog()}>
+                <HousekeepingButton classNames={['ml-auto']} gap={1} size="sm" variant="secondary" onClick={() => refreshAuditLog()}>
                     <FaSync size={9} />
                     <span>{LocalizeText('housekeeping.history.refresh')}</span>
-                </Button>
+                </HousekeepingButton>
             </div>
             {entries.length === 0 ? (
                 <HousekeepingEmptyState icon={<FaHistory size={13} />}>{LocalizeText('housekeeping.history.empty')}</HousekeepingEmptyState>

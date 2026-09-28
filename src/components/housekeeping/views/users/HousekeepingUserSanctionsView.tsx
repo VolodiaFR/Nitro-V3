@@ -8,9 +8,8 @@ import {
     localizeSanctionTemplate,
     LocalizeText
 } from '../../../../api';
-import { Button } from '../../../../common';
 import { useHousekeeping } from '../../../../hooks';
-import { HOUSEKEEPING_INPUT_CLASS, HousekeepingField, HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
+import { HOUSEKEEPING_INPUT_CLASS, HousekeepingButton, HousekeepingField, HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
 
 export interface HousekeepingSanctionDraft {
     templateId: string;
@@ -73,21 +72,21 @@ export const HousekeepingUserSanctionsView: FC<HousekeepingUserSanctionsViewProp
             {isInCurrentRoom && (
                 <HousekeepingSection icon={<FaBolt className="text-amber-500" size={9} />} title={LocalizeText('housekeeping.user.live.label')} tone="warning">
                     <div className="flex flex-wrap items-center gap-1">
-                        <Button disabled={isActionPending} size="sm" variant="warning" onClick={() => kickFromCurrentRoom(user.id)}>
+                        <HousekeepingButton disabled={isActionPending} size="sm" variant="warning" onClick={() => kickFromCurrentRoom(user.id)}>
                             {LocalizeText('housekeeping.user.live.kick')}
-                        </Button>
-                        <Button disabled={isActionPending} size="sm" variant="warning" onClick={() => muteInCurrentRoom(user.id, 2)}>
+                        </HousekeepingButton>
+                        <HousekeepingButton disabled={isActionPending} size="sm" variant="warning" onClick={() => muteInCurrentRoom(user.id, 2)}>
                             {LocalizeText('housekeeping.user.live.mute_2m')}
-                        </Button>
-                        <Button disabled={isActionPending} size="sm" variant="warning" onClick={() => muteInCurrentRoom(user.id, 10)}>
+                        </HousekeepingButton>
+                        <HousekeepingButton disabled={isActionPending} size="sm" variant="warning" onClick={() => muteInCurrentRoom(user.id, 10)}>
                             {LocalizeText('housekeeping.user.live.mute_10m')}
-                        </Button>
-                        <Button disabled={isActionPending} size="sm" variant="danger" onClick={() => banFromCurrentRoom(user.id, 'hour')}>
+                        </HousekeepingButton>
+                        <HousekeepingButton disabled={isActionPending} size="sm" variant="danger" onClick={() => banFromCurrentRoom(user.id, 'hour')}>
                             {LocalizeText('housekeeping.user.live.ban_h')}
-                        </Button>
-                        <Button disabled={isActionPending} size="sm" variant="danger" onClick={() => banFromCurrentRoom(user.id, 'day')}>
+                        </HousekeepingButton>
+                        <HousekeepingButton disabled={isActionPending} size="sm" variant="danger" onClick={() => banFromCurrentRoom(user.id, 'day')}>
                             {LocalizeText('housekeeping.user.live.ban_d')}
-                        </Button>
+                        </HousekeepingButton>
                     </div>
                 </HousekeepingSection>
             )}
@@ -120,7 +119,7 @@ export const HousekeepingUserSanctionsView: FC<HousekeepingUserSanctionsViewProp
                             value={draft.banHours}
                             onChange={(value) => update('banHours', value)}
                         />
-                        <Button
+                        <HousekeepingButton
                             classNames={['grow']}
                             disabled={isActionPending}
                             gap={1}
@@ -129,7 +128,7 @@ export const HousekeepingUserSanctionsView: FC<HousekeepingUserSanctionsViewProp
                         >
                             <FaBan size={10} />
                             <span>{LocalizeText('housekeeping.action.ban_h', ['h'], [String(draft.banHours)])}</span>
-                        </Button>
+                        </HousekeepingButton>
                     </div>
                     <div className="flex items-center gap-1">
                         <HousekeepingNumberField
@@ -137,7 +136,7 @@ export const HousekeepingUserSanctionsView: FC<HousekeepingUserSanctionsViewProp
                             value={draft.muteMinutes}
                             onChange={(value) => update('muteMinutes', value)}
                         />
-                        <Button
+                        <HousekeepingButton
                             classNames={['grow']}
                             disabled={isActionPending}
                             gap={1}
@@ -146,7 +145,7 @@ export const HousekeepingUserSanctionsView: FC<HousekeepingUserSanctionsViewProp
                         >
                             <FaVolumeMute size={10} />
                             <span>{LocalizeText('housekeeping.action.mute_min', ['m'], [String(draft.muteMinutes)])}</span>
-                        </Button>
+                        </HousekeepingButton>
                     </div>
                     <div className="flex items-center gap-1">
                         <HousekeepingNumberField
@@ -154,7 +153,7 @@ export const HousekeepingUserSanctionsView: FC<HousekeepingUserSanctionsViewProp
                             value={draft.tradeLockHours}
                             onChange={(value) => update('tradeLockHours', value)}
                         />
-                        <Button
+                        <HousekeepingButton
                             classNames={['grow']}
                             disabled={isActionPending}
                             gap={1}
@@ -163,20 +162,25 @@ export const HousekeepingUserSanctionsView: FC<HousekeepingUserSanctionsViewProp
                         >
                             <FaLock size={10} />
                             <span>{LocalizeText('housekeeping.action.trade_lock_h', ['h'], [String(draft.tradeLockHours)])}</span>
-                        </Button>
+                        </HousekeepingButton>
                     </div>
-                    <Button disabled={isActionPending} gap={1} variant="warning" onClick={() => kickUser(user.id, reason)}>
+                    <HousekeepingButton disabled={isActionPending} gap={1} variant="warning" onClick={() => kickUser(user.id, reason)}>
                         <FaUserSlash size={10} />
                         <span>{LocalizeText('housekeeping.action.kick')}</span>
-                    </Button>
-                    <Button disabled={isActionPending || !user.isBanned} gap={1} variant="success" onClick={() => unbanUser(user.id)}>
+                    </HousekeepingButton>
+                    <HousekeepingButton disabled={isActionPending || !user.isBanned} gap={1} variant="success" onClick={() => unbanUser(user.id)}>
                         <FaUndo size={10} />
                         <span>{LocalizeText('housekeeping.action.unban')}</span>
-                    </Button>
-                    <Button disabled={isActionPending || !user.online} gap={1} variant="danger" onClick={() => forceDisconnectUser(user.id, reason)}>
+                    </HousekeepingButton>
+                    <HousekeepingButton
+                        disabled={isActionPending || !user.online}
+                        gap={1}
+                        variant="danger"
+                        onClick={() => forceDisconnectUser(user.id, reason)}
+                    >
                         <FaPlug size={10} />
                         <span>{LocalizeText('housekeeping.action.force_disconnect')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 </div>
             </HousekeepingSection>
         </div>

@@ -119,3 +119,42 @@ export const HousekeepingField: FC<PropsWithChildren<{ label: string; hint?: str
         {children}
     </label>
 );
+
+export type HousekeepingButtonVariant = 'primary' | 'success' | 'warning' | 'danger' | 'secondary' | 'neutral';
+
+const BUTTON_TONES: Record<HousekeepingButtonVariant, string> = {
+    primary: 'hk-btn--primary',
+    success: 'hk-btn--success',
+    warning: 'hk-btn--warning',
+    danger: 'hk-btn--danger',
+    secondary: 'hk-btn--neutral',
+    neutral: 'hk-btn--neutral'
+};
+
+/**
+ * The housekeeping button. Styled in HousekeepingView.css (the card theme
+ * overrides utility classes inside a card); disabled looks disabled in every tone.
+ * Takes the same props the panels used with the shared Button.
+ */
+export const HousekeepingButton: FC<
+    PropsWithChildren<{
+        variant?: HousekeepingButtonVariant;
+        size?: 'sm' | 'md';
+        disabled?: boolean;
+        title?: string;
+        classNames?: string[];
+        gap?: number;
+        type?: 'button' | 'submit';
+        onClick?: () => void;
+    }>
+> = ({ variant = 'primary', size = 'md', disabled = false, title, classNames = [], type = 'button', onClick, children }) => (
+    <button
+        className={['hk-btn', BUTTON_TONES[variant], size === 'sm' ? 'hk-btn--sm' : '', ...classNames].filter(Boolean).join(' ')}
+        disabled={disabled}
+        title={title}
+        type={type}
+        onClick={onClick}
+    >
+        {children}
+    </button>
+);

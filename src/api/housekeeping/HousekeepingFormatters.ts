@@ -137,7 +137,7 @@ export const formatHousekeepingDateTime = (timestampMs: number, locale?: string)
 };
 
 /** List columns the server sends as unix seconds. */
-export const HOUSEKEEPING_TIME_COLUMNS: ReadonlySet<string> = new Set(['time', 'enter', 'last_online', 'probation_until', 'trade_locked_until']);
+export const HOUSEKEEPING_TIME_COLUMNS: ReadonlySet<string> = new Set(['time', 'enter', 'expires', 'last_online', 'probation_until', 'trade_locked_until']);
 
 /** Display text of one list cell: time columns become dates, empty and zero values a dash. */
 export const formatHousekeepingListCell = (column: string, value: string, locale?: string): string => {

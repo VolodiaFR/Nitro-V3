@@ -8,5 +8,6 @@ export * from './HousekeepingMetrics';
 export * from './HousekeepingRecentLookups';
 export * from './HousekeepingSanctionTemplates';
 export * from './HousekeepingSearch';
+export * from './HousekeepingTickets';
 export * from './HousekeepingValidation';
 export * from './IHousekeepingTypes';

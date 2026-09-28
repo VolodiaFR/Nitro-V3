@@ -46,6 +46,8 @@ describe('housekeepingTabsForMode', () => {
             HousekeepingTabId.DASHBOARD,
             HousekeepingTabId.USERS,
             HousekeepingTabId.ROOMS,
+            HousekeepingTabId.SUPPORT,
+            HousekeepingTabId.BANS,
             HousekeepingTabId.AUDIT,
             HousekeepingTabId.HOTEL,
             HousekeepingTabId.SOUNDBOARD

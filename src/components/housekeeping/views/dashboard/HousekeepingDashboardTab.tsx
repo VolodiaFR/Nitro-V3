@@ -11,8 +11,8 @@ import {
     NotificationBubbleType,
     resolveHousekeepingTarget
 } from '../../../../api';
-import { Button } from '../../../../common';
 import { useHousekeepingStore, useNotification } from '../../../../hooks';
+import { HousekeepingButton } from '../common/HousekeepingParts';
 
 const AUTO_REFRESH_MS = 30_000;
 const STALE_AFTER_MS = 60_000;
@@ -143,10 +143,10 @@ export const HousekeepingDashboardTab: FC = () => {
                         <FaCircle size={6} className={isStale ? '' : 'animate-pulse'} />
                         {isStale ? `stale · ${ageLabel}` : `live · ${ageLabel}`}
                     </span>
-                    <Button size="sm" variant="secondary" disabled={isDashboardLoading} onClick={() => refreshDashboard()}>
+                    <HousekeepingButton size="sm" variant="secondary" disabled={isDashboardLoading} onClick={() => refreshDashboard()}>
                         <FaSync size={9} className={isDashboardLoading ? 'animate-spin' : ''} />
                         <span className="ml-1 text-white">{LocalizeText('housekeeping.dashboard.refresh')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 </div>
             </div>
 
@@ -243,7 +243,7 @@ export const HousekeepingDashboardTab: FC = () => {
                                 className="grow rounded border border-amber-200 bg-white px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400 placeholder:text-black placeholder:italic"
                                 maxLength={280}
                             />
-                            <Button
+                            <HousekeepingButton
                                 size="sm"
                                 variant="primary"
                                 disabled={!canSendAlert}
@@ -251,7 +251,7 @@ export const HousekeepingDashboardTab: FC = () => {
                             >
                                 <FaPaperPlane size={9} className={isSendingAlert ? 'animate-pulse' : ''} />
                                 <span className="ml-1">{LocalizeText('housekeeping.hotel.alert.send')}</span>
-                            </Button>
+                            </HousekeepingButton>
                         </div>
                     </form>
                 </>

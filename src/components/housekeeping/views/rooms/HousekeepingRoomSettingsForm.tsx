@@ -12,9 +12,8 @@ import {
     parseRoomTags,
     validateRoomSettings
 } from '../../../../api';
-import { Button } from '../../../../common';
 import { useNavigatorData } from '../../../../hooks';
-import { HOUSEKEEPING_INPUT_CLASS, HousekeepingField, HousekeepingSection } from '../common/HousekeepingParts';
+import { HOUSEKEEPING_INPUT_CLASS, HousekeepingButton, HousekeepingField, HousekeepingSection } from '../common/HousekeepingParts';
 
 interface HousekeepingRoomSettingsFormProps {
     room: IHousekeepingRoom;
@@ -129,14 +128,19 @@ export const HousekeepingRoomSettingsForm: FC<HousekeepingRoomSettingsFormProps>
                 {error !== HousekeepingErrorKey.NONE && isDirty && (
                     <span className="text-[10px] font-semibold text-rose-600">{LocalizeText(`housekeeping.validation.${error}`)}</span>
                 )}
-                <Button classNames={['ml-auto']} disabled={disabled || !isDirty} gap={1} variant="secondary" onClick={() => setDraft(initial)}>
+                <HousekeepingButton classNames={['ml-auto']} disabled={disabled || !isDirty} gap={1} variant="secondary" onClick={() => setDraft(initial)}>
                     <FaUndo size={9} />
                     <span>{LocalizeText('housekeeping.room.settings.reset')}</span>
-                </Button>
-                <Button disabled={disabled || !isDirty || error !== HousekeepingErrorKey.NONE} gap={1} variant="success" onClick={() => onSave(input)}>
+                </HousekeepingButton>
+                <HousekeepingButton
+                    disabled={disabled || !isDirty || error !== HousekeepingErrorKey.NONE}
+                    gap={1}
+                    variant="success"
+                    onClick={() => onSave(input)}
+                >
                     <FaSave size={9} />
                     <span>{LocalizeText('housekeeping.room.settings.save')}</span>
-                </Button>
+                </HousekeepingButton>
             </div>
         </HousekeepingSection>
     );

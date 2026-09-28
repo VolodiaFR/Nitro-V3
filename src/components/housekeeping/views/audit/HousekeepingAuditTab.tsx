@@ -9,9 +9,9 @@ import {
     resolveHousekeepingTarget,
     sampleToMetric
 } from '../../../../api';
-import { Button } from '../../../../common';
 import { useHousekeepingStore, useLocalStorage } from '../../../../hooks';
 import { HousekeepingAuditEntryDetails } from '../common/HousekeepingAuditEntryDetails';
+import { HousekeepingButton } from '../common/HousekeepingParts';
 
 type TargetFilter = 'all' | 'user' | 'room' | 'hotel';
 type SuccessFilter = 'all' | 'success' | 'failure';
@@ -87,10 +87,10 @@ export const HousekeepingAuditTab: FC = () => {
                         </span>
                     )}
                 </h3>
-                <Button size="sm" variant="secondary" disabled={isRefreshing} onClick={refresh}>
+                <HousekeepingButton size="sm" variant="secondary" disabled={isRefreshing} onClick={refresh}>
                     <FaSync size={9} className={isRefreshing ? 'animate-spin' : ''} />
                     <span className="ml-1 text-white">{LocalizeText('housekeeping.audit.refresh')}</span>
-                </Button>
+                </HousekeepingButton>
             </div>
 
             {/* Filter row */}

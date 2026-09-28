@@ -1,11 +1,10 @@
 import { FC, useMemo, useState } from 'react';
 import { FaComments, FaHistory, FaHome, FaMapMarkerAlt, FaSearch, FaShieldAlt, FaSlidersH } from 'react-icons/fa';
 import { HousekeepingRoomSection, IHousekeepingRoom, isAuditEntryAboutRoom, LocalizeText } from '../../../../api';
-import { Button } from '../../../../common';
 import { useHousekeeping, useRoom } from '../../../../hooks';
 import { HousekeepingHistoryView } from '../common/HousekeepingHistoryView';
 import { HousekeepingListChoice, HousekeepingListView } from '../common/HousekeepingListView';
-import { HousekeepingEmptyState } from '../common/HousekeepingParts';
+import { HousekeepingButton, HousekeepingEmptyState } from '../common/HousekeepingParts';
 import { HousekeepingSubTab, HousekeepingSubTabs } from '../common/HousekeepingSubTabs';
 import { HousekeepingRoomCard } from './HousekeepingRoomCard';
 import { HousekeepingRoomModerationView } from './HousekeepingRoomModerationView';
@@ -67,7 +66,7 @@ export const HousekeepingRoomsTab: FC = () => {
                     />
                 </div>
                 {currentRoomId > 0 && currentRoomId !== selectedRoom?.id && (
-                    <Button
+                    <HousekeepingButton
                         disabled={isRoomLoading}
                         gap={1}
                         title={LocalizeText('housekeeping.room.here.title', ['id'], [String(currentRoomId)])}
@@ -76,12 +75,12 @@ export const HousekeepingRoomsTab: FC = () => {
                     >
                         <FaMapMarkerAlt className="text-sky-500" size={10} />
                         <span>{LocalizeText('housekeeping.room.here')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 )}
-                <Button disabled={isRoomLoading} gap={1} onClick={submitLookup}>
+                <HousekeepingButton disabled={isRoomLoading} gap={1} onClick={submitLookup}>
                     <FaSearch className={isRoomLoading ? 'animate-pulse' : ''} size={10} />
                     <span>{LocalizeText('housekeeping.room.search.button')}</span>
-                </Button>
+                </HousekeepingButton>
             </div>
 
             {!selectedRoom && <HousekeepingEmptyState icon={<FaHome size={14} />}>{LocalizeText('housekeeping.room.none')}</HousekeepingEmptyState>}

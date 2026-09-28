@@ -1,9 +1,8 @@
 import { FC, useState } from 'react';
 import { FaBullhorn } from 'react-icons/fa';
 import { LocalizeText } from '../../../../api';
-import { Button } from '../../../../common';
 import { useHousekeeping, useHousekeepingConfirm } from '../../../../hooks';
-import { HOUSEKEEPING_INPUT_CLASS, HousekeepingSection } from '../common/HousekeepingParts';
+import { HOUSEKEEPING_INPUT_CLASS, HousekeepingButton, HousekeepingSection } from '../common/HousekeepingParts';
 
 const HOTEL_ALERT_CONFIRM_THRESHOLD = 200;
 const HOTEL_ALERT_MAX = 1000;
@@ -44,10 +43,10 @@ export const HousekeepingHotelTab: FC = () => {
                     <span className="text-[10px] tabular-nums text-zinc-500">
                         {trimmedAlert.length}/{HOTEL_ALERT_MAX}
                     </span>
-                    <Button classNames={['ml-auto']} disabled={isActionPending || !trimmedAlert.length} gap={1} variant="danger" onClick={send}>
+                    <HousekeepingButton classNames={['ml-auto']} disabled={isActionPending || !trimmedAlert.length} gap={1} variant="danger" onClick={send}>
                         <FaBullhorn size={10} />
                         <span>{LocalizeText('housekeeping.hotel.alert.send')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 </div>
                 {trimmedAlert.length > 0 && (
                     <div className="rounded border border-zinc-200 bg-white p-2 text-xs text-zinc-800">

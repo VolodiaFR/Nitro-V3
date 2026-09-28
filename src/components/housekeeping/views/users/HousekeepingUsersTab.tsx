@@ -1,11 +1,10 @@
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { FaBan, FaCircle, FaCoins, FaComments, FaGavel, FaHistory, FaSearch, FaShieldAlt, FaTimes, FaUserCog, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
 import { HousekeepingUserSection, isAuditEntryAboutUser, LocalizeText } from '../../../../api';
-import { Button } from '../../../../common';
 import { useHousekeeping, useHousekeepingDangerConfirm, useRoomUserListSnapshot } from '../../../../hooks';
 import { HousekeepingHistoryView } from '../common/HousekeepingHistoryView';
 import { HousekeepingListChoice, HousekeepingListView } from '../common/HousekeepingListView';
-import { HousekeepingEmptyState } from '../common/HousekeepingParts';
+import { HousekeepingButton, HousekeepingEmptyState } from '../common/HousekeepingParts';
 import { HousekeepingSubTab, HousekeepingSubTabs } from '../common/HousekeepingSubTabs';
 import { HousekeepingUserAccountView } from './HousekeepingUserAccountView';
 import { HousekeepingUserCard } from './HousekeepingUserCard';
@@ -133,10 +132,10 @@ export const HousekeepingUsersTab: FC = () => {
                             }}
                         />
                     </div>
-                    <Button disabled={isUserLoading} gap={1} onClick={submitLookup}>
+                    <HousekeepingButton disabled={isUserLoading} gap={1} onClick={submitLookup}>
                         <FaSearch className={isUserLoading ? 'animate-pulse' : ''} size={10} />
                         <span>{LocalizeText('housekeeping.user.search.button')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 </div>
                 {showSuggestionPanel && (
                     <div className="octane-hk-popover absolute left-0 right-0 top-full z-30 mt-1 max-h-[200px] overflow-y-auto rounded border border-zinc-200 bg-white shadow-lg">
@@ -199,7 +198,7 @@ export const HousekeepingUsersTab: FC = () => {
                     <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-sky-800">
                         {LocalizeText('housekeeping.bulk.label', ['count'], [String(selectedUserIds.length)])}
                     </span>
-                    <Button
+                    <HousekeepingButton
                         disabled={isActionPending}
                         gap={1}
                         size="sm"
@@ -212,8 +211,8 @@ export const HousekeepingUsersTab: FC = () => {
                     >
                         <FaBan size={10} />
                         <span>{LocalizeText('housekeeping.action.ban_h', ['h'], [String(draft.banHours)])}</span>
-                    </Button>
-                    <Button
+                    </HousekeepingButton>
+                    <HousekeepingButton
                         disabled={isActionPending}
                         gap={1}
                         size="sm"
@@ -226,8 +225,8 @@ export const HousekeepingUsersTab: FC = () => {
                     >
                         <FaVolumeMute size={10} />
                         <span>{LocalizeText('housekeeping.action.mute_min', ['m'], [String(draft.muteMinutes)])}</span>
-                    </Button>
-                    <Button
+                    </HousekeepingButton>
+                    <HousekeepingButton
                         disabled={isActionPending}
                         gap={1}
                         size="sm"
@@ -236,7 +235,7 @@ export const HousekeepingUsersTab: FC = () => {
                     >
                         <FaUserSlash size={10} />
                         <span>{LocalizeText('housekeeping.action.kick')}</span>
-                    </Button>
+                    </HousekeepingButton>
                     <button
                         className="ml-auto px-1 text-zinc-500 hover:text-rose-600"
                         title={LocalizeText('housekeeping.bulk.clear')}

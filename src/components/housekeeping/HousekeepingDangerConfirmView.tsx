@@ -1,8 +1,8 @@
 import { FC, useState } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { LocalizeText, matchesDangerConfirmation } from '../../api';
-import { Button } from '../../common';
 import { useHousekeepingStore } from '../../hooks';
+import { HousekeepingButton } from './views/common/HousekeepingParts';
 
 /**
  * Second step of a dangerous action, drawn over the panel: the operator has to
@@ -50,12 +50,12 @@ export const HousekeepingDangerConfirmView: FC = () => {
                     />
                 </label>
                 <div className="flex justify-end gap-1.5">
-                    <Button variant="secondary" onClick={close}>
+                    <HousekeepingButton variant="secondary" onClick={close}>
                         {LocalizeText('housekeeping.confirm.cancel')}
-                    </Button>
-                    <Button disabled={!matches} variant="danger" onClick={confirm}>
+                    </HousekeepingButton>
+                    <HousekeepingButton disabled={!matches} variant="danger" onClick={confirm}>
                         {dangerRequest.confirmLabel}
-                    </Button>
+                    </HousekeepingButton>
                 </div>
             </div>
         </div>

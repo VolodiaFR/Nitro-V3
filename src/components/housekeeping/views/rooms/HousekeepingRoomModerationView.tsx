@@ -1,9 +1,8 @@
 import { FC, useState } from 'react';
 import { FaDoorOpen, FaExchangeAlt, FaLock, FaShieldAlt, FaTrash, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
 import { IHousekeepingRoom, LocalizeText } from '../../../../api';
-import { Button } from '../../../../common';
 import { useHousekeeping, useHousekeepingConfirm, useHousekeepingDangerConfirm } from '../../../../hooks';
-import { HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
+import { HousekeepingButton, HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
 
 const DEFAULT_MUTE_MINUTES = 10;
 
@@ -20,17 +19,17 @@ export const HousekeepingRoomModerationView: FC<{ room: IHousekeepingRoom }> = (
             <HousekeepingSection icon={<FaShieldAlt className="text-sky-600" size={9} />} title={LocalizeText('housekeeping.room.section.actions')}>
                 <div className="grid grid-cols-2 gap-1.5">
                     {room.isLocked ? (
-                        <Button disabled={isActionPending} gap={1} variant="success" onClick={() => openRoom(room.id)}>
+                        <HousekeepingButton disabled={isActionPending} gap={1} variant="success" onClick={() => openRoom(room.id)}>
                             <FaDoorOpen size={10} />
                             <span>{LocalizeText('housekeeping.room.open')}</span>
-                        </Button>
+                        </HousekeepingButton>
                     ) : (
-                        <Button disabled={isActionPending} gap={1} variant="danger" onClick={() => closeRoom(room.id)}>
+                        <HousekeepingButton disabled={isActionPending} gap={1} variant="danger" onClick={() => closeRoom(room.id)}>
                             <FaLock size={10} />
                             <span>{LocalizeText('housekeeping.room.close')}</span>
-                        </Button>
+                        </HousekeepingButton>
                     )}
-                    <Button
+                    <HousekeepingButton
                         disabled={isActionPending}
                         gap={1}
                         variant="warning"
@@ -38,13 +37,19 @@ export const HousekeepingRoomModerationView: FC<{ room: IHousekeepingRoom }> = (
                     >
                         <FaUserSlash size={10} />
                         <span>{LocalizeText('housekeeping.room.kick_all')}</span>
-                    </Button>
+                    </HousekeepingButton>
                     <div className="col-span-2 flex items-center gap-1.5">
                         <FaVolumeMute className="text-amber-600" size={11} />
                         <HousekeepingNumberField unit={LocalizeText('housekeeping.unit.minutes')} value={muteMinutes} onChange={setMuteMinutes} />
-                        <Button classNames={['grow']} disabled={isActionPending} gap={1} variant="warning" onClick={() => muteRoom(room.id, muteMinutes)}>
+                        <HousekeepingButton
+                            classNames={['grow']}
+                            disabled={isActionPending}
+                            gap={1}
+                            variant="warning"
+                            onClick={() => muteRoom(room.id, muteMinutes)}
+                        >
                             <span>{LocalizeText('housekeeping.room.mute_min', ['m'], [String(muteMinutes)])}</span>
-                        </Button>
+                        </HousekeepingButton>
                     </div>
                 </div>
             </HousekeepingSection>
@@ -61,7 +66,7 @@ export const HousekeepingRoomModerationView: FC<{ room: IHousekeepingRoom }> = (
                         widthClass="w-20"
                         onChange={setNewOwnerId}
                     />
-                    <Button
+                    <HousekeepingButton
                         classNames={['grow']}
                         disabled={isActionPending || !newOwnerId}
                         gap={1}
@@ -77,14 +82,14 @@ export const HousekeepingRoomModerationView: FC<{ room: IHousekeepingRoom }> = (
                     >
                         <FaExchangeAlt size={10} />
                         <span>{LocalizeText('housekeeping.room.transfer')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 </div>
             </HousekeepingSection>
 
             <HousekeepingSection icon={<FaTrash className="text-rose-500" size={9} />} title={LocalizeText('housekeeping.room.section.danger')} tone="danger">
                 <div className="flex items-center gap-1.5">
                     <span className="text-[11px] text-rose-700">{LocalizeText('housekeeping.room.delete.hint')}</span>
-                    <Button
+                    <HousekeepingButton
                         classNames={['ml-auto', 'shrink-0']}
                         disabled={isActionPending}
                         gap={1}
@@ -100,7 +105,7 @@ export const HousekeepingRoomModerationView: FC<{ room: IHousekeepingRoom }> = (
                     >
                         <FaTrash size={10} />
                         <span>{LocalizeText('housekeeping.room.delete')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 </div>
             </HousekeepingSection>
         </div>

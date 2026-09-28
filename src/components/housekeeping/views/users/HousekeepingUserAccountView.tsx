@@ -1,9 +1,8 @@
 import { FC, useState } from 'react';
 import { FaKey, FaUserShield } from 'react-icons/fa';
 import { HK_MAX_RANK, IHousekeepingUser, LocalizeText } from '../../../../api';
-import { Button } from '../../../../common';
 import { useHousekeeping, useHousekeepingDangerConfirm } from '../../../../hooks';
-import { HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
+import { HousekeepingButton, HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
 
 /** Rank and password of the selected user. */
 export const HousekeepingUserAccountView: FC<{ user: IHousekeepingUser }> = ({ user }) => {
@@ -23,7 +22,7 @@ export const HousekeepingUserAccountView: FC<{ user: IHousekeepingUser }> = ({ u
                     <span className="text-[10px] text-zinc-500">
                         {LocalizeText('housekeeping.user.account.rank_current', ['rank'], [`${user.rankName} (${user.rank})`])}
                     </span>
-                    <Button
+                    <HousekeepingButton
                         classNames={['ml-auto']}
                         disabled={isActionPending || rankDraft === user.rank}
                         gap={1}
@@ -39,13 +38,13 @@ export const HousekeepingUserAccountView: FC<{ user: IHousekeepingUser }> = ({ u
                     >
                         <FaUserShield size={10} />
                         <span>{LocalizeText('housekeeping.action.set_rank')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 </div>
             </HousekeepingSection>
             <HousekeepingSection icon={<FaKey className="text-zinc-500" size={9} />} title={LocalizeText('housekeeping.user.account.password')}>
                 <div className="flex items-center gap-1.5">
                     <span className="text-[11px] text-zinc-600">{LocalizeText('housekeeping.user.account.password_hint')}</span>
-                    <Button
+                    <HousekeepingButton
                         classNames={['ml-auto', 'shrink-0']}
                         disabled={isActionPending}
                         gap={1}
@@ -61,7 +60,7 @@ export const HousekeepingUserAccountView: FC<{ user: IHousekeepingUser }> = ({ u
                     >
                         <FaKey size={10} />
                         <span>{LocalizeText('housekeeping.action.reset_password')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 </div>
             </HousekeepingSection>
         </div>

@@ -32,6 +32,8 @@ export const HousekeepingTabId = {
     /** Kept for old links and stored tabs: economy now lives in the user page. */
     ECONOMY: 'economy',
     AUDIT: 'audit',
+    SUPPORT: 'support',
+    BANS: 'bans',
     HOTEL: 'hotel',
     SOUNDBOARD: 'soundboard'
 } as const;

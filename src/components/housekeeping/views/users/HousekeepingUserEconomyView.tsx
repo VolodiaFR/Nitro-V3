@@ -1,9 +1,9 @@
 import { FC, useState } from 'react';
 import { FaCrown, FaGift, FaPiggyBank } from 'react-icons/fa';
 import { IHousekeepingUser, LocalizeText } from '../../../../api';
-import { Button, LayoutCurrencyIcon } from '../../../../common';
+import { LayoutCurrencyIcon } from '../../../../common';
 import { useHousekeeping } from '../../../../hooks';
-import { HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
+import { HousekeepingButton, HousekeepingNumberField, HousekeepingSection } from '../common/HousekeepingParts';
 
 /** Currency, item and HC grants for the selected user. */
 export const HousekeepingUserEconomyView: FC<{ user: IHousekeepingUser }> = ({ user }) => {
@@ -28,16 +28,25 @@ export const HousekeepingUserEconomyView: FC<{ user: IHousekeepingUser }> = ({ u
                 title={LocalizeText('housekeeping.economy.currencies')}
                 tone="warning"
             >
-                {currencies.map((currency) => (
-                    <div key={currency.type} className="flex items-center gap-1.5">
-                        <LayoutCurrencyIcon classNames={['shrink-0']} type={currency.type} />
-                        <HousekeepingNumberField value={currency.value} widthClass="w-24" onChange={currency.set} />
-                        <Button classNames={['grow']} disabled={isActionPending} gap={1} variant="success" onClick={currency.give}>
-                            <FaPiggyBank size={10} />
-                            <span>{LocalizeText(currency.key)}</span>
-                        </Button>
-                    </div>
-                ))}
+                <div className="grid grid-cols-3 gap-2">
+                    {currencies.map((currency) => (
+                        <div key={currency.type} className="flex min-w-0 items-center gap-1">
+                            <LayoutCurrencyIcon classNames={['shrink-0']} type={currency.type} />
+                            <HousekeepingNumberField value={currency.value} widthClass="w-16" onChange={currency.set} />
+                            <HousekeepingButton
+                                classNames={['grow', 'min-w-0']}
+                                disabled={isActionPending}
+                                size="sm"
+                                title={LocalizeText(currency.key)}
+                                variant="success"
+                                onClick={currency.give}
+                            >
+                                <FaPiggyBank size={9} />
+                                <span className="truncate">{LocalizeText('housekeeping.economy.give')}</span>
+                            </HousekeepingButton>
+                        </div>
+                    ))}
+                </div>
             </HousekeepingSection>
             <div className="grid grid-cols-2 gap-2">
                 <HousekeepingSection
@@ -49,10 +58,15 @@ export const HousekeepingUserEconomyView: FC<{ user: IHousekeepingUser }> = ({ u
                         <HousekeepingNumberField label={LocalizeText('housekeeping.economy.item_id')} value={itemId} widthClass="w-20" onChange={setItemId} />
                         <HousekeepingNumberField label="×" value={itemQuantity} widthClass="w-12" onChange={setItemQuantity} />
                     </div>
-                    <Button disabled={isActionPending || !itemId} gap={1} variant="primary" onClick={() => grantItem(user.id, itemId, itemQuantity)}>
+                    <HousekeepingButton
+                        disabled={isActionPending || !itemId}
+                        gap={1}
+                        variant="primary"
+                        onClick={() => grantItem(user.id, itemId, itemQuantity)}
+                    >
                         <FaGift size={10} />
                         <span>{LocalizeText('housekeeping.economy.grant_item')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 </HousekeepingSection>
                 <HousekeepingSection
                     icon={<FaCrown className="text-amber-600" size={9} />}
@@ -60,10 +74,10 @@ export const HousekeepingUserEconomyView: FC<{ user: IHousekeepingUser }> = ({ u
                     tone="warning"
                 >
                     <HousekeepingNumberField min={0} unit={LocalizeText('housekeeping.unit.days')} value={hcDays} widthClass="w-20" onChange={setHcDays} />
-                    <Button disabled={isActionPending} gap={1} variant="warning" onClick={() => setHcSubscription(user.id, hcDays)}>
+                    <HousekeepingButton disabled={isActionPending} gap={1} variant="warning" onClick={() => setHcSubscription(user.id, hcDays)}>
                         <FaCrown size={10} />
                         <span>{LocalizeText('housekeeping.economy.set_hc_days')}</span>
-                    </Button>
+                    </HousekeepingButton>
                 </HousekeepingSection>
             </div>
         </div>
