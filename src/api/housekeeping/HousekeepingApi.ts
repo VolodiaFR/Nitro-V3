@@ -17,6 +17,8 @@ import {
     HousekeepingKickAllFromRoomComposer,
     HousekeepingKickUserComposer,
     HousekeepingListEvent,
+    HousekeepingMaintenanceComposer,
+    HousekeepingMaintenanceStatusEvent,
     HousekeepingListActionLogComposer,
     HousekeepingMuteRoomComposer,
     HousekeepingMuteUserComposer,
@@ -38,16 +40,19 @@ import {
     HousekeepingUnbanUserComposer,
     HousekeepingUserDetailData,
     HousekeepingUserDetailEvent,
+    HousekeepingWordFilterComposer,
     IMessageComposer
 } from '@octane/renderer';
 import { awaitMessageEvent } from '../octane/awaitMessageEvent';
 import { SendMessageComposer } from '../octane/SendMessageComposer';
 import { HousekeepingReloadTarget } from './HousekeepingActionType';
+import { HousekeepingMaintenanceAction } from './HousekeepingHotelTools';
 import {
     IHousekeepingActionLogEntry,
     IHousekeepingActionResult,
     IHousekeepingDashboard,
     IHousekeepingList,
+    IHousekeepingMaintenanceStatus,
     IHousekeepingRoom,
     IHousekeepingRoomSettings,
     IHousekeepingRoomSettingsInput,
@@ -331,8 +336,32 @@ const grantItemViaPacket = (userId: number, itemId: number, quantity: number): P
 const setHcSubscriptionViaPacket = (userId: number, days: number): Promise<IHousekeepingActionResult> =>
     runHkAction(new HousekeepingSetHcSubscriptionComposer(userId, days), 'user.set_hc');
 
-const sendHotelAlertViaPacket = (message: string): Promise<IHousekeepingActionResult> =>
-    runHkAction(new HousekeepingSendHotelAlertComposer(message || ''), 'hotel.alert');
+const sendHotelAlertViaPacket = (message: string, recipient?: string): Promise<IHousekeepingActionResult> =>
+    runHkAction(new HousekeepingSendHotelAlertComposer(message || '', recipient), 'hotel.alert');
+
+const maintenanceViaPacket = (action: Exclude<HousekeepingMaintenanceAction, 'status'>, message = '', minutes = 0): Promise<IHousekeepingActionResult> =>
+    runHkAction(new HousekeepingMaintenanceComposer(action, message, minutes), `hotel.maintenance.${action}`);
+
+const getMaintenanceStatusViaPacket = (signal?: AbortSignal): Promise<IHousekeepingMaintenanceStatus> => {
+    SendMessageComposer(new HousekeepingMaintenanceComposer('status', '', 0));
+
+    return awaitMessageEvent<HousekeepingMaintenanceStatusEvent, IHousekeepingMaintenanceStatus>(HousekeepingMaintenanceStatusEvent, {
+        signal,
+        timeoutMs: 8_000,
+        select: (event) => readMaintenanceStatus(event.getParser())
+    });
+};
+
+/** Reads the maintenance status parser into a plain object; read it inside `select`, the parser is recycled. */
+export const readMaintenanceStatus = (parser: { enabled: boolean; minRank: number; message: string; countdownEndsAt: number }): IHousekeepingMaintenanceStatus => ({
+    enabled: parser.enabled,
+    minRank: parser.minRank,
+    message: parser.message,
+    countdownEndsAt: parser.countdownEndsAt
+});
+
+const wordFilterViaPacket = (action: 'add' | 'remove', word: string, replacement = ''): Promise<IHousekeepingActionResult> =>
+    runHkAction(new HousekeepingWordFilterComposer(action, word, replacement), `hotel.wordfilter.${action}`);
 
 const revokeBanViaPacket = (banId: number): Promise<IHousekeepingActionResult> => runHkAction(new HousekeepingRevokeBanComposer(banId), 'ban.revoke');
 
@@ -468,7 +497,10 @@ export const HousekeepingApi = {
     setHcSubscription: (userId: number, days: number) => setHcSubscriptionViaPacket(userId, days),
 
     // -- hotel-level -----------------------------------------------
-    sendHotelAlert: (message: string) => sendHotelAlertViaPacket(message),
+    sendHotelAlert: (message: string, recipient?: string) => sendHotelAlertViaPacket(message, recipient),
+    maintenance: (action: Exclude<HousekeepingMaintenanceAction, 'status'>, message?: string, minutes?: number) => maintenanceViaPacket(action, message, minutes),
+    getMaintenanceStatus: (signal?: AbortSignal) => getMaintenanceStatusViaPacket(signal),
+    wordFilter: (action: 'add' | 'remove', word: string, replacement?: string) => wordFilterViaPacket(action, word, replacement),
     reload: (target: HousekeepingReloadTarget) => reloadViaPacket(target),
     revokeBan: (banId: number) => revokeBanViaPacket(banId),
     listActionLog: (limit: number, signal?: AbortSignal) => listActionLogViaPacket(limit, signal),

@@ -131,3 +131,11 @@ export interface IHousekeepingList {
     columns: string[];
     rows: string[][];
 }
+
+/** Maintenance as the server reports it; countdownEndsAt is unix seconds, 0 when no countdown runs. */
+export interface IHousekeepingMaintenanceStatus {
+    enabled: boolean;
+    minRank: number;
+    message: string;
+    countdownEndsAt: number;
+}

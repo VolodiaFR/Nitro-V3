@@ -397,13 +397,29 @@ export const useHousekeepingActions = () => {
     );
 
     const sendHotelAlert = useCallback(
-        async (message: string) => {
+        async (message: string, recipient?: string) => {
             if (!validationOr(validateReason(message), markActionDone)) return null;
 
-            return runAction(() => HousekeepingApi.sendHotelAlert(message), 'sendHotelAlert');
+            return runAction(() => HousekeepingApi.sendHotelAlert(message, recipient), 'sendHotelAlert');
         },
         [runAction, markActionDone]
     );
+
+    const startMaintenance = useCallback(
+        (minutes: number, message: string) => runAction(() => HousekeepingApi.maintenance('start', message, minutes), 'startMaintenance'),
+        [runAction]
+    );
+
+    const cancelMaintenance = useCallback(() => runAction(() => HousekeepingApi.maintenance('cancel'), 'cancelMaintenance'), [runAction]);
+
+    const disableMaintenance = useCallback(() => runAction(() => HousekeepingApi.maintenance('disable'), 'disableMaintenance'), [runAction]);
+
+    const addFilterWord = useCallback(
+        (word: string, replacement: string) => runAction(() => HousekeepingApi.wordFilter('add', word, replacement), 'addFilterWord'),
+        [runAction]
+    );
+
+    const removeFilterWord = useCallback((word: string) => runAction(() => HousekeepingApi.wordFilter('remove', word), 'removeFilterWord'), [runAction]);
 
     const revokeBan = useCallback(
         async (banId: number) => {
@@ -580,6 +596,11 @@ export const useHousekeepingActions = () => {
         grantItem,
         setHcSubscription,
         sendHotelAlert,
+        startMaintenance,
+        cancelMaintenance,
+        disableMaintenance,
+        addFilterWord,
+        removeFilterWord,
         reloadHotel,
         revokeBan,
         kickFromCurrentRoom,
