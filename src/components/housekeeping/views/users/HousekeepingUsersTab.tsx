@@ -1,5 +1,5 @@
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { FaBan, FaCircle, FaCoins, FaComments, FaGavel, FaHistory, FaSearch, FaShieldAlt, FaTimes, FaUserCog, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
+import { FaBan, FaCircle, FaCoins, FaComments, FaGavel, FaHistory, FaSearch, FaShieldAlt, FaStickyNote, FaTimes, FaUserCog, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
 import { HousekeepingUserSection, isAuditEntryAboutUser, LocalizeText } from '../../../../api';
 import { useHousekeeping, useHousekeepingDangerConfirm, useRoomUserListSnapshot } from '../../../../hooks';
 import { HousekeepingHistoryView } from '../common/HousekeepingHistoryView';
@@ -7,6 +7,7 @@ import { HousekeepingListChoice, HousekeepingListView } from '../common/Housekee
 import { HousekeepingButton, HousekeepingEmptyState } from '../common/HousekeepingParts';
 import { HousekeepingSubTab, HousekeepingSubTabs } from '../common/HousekeepingSubTabs';
 import { HousekeepingUserAccountView } from './HousekeepingUserAccountView';
+import { HousekeepingUserNotesView } from './HousekeepingUserNotesView';
 import { HousekeepingUserCard } from './HousekeepingUserCard';
 import { HousekeepingUserEconomyView } from './HousekeepingUserEconomyView';
 import { DEFAULT_SANCTION_DRAFT, HousekeepingSanctionDraft, HousekeepingUserSanctionsView, sanctionReason } from './HousekeepingUserSanctionsView';
@@ -107,6 +108,7 @@ export const HousekeepingUsersTab: FC = () => {
         { id: HousekeepingUserSection.SECURITY, label: LocalizeText('housekeeping.user.section.security'), icon: <FaShieldAlt size={9} /> },
         { id: HousekeepingUserSection.ECONOMY, label: LocalizeText('housekeeping.user.section.economy'), icon: <FaCoins size={9} /> },
         { id: HousekeepingUserSection.ACCOUNT, label: LocalizeText('housekeeping.user.section.account'), icon: <FaUserCog size={9} /> },
+        { id: HousekeepingUserSection.NOTES, label: LocalizeText('housekeeping.user.section.notes'), icon: <FaStickyNote size={9} /> },
         { id: HousekeepingUserSection.HISTORY, label: LocalizeText('housekeeping.user.section.history'), icon: <FaHistory size={9} />, count: history.length }
     ];
 
@@ -263,6 +265,7 @@ export const HousekeepingUsersTab: FC = () => {
                     )}
                     {userSection === HousekeepingUserSection.ECONOMY && <HousekeepingUserEconomyView user={selectedUser} />}
                     {userSection === HousekeepingUserSection.ACCOUNT && <HousekeepingUserAccountView key={selectedUser.id} user={selectedUser} />}
+                    {userSection === HousekeepingUserSection.NOTES && <HousekeepingUserNotesView key={selectedUser.id} user={selectedUser} />}
                     {userSection === HousekeepingUserSection.HISTORY && <HousekeepingHistoryView entries={history} />}
                 </>
             )}

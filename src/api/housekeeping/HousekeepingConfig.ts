@@ -51,6 +51,7 @@ export const housekeepingTabsForMode = (mode: HousekeepingMode): HousekeepingTab
         HousekeepingTabId.BANS,
         HousekeepingTabId.AUDIT,
         HousekeepingTabId.HOTEL,
+        HousekeepingTabId.PERMISSIONS,
         HousekeepingTabId.SOUNDBOARD
     ];
 

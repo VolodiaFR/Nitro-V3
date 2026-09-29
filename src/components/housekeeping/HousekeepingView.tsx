@@ -19,6 +19,7 @@ import { HousekeepingBansTab } from './views/bans/HousekeepingBansTab';
 import { HousekeepingDashboardTab } from './views/dashboard/HousekeepingDashboardTab';
 import { HousekeepingHotelTab } from './views/hotel/HousekeepingHotelTab';
 import { HousekeepingLiveTab } from './views/live/HousekeepingLiveTab';
+import { HousekeepingPermissionsTab } from './views/permissions/HousekeepingPermissionsTab';
 import { HousekeepingRoomsTab } from './views/rooms/HousekeepingRoomsTab';
 import { HousekeepingNavGroup, HousekeepingSidebar } from './views/shell/HousekeepingSidebar';
 import { HousekeepingSoundboardTab } from './views/soundboard/HousekeepingSoundboardTab';
@@ -187,7 +188,13 @@ export const HousekeepingView: FC = () => {
                     { id: HousekeepingTabId.AUDIT, icon: 'icon-message', labelKey: 'housekeeping.tab.audit' }
                 ]
             },
-            { titleKey: 'housekeeping.nav.hotel', items: [{ id: HousekeepingTabId.HOTEL, icon: 'icon-catalog', labelKey: 'housekeeping.tab.hotel' }] },
+            {
+                titleKey: 'housekeeping.nav.hotel',
+                items: [
+                    { id: HousekeepingTabId.HOTEL, icon: 'icon-catalog', labelKey: 'housekeeping.tab.hotel' },
+                    { id: HousekeepingTabId.PERMISSIONS, icon: 'icon-cog', labelKey: 'housekeeping.tab.permissions' }
+                ]
+            },
             {
                 titleKey: 'housekeeping.nav.content',
                 items: [{ id: HousekeepingTabId.SOUNDBOARD, icon: 'icon-soundboard', labelKey: 'housekeeping.tab.soundboard' }]
@@ -211,6 +218,8 @@ export const HousekeepingView: FC = () => {
                 return <HousekeepingAuditTab />;
             case HousekeepingTabId.HOTEL:
                 return <HousekeepingHotelTab />;
+            case HousekeepingTabId.PERMISSIONS:
+                return <HousekeepingPermissionsTab />;
             case HousekeepingTabId.SOUNDBOARD:
                 return canManageSoundboard ? <HousekeepingSoundboardTab /> : <HousekeepingUsersTab />;
             case HousekeepingTabId.USERS:

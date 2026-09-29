@@ -6,6 +6,7 @@ export * from './HousekeepingFormatters';
 export * from './HousekeepingHotelTools';
 export * from './HousekeepingHttpClient';
 export * from './HousekeepingMetrics';
+export * from './HousekeepingPermissions';
 export * from './HousekeepingRecentLookups';
 export * from './HousekeepingSanctionTemplates';
 export * from './HousekeepingSearch';

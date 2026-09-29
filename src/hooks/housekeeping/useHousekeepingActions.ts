@@ -419,6 +419,19 @@ export const useHousekeepingActions = () => {
         [runAction]
     );
 
+    const setPermission = useCallback(
+        (permissionKey: string, rankId: number, value: number) =>
+            runAction(() => HousekeepingApi.setPermission(permissionKey, rankId, value), 'setPermission'),
+        [runAction]
+    );
+
+    const addUserNote = useCallback((userId: number, note: string) => runAction(() => HousekeepingApi.userNote('add', userId, 0, note), 'addUserNote'), [runAction]);
+
+    const deleteUserNote = useCallback(
+        (userId: number, noteId: number) => runAction(() => HousekeepingApi.userNote('delete', userId, noteId), 'deleteUserNote'),
+        [runAction]
+    );
+
     const removeFilterWord = useCallback((word: string) => runAction(() => HousekeepingApi.wordFilter('remove', word), 'removeFilterWord'), [runAction]);
 
     const revokeBan = useCallback(
@@ -601,6 +614,9 @@ export const useHousekeepingActions = () => {
         disableMaintenance,
         addFilterWord,
         removeFilterWord,
+        setPermission,
+        addUserNote,
+        deleteUserNote,
         reloadHotel,
         revokeBan,
         kickFromCurrentRoom,

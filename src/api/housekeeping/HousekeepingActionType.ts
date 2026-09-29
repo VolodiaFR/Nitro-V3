@@ -37,6 +37,8 @@ export const HousekeepingTabId = {
     SUPPORT: 'support',
     BANS: 'bans',
     HOTEL: 'hotel',
+    /** Every permission against every rank. */
+    PERMISSIONS: 'permissions',
     SOUNDBOARD: 'soundboard'
 } as const;
 
@@ -49,6 +51,7 @@ export const HousekeepingUserSection = {
     SECURITY: 'security',
     ECONOMY: 'economy',
     ACCOUNT: 'account',
+    NOTES: 'notes',
     HISTORY: 'history'
 } as const;
 

@@ -51,6 +51,7 @@ describe('housekeepingTabsForMode', () => {
             HousekeepingTabId.BANS,
             HousekeepingTabId.AUDIT,
             HousekeepingTabId.HOTEL,
+            HousekeepingTabId.PERMISSIONS,
             HousekeepingTabId.SOUNDBOARD
         ]);
     });

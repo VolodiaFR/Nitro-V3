@@ -34,12 +34,14 @@ import {
     HousekeepingSearchRoomsComposer,
     HousekeepingSendHotelAlertComposer,
     HousekeepingSetHcSubscriptionComposer,
+    HousekeepingSetPermissionComposer,
     HousekeepingSetUserRankComposer,
     HousekeepingTradeLockUserComposer,
     HousekeepingTransferRoomOwnershipComposer,
     HousekeepingUnbanUserComposer,
     HousekeepingUserDetailData,
     HousekeepingUserDetailEvent,
+    HousekeepingUserNoteComposer,
     HousekeepingWordFilterComposer,
     IMessageComposer
 } from '@octane/renderer';
@@ -360,6 +362,12 @@ export const readMaintenanceStatus = (parser: { enabled: boolean; minRank: numbe
     countdownEndsAt: parser.countdownEndsAt
 });
 
+const setPermissionViaPacket = (permissionKey: string, rankId: number, value: number): Promise<IHousekeepingActionResult> =>
+    runHkAction(new HousekeepingSetPermissionComposer(permissionKey, rankId, value), 'hotel.permission.set');
+
+const userNoteViaPacket = (action: 'add' | 'delete', userId: number, noteId: number, note: string): Promise<IHousekeepingActionResult> =>
+    runHkAction(new HousekeepingUserNoteComposer(action, userId, noteId, note), `user.note.${action}`);
+
 const wordFilterViaPacket = (action: 'add' | 'remove', word: string, replacement = ''): Promise<IHousekeepingActionResult> =>
     runHkAction(new HousekeepingWordFilterComposer(action, word, replacement), `hotel.wordfilter.${action}`);
 
@@ -501,6 +509,8 @@ export const HousekeepingApi = {
     maintenance: (action: Exclude<HousekeepingMaintenanceAction, 'status'>, message?: string, minutes?: number) => maintenanceViaPacket(action, message, minutes),
     getMaintenanceStatus: (signal?: AbortSignal) => getMaintenanceStatusViaPacket(signal),
     wordFilter: (action: 'add' | 'remove', word: string, replacement?: string) => wordFilterViaPacket(action, word, replacement),
+    setPermission: (permissionKey: string, rankId: number, value: number) => setPermissionViaPacket(permissionKey, rankId, value),
+    userNote: (action: 'add' | 'delete', userId: number, noteId: number, note = '') => userNoteViaPacket(action, userId, noteId, note),
     reload: (target: HousekeepingReloadTarget) => reloadViaPacket(target),
     revokeBan: (banId: number) => revokeBanViaPacket(banId),
     listActionLog: (limit: number, signal?: AbortSignal) => listActionLogViaPacket(limit, signal),
