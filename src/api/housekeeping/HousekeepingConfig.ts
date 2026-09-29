@@ -1,6 +1,14 @@
 import { GetConfigurationValue } from '../octane';
 import { HousekeepingTabId } from './HousekeepingActionType';
 import { HousekeepingSanctionTemplate, resolveSanctionTemplates } from './HousekeepingSanctionTemplates';
+import {
+    HOUSEKEEPING_ESCALATION_KEY,
+    HOUSEKEEPING_TICKET_REPLIES_KEY,
+    HousekeepingEscalationStep,
+    HousekeepingTicketReply,
+    resolveEscalationSteps,
+    resolveTicketReplies
+} from './HousekeepingTicketTools';
 
 export type HousekeepingMode = 'light' | 'full';
 
@@ -63,3 +71,11 @@ export const HOUSEKEEPING_SANCTION_TEMPLATES_KEY = 'housekeeping.sanction_templa
 /** The sanction templates for this hotel: `housekeeping.sanction_templates` when set and valid, else the defaults. */
 export const getHousekeepingSanctionTemplates = (): HousekeepingSanctionTemplate[] =>
     resolveSanctionTemplates(GetConfigurationValue<unknown>(HOUSEKEEPING_SANCTION_TEMPLATES_KEY, null));
+
+/** The canned replies for this hotel: `housekeeping.ticket_replies` when set and valid, else the defaults. */
+export const getHousekeepingTicketReplies = (): HousekeepingTicketReply[] =>
+    resolveTicketReplies(GetConfigurationValue<unknown>(HOUSEKEEPING_TICKET_REPLIES_KEY, null));
+
+/** The escalation steps for this hotel: `housekeeping.escalation` when set and valid, else the defaults. */
+export const getHousekeepingEscalationSteps = (): HousekeepingEscalationStep[] =>
+    resolveEscalationSteps(GetConfigurationValue<unknown>(HOUSEKEEPING_ESCALATION_KEY, null));

@@ -12,5 +12,6 @@ export * from './HousekeepingSanctionTemplates';
 export * from './HousekeepingSearch';
 export * from './HousekeepingStats';
 export * from './HousekeepingTickets';
+export * from './HousekeepingTicketTools';
 export * from './HousekeepingValidation';
 export * from './IHousekeepingTypes';

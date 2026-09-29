@@ -533,5 +533,23 @@
     "housekeeping.error.note_not_yours": "Solo l'autore può eliminare una nota.",
     "housekeeping.audit.action.hotel.permission.set": "Permesso modificato",
     "housekeeping.audit.action.user.note.add": "Nota aggiunta",
-    "housekeeping.audit.action.user.note.delete": "Nota eliminata"
+    "housekeeping.audit.action.user.note.delete": "Nota eliminata",
+
+    "housekeeping.support.reply.label": "Rispondi a %user%",
+    "housekeeping.support.reply.canned": "Risposta predefinita...",
+    "housekeeping.support.reply.placeholder": "Messaggio per chi ha segnalato",
+    "housekeeping.support.reply.close_after": "Chiudi come risolto",
+    "housekeeping.support.reply.sent": "Inviato",
+    "housekeeping.support.reply.send": "Invia",
+    "housekeeping.support.escalation.check": "Storico e sanzione suggerita per %user%",
+    "housekeeping.support.escalation.history": "%user% ha %count% sanzioni passate. Suggerita:",
+    "housekeeping.support.escalation.confirm": "Applicare %sanction% a %user%?",
+    "housekeeping.support.escalation.applied": "Applicata",
+    "housekeeping.support.escalation.apply": "Applica",
+    "housekeeping.support.escalation.none": "nessun gradino raggiunto",
+    "housekeeping.ticket_reply.thanks": "Grazie della segnalazione. La stiamo controllando.",
+    "housekeeping.ticket_reply.handled": "Grazie della segnalazione. Abbiamo preso provvedimenti.",
+    "housekeeping.ticket_reply.more_info": "Ci servono più dettagli per intervenire. Segnala di nuovo spiegando cosa è successo e quando.",
+    "housekeeping.ticket_reply.no_violation": "Abbiamo controllato la segnalazione e non abbiamo trovato violazioni del regolamento.",
+    "housekeeping.ticket_reply.false_report": "Questa segnalazione non era corretta. Usa il pulsante di aiuto solo per problemi reali."
 }

@@ -4,6 +4,8 @@ import { FaCheck, FaHandPaper, FaInbox, FaTimes, FaUndo, FaUser, FaUserShield } 
 import { groupHousekeepingTickets, HousekeepingTabId, LocalizeText, SendMessageComposer } from '../../../../api';
 import { useHousekeepingStore, useModTools } from '../../../../hooks';
 import { HousekeepingButton, HousekeepingEmptyState, HousekeepingPill, HousekeepingSection } from '../common/HousekeepingParts';
+import { HousekeepingTicketEscalationView } from './HousekeepingTicketEscalationView';
+import { HousekeepingTicketReplyView } from './HousekeepingTicketReplyView';
 
 type TicketGroup = 'open' | 'mine' | 'others';
 
@@ -37,6 +39,8 @@ const TicketCard: FC<{ ticket: IssueMessageData; group: TicketGroup; onOpenUser:
                 )}
             </div>
             {ticket.message && <p className="m-0 whitespace-pre-wrap break-words rounded bg-zinc-50 px-1.5 py-1 text-zinc-800">{ticket.message}</p>}
+            {group === 'mine' && ticket.reportedUserId > 0 && <HousekeepingTicketEscalationView ticket={ticket} />}
+            {group === 'mine' && ticket.reporterUserId > 0 && <HousekeepingTicketReplyView ticket={ticket} />}
             <div className="flex flex-wrap items-center gap-1">
                 {group === 'open' && (
                     <HousekeepingButton
