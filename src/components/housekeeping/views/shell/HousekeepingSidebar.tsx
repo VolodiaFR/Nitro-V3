@@ -15,6 +15,17 @@ export interface HousekeepingNavGroup {
     items: HousekeepingNavItem[];
 }
 
+/**
+ * The hotel icons are pixel art in their own sizes (13x23 up to 44x38). Any
+ * scaling blurs them, so each one keeps its size, centred in a slot as wide as
+ * the widest: the labels start at the same x and every row has the same height.
+ */
+const HousekeepingNavIcon: FC<{ icon: string }> = ({ icon }) => (
+    <span className="flex h-[38px] w-[44px] shrink-0 items-center justify-center">
+        <span className={`octane-icon octane-icon-hk-tab ${icon} shrink-0`} />
+    </span>
+);
+
 /** Left column of the panel: the global search over grouped sections. */
 export const HousekeepingSidebar: FC<{
     groups: HousekeepingNavGroup[];
@@ -37,13 +48,13 @@ export const HousekeepingSidebar: FC<{
                                 <button
                                     key={item.id}
                                     aria-current={isActive ? 'page' : undefined}
-                                    className={`flex items-center gap-1.5 rounded px-1.5 py-1 text-left text-xs transition-colors ${
+                                    className={`flex items-center gap-1.5 rounded px-1 py-0.5 text-left text-xs transition-colors ${
                                         isActive ? 'bg-white font-semibold text-zinc-900 shadow-sm ring-1 ring-zinc-300' : 'text-zinc-700 hover:bg-white/70'
                                     }`}
                                     type="button"
                                     onClick={() => onSelect(item.id)}
                                 >
-                                    <span className={`octane-icon octane-icon-hk-tab ${item.icon} shrink-0`} />
+                                    <HousekeepingNavIcon icon={item.icon} />
                                     <span className="grow truncate">{LocalizeText(item.labelKey)}</span>
                                     {!!item.count && (
                                         <span className="rounded-full bg-sky-600 px-1.5 text-[9px] font-bold tabular-nums text-white">{item.count}</span>
