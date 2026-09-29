@@ -44,6 +44,7 @@ export const isHousekeepingTabAvailable = (tab: HousekeepingTabId, mode: Houseke
 export const housekeepingTabsForMode = (mode: HousekeepingMode): HousekeepingTabId[] => {
     const all: HousekeepingTabId[] = [
         HousekeepingTabId.DASHBOARD,
+        HousekeepingTabId.LIVE,
         HousekeepingTabId.USERS,
         HousekeepingTabId.ROOMS,
         HousekeepingTabId.SUPPORT,

@@ -27,6 +27,8 @@ export type HousekeepingActionType = (typeof HousekeepingActionType)[keyof typeo
 
 export const HousekeepingTabId = {
     DASHBOARD: 'dashboard',
+    /** Who is online and the rooms in use, right now. */
+    LIVE: 'live',
     USERS: 'users',
     ROOMS: 'rooms',
     /** Kept for old links and stored tabs: economy now lives in the user page. */

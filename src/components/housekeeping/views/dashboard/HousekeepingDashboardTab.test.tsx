@@ -19,6 +19,9 @@ const notificationState: any = {
     simpleAlert: vi.fn()
 };
 
+// The charts fetch their own list; the dashboard tests cover the cards around them.
+vi.mock('./HousekeepingStatsView', () => ({ HousekeepingStatsView: () => null }));
+
 vi.mock('../../../../hooks', () => ({
     useHousekeepingStore: () => storeState,
     useNotification: () => notificationState

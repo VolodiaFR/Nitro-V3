@@ -17,8 +17,9 @@ const ROOM_ID_COLUMN = 'room_id';
 /**
  * A server list (chat, visits, same-IP accounts, ...) as a table, with a choice
  * of lists on top. Rows that name a user or a room open it in the panel.
+ * Hotel-wide lists (hotelWide) take no target and are asked for with 0.
  */
-export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetId: number }> = ({ lists, targetId }) => {
+export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetId: number; hotelWide?: boolean }> = ({ lists, targetId, hotelWide = false }) => {
     const { lookupUserById, lookupRoomById, setActiveTab } = useHousekeepingStore();
     const [listKey, setListKey] = useState(lists[0]?.key ?? '');
     const [list, setList] = useState<IHousekeepingList | null>(null);
@@ -27,7 +28,7 @@ export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetI
     const [reload, setReload] = useState(0);
 
     useEffect(() => {
-        if (!listKey || targetId <= 0) return;
+        if (!listKey || (targetId <= 0 && !hotelWide)) return;
 
         const controller = new AbortController();
 
@@ -49,7 +50,7 @@ export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetI
             });
 
         return () => controller.abort();
-    }, [listKey, targetId, reload]);
+    }, [listKey, targetId, hotelWide, reload]);
 
     const shown = list && list.listKey === listKey && list.targetId === targetId ? list : null;
     const userColumn = shown ? shown.columns.indexOf(USER_ID_COLUMN) : -1;

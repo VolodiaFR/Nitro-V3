@@ -44,6 +44,7 @@ describe('housekeepingTabsForMode', () => {
     it('returns the full ordered tab list in full mode', () => {
         expect(housekeepingTabsForMode('full')).toEqual([
             HousekeepingTabId.DASHBOARD,
+            HousekeepingTabId.LIVE,
             HousekeepingTabId.USERS,
             HousekeepingTabId.ROOMS,
             HousekeepingTabId.SUPPORT,

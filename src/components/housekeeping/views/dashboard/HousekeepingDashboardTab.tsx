@@ -13,6 +13,7 @@ import {
 } from '../../../../api';
 import { useHousekeepingStore, useNotification } from '../../../../hooks';
 import { HousekeepingButton } from '../common/HousekeepingParts';
+import { HousekeepingStatsView } from './HousekeepingStatsView';
 
 const AUTO_REFRESH_MS = 30_000;
 const STALE_AFTER_MS = 60_000;
@@ -222,6 +223,8 @@ export const HousekeepingDashboardTab: FC = () => {
                             tone="violet"
                         />
                     </div>
+
+                    <HousekeepingStatsView />
 
                     <form onSubmit={onSubmitAlert} className="flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50/40 p-2.5">
                         <label className="text-[10px] uppercase tracking-wider font-semibold opacity-60 flex items-center gap-1">

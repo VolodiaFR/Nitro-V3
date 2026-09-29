@@ -494,5 +494,20 @@
     "housekeeping.audit.action.hotel.maintenance.cancel": "Conto della manutenzione fermato",
     "housekeeping.audit.action.hotel.maintenance.disable": "Manutenzione disattivata",
     "housekeeping.audit.action.hotel.wordfilter.add": "Filtro parole: parola aggiunta",
-    "housekeeping.audit.action.hotel.wordfilter.remove": "Filtro parole: parola rimossa"
+    "housekeeping.audit.action.hotel.wordfilter.remove": "Filtro parole: parola rimossa",
+
+    "housekeeping.tab.live": "Dal vivo",
+    "housekeeping.list.hotel.online": "Online adesso",
+    "housekeeping.list.hotel.rooms": "Stanze in uso",
+    "housekeeping.list.column.rank": "Rango",
+    "housekeeping.list.column.since": "Online da",
+    "housekeeping.list.column.owner": "Proprietario",
+    "housekeeping.list.column.users": "Utenti",
+    "housekeeping.list.column.max": "Max",
+    "housekeeping.list.column.state": "Accesso",
+    "housekeeping.dashboard.chart.activity": "Utenti entrati nelle stanze, ultime 24 ore",
+    "housekeeping.dashboard.chart.activity.unit": "utenti",
+    "housekeeping.dashboard.chart.bans": "Ban emessi, ultimi 14 giorni",
+    "housekeeping.dashboard.chart.bans.unit": "ban",
+    "housekeeping.dashboard.chart.total": "Totale %count%"
 }

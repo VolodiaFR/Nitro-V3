@@ -18,6 +18,7 @@ import { HousekeepingAuditTab } from './views/audit/HousekeepingAuditTab';
 import { HousekeepingBansTab } from './views/bans/HousekeepingBansTab';
 import { HousekeepingDashboardTab } from './views/dashboard/HousekeepingDashboardTab';
 import { HousekeepingHotelTab } from './views/hotel/HousekeepingHotelTab';
+import { HousekeepingLiveTab } from './views/live/HousekeepingLiveTab';
 import { HousekeepingRoomsTab } from './views/rooms/HousekeepingRoomsTab';
 import { HousekeepingNavGroup, HousekeepingSidebar } from './views/shell/HousekeepingSidebar';
 import { HousekeepingSoundboardTab } from './views/soundboard/HousekeepingSoundboardTab';
@@ -171,7 +172,10 @@ export const HousekeepingView: FC = () => {
         const groups: HousekeepingNavGroup[] = [
             {
                 titleKey: 'housekeeping.nav.overview',
-                items: [{ id: HousekeepingTabId.DASHBOARD, icon: 'icon-housekeeping', labelKey: 'housekeeping.tab.dashboard' }]
+                items: [
+                    { id: HousekeepingTabId.DASHBOARD, icon: 'icon-housekeeping', labelKey: 'housekeeping.tab.dashboard' },
+                    { id: HousekeepingTabId.LIVE, icon: 'icon-progression', labelKey: 'housekeeping.tab.live' }
+                ]
             },
             {
                 titleKey: 'housekeeping.nav.moderation',
@@ -195,6 +199,8 @@ export const HousekeepingView: FC = () => {
 
     const activeView = useMemo(() => {
         switch (activeTab) {
+            case HousekeepingTabId.LIVE:
+                return <HousekeepingLiveTab />;
             case HousekeepingTabId.ROOMS:
                 return <HousekeepingRoomsTab />;
             case HousekeepingTabId.SUPPORT:
