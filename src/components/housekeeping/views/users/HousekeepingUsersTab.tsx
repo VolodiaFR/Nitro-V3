@@ -1,7 +1,21 @@
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { FaBan, FaCircle, FaCoins, FaComments, FaGavel, FaHistory, FaSearch, FaShieldAlt, FaStickyNote, FaTimes, FaUserCog, FaUserSlash, FaVolumeMute } from 'react-icons/fa';
+import {
+    FaBan,
+    FaCircle,
+    FaCoins,
+    FaComments,
+    FaGavel,
+    FaHistory,
+    FaSearch,
+    FaShieldAlt,
+    FaStickyNote,
+    FaTimes,
+    FaUserCog,
+    FaUserSlash,
+    FaVolumeMute
+} from 'react-icons/fa';
 import { HousekeepingUserSection, isAuditEntryAboutUser, LocalizeText } from '../../../../api';
-import { useHousekeeping, useHousekeepingDangerConfirm, useRoomUserListSnapshot } from '../../../../hooks';
+import { useHasPermission, useHousekeeping, useHousekeepingDangerConfirm, useRoomUserListSnapshot } from '../../../../hooks';
 import { HousekeepingHistoryView } from '../common/HousekeepingHistoryView';
 import { HousekeepingListChoice, HousekeepingListView } from '../common/HousekeepingListView';
 import { HousekeepingButton, HousekeepingEmptyState } from '../common/HousekeepingParts';
@@ -102,15 +116,23 @@ export const HousekeepingUsersTab: FC = () => {
         runner();
     };
 
-    const sections: HousekeepingSubTab<HousekeepingUserSection>[] = [
+    const canEconomy = useHasPermission('acc_hk_economy');
+    const allSections: HousekeepingSubTab<HousekeepingUserSection>[] = [
         { id: HousekeepingUserSection.SANCTIONS, label: LocalizeText('housekeeping.user.section.sanctions'), icon: <FaGavel size={9} /> },
         { id: HousekeepingUserSection.ACTIVITY, label: LocalizeText('housekeeping.user.section.activity'), icon: <FaComments size={9} /> },
         { id: HousekeepingUserSection.SECURITY, label: LocalizeText('housekeeping.user.section.security'), icon: <FaShieldAlt size={9} /> },
-        { id: HousekeepingUserSection.ECONOMY, label: LocalizeText('housekeeping.user.section.economy'), icon: <FaCoins size={9} /> },
         { id: HousekeepingUserSection.ACCOUNT, label: LocalizeText('housekeeping.user.section.account'), icon: <FaUserCog size={9} /> },
         { id: HousekeepingUserSection.NOTES, label: LocalizeText('housekeeping.user.section.notes'), icon: <FaStickyNote size={9} /> },
         { id: HousekeepingUserSection.HISTORY, label: LocalizeText('housekeeping.user.section.history'), icon: <FaHistory size={9} />, count: history.length }
     ];
+    // The economy page needs its area permission; the server refuses the actions without it anyway.
+    const sections = canEconomy
+        ? [
+              ...allSections.slice(0, 3),
+              { id: HousekeepingUserSection.ECONOMY, label: LocalizeText('housekeeping.user.section.economy'), icon: <FaCoins size={9} /> },
+              ...allSections.slice(3)
+          ]
+        : allSections;
 
     return (
         <div className="flex flex-col gap-2">
@@ -263,7 +285,7 @@ export const HousekeepingUsersTab: FC = () => {
                     {userSection === HousekeepingUserSection.SECURITY && (
                         <HousekeepingListView key={`security-${selectedUser.id}`} lists={USER_SECURITY_LISTS} targetId={selectedUser.id} />
                     )}
-                    {userSection === HousekeepingUserSection.ECONOMY && <HousekeepingUserEconomyView user={selectedUser} />}
+                    {canEconomy && userSection === HousekeepingUserSection.ECONOMY && <HousekeepingUserEconomyView user={selectedUser} />}
                     {userSection === HousekeepingUserSection.ACCOUNT && <HousekeepingUserAccountView key={selectedUser.id} user={selectedUser} />}
                     {userSection === HousekeepingUserSection.NOTES && <HousekeepingUserNotesView key={selectedUser.id} user={selectedUser} />}
                     {userSection === HousekeepingUserSection.HISTORY && <HousekeepingHistoryView entries={history} />}

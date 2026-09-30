@@ -1,6 +1,6 @@
 import { AddLinkEventTracker, ILinkEventTracker, RemoveLinkEventTracker } from '@octane/renderer';
 import { FC, useEffect, useMemo } from 'react';
-import { HK_TICKET_STATE_OPEN, HousekeepingTabId, HousekeepingUserSection, isHousekeepingEnabled, LocalizeText } from '../../api';
+import { HK_TICKET_STATE_OPEN, HousekeepingTabId, HousekeepingUserSection, isHousekeepingEnabled, isHousekeepingTabOpen, LocalizeText } from '../../api';
 import { DraggableWindowPosition, OctaneCardContentView, OctaneCardHeaderView, OctaneCardView, WidgetErrorBoundary } from '../../common';
 import { useHasPermission, useHousekeepingStore, useModTools } from '../../hooks';
 import { HousekeepingDangerConfirmView } from './HousekeepingDangerConfirmView';
@@ -49,6 +49,25 @@ export const HousekeepingView: FC = () => {
     // — promote/demote takes effect on the next render without a relog.
     const isHk = useHasPermission('acc_housekeeping');
     const canManageSoundboard = useHasPermission('acc_soundboard_manage');
+    // One hook per area key, called every render: which tabs an operator sees (the server
+    // enforces the same areas on every action).
+    const canUsers = useHasPermission('acc_hk_users');
+    const canRooms = useHasPermission('acc_hk_rooms');
+    const canBans = useHasPermission('acc_hk_bans');
+    const canHotel = useHasPermission('acc_hk_hotel');
+    const canPermissions = useHasPermission('acc_hk_permissions');
+    const holds = useMemo(() => {
+        const held: Record<string, boolean> = {
+            acc_hk_users: canUsers,
+            acc_hk_rooms: canRooms,
+            acc_hk_bans: canBans,
+            acc_hk_hotel: canHotel,
+            acc_hk_permissions: canPermissions,
+            acc_soundboard_manage: canManageSoundboard
+        };
+
+        return (permission: string) => held[permission] === true;
+    }, [canUsers, canRooms, canBans, canHotel, canPermissions, canManageSoundboard]);
     // Config gate on top of the permission: `housekeeping.enabled`
     // (boolean, default false) is the master switch for the whole module.
     // Config is read after `await GetConfiguration().init()` in
@@ -90,7 +109,7 @@ export const HousekeepingView: FC = () => {
                         return;
                     case 'tab': {
                         const candidate = parts[2] ?? '';
-                        const canOpenCandidate = candidate !== HousekeepingTabId.SOUNDBOARD || canManageSoundboard;
+                        const canOpenCandidate = isHkTabId(candidate) && isHousekeepingTabOpen(candidate, holds);
 
                         if (isHkTabId(candidate) && canOpenCandidate) {
                             openTab(candidate);
@@ -104,7 +123,7 @@ export const HousekeepingView: FC = () => {
                         // the find-by-id packet fills in the rest.
                         const userId = parseInt(parts[2] ?? '');
 
-                        if (!Number.isFinite(userId) || userId <= 0) return;
+                        if (!Number.isFinite(userId) || userId <= 0 || !isHousekeepingTabOpen(HousekeepingTabId.USERS, holds)) return;
 
                         setActiveTab(HousekeepingTabId.USERS);
                         setIsVisible(true);
@@ -118,7 +137,7 @@ export const HousekeepingView: FC = () => {
                         // housekeeping/room/<id> — opens the room page on that room.
                         const roomId = parseInt(parts[2] ?? '');
 
-                        if (!Number.isFinite(roomId) || roomId <= 0) return;
+                        if (!Number.isFinite(roomId) || roomId <= 0 || !isHousekeepingTabOpen(HousekeepingTabId.ROOMS, holds)) return;
 
                         setActiveTab(HousekeepingTabId.ROOMS);
                         setIsVisible(true);
@@ -133,7 +152,7 @@ export const HousekeepingView: FC = () => {
         AddLinkEventTracker(linkTracker);
 
         return () => RemoveLinkEventTracker(linkTracker);
-    }, [setIsVisible, togglePanel, closePanel, setActiveTab, setUserSection, lookupUserById, lookupRoomById, seedUserFromAvatar, canManageSoundboard]);
+    }, [setIsVisible, togglePanel, closePanel, setActiveTab, setUserSection, lookupUserById, lookupRoomById, seedUserFromAvatar, holds]);
 
     // When the panel is gated off (perm revoked mid-session, or
     // `housekeeping.enabled` is false) make sure it isn't left visible.
@@ -141,8 +160,8 @@ export const HousekeepingView: FC = () => {
         if ((!isHk || !hkEnabled) && isVisible) closePanel();
     }, [isHk, hkEnabled, isVisible, closePanel]);
 
-    // Bounce a stored tab that is no longer reachable: the old economy tab,
-    // Soundboard without its permission, or a full-mode tab in light mode.
+    // Bounce a stored tab that is no longer reachable: the old economy tab, or a
+    // tab whose area permission the operator does not hold (back to the dashboard).
     useEffect(() => {
         if (activeTab === HousekeepingTabId.ECONOMY) {
             setUserSection(HousekeepingUserSection.ECONOMY);
@@ -151,13 +170,11 @@ export const HousekeepingView: FC = () => {
             return;
         }
 
-        const soundboardDenied = activeTab === HousekeepingTabId.SOUNDBOARD && !canManageSoundboard;
-
-        if (soundboardDenied) setActiveTab(HousekeepingTabId.USERS);
-    }, [activeTab, canManageSoundboard, setActiveTab, setUserSection]);
+        if (!isHousekeepingTabOpen(activeTab, holds)) setActiveTab(HousekeepingTabId.DASHBOARD);
+    }, [activeTab, holds, setActiveTab, setUserSection]);
 
     const navGroups = useMemo<HousekeepingNavGroup[]>(() => {
-        const available = (id: HousekeepingTabId) => id !== HousekeepingTabId.SOUNDBOARD || canManageSoundboard;
+        const available = (id: HousekeepingTabId) => isHousekeepingTabOpen(id, holds);
         const groups: HousekeepingNavGroup[] = [
             {
                 titleKey: 'housekeeping.nav.overview',
@@ -190,7 +207,7 @@ export const HousekeepingView: FC = () => {
         ];
 
         return groups.map((group) => ({ ...group, items: group.items.filter((item) => available(item.id)) }));
-    }, [canManageSoundboard, selectedUserIds.length, openTickets]);
+    }, [holds, selectedUserIds.length, openTickets]);
 
     const activeView = useMemo(() => {
         switch (activeTab) {
