@@ -17,6 +17,7 @@ import {
     HousekeepingKickAllFromRoomComposer,
     HousekeepingKickUserComposer,
     HousekeepingListEvent,
+    HousekeepingLockdownComposer,
     HousekeepingMaintenanceComposer,
     HousekeepingMaintenanceStatusEvent,
     HousekeepingListActionLogComposer,
@@ -442,8 +443,9 @@ const listActionLogViaPacket = (limit: number, signal?: AbortSignal): Promise<IH
     });
 };
 
-const requestListViaPacket = (listKey: string, targetId: number, signal?: AbortSignal): Promise<IHousekeepingList> => {
-    SendMessageComposer(new HousekeepingRequestListComposer(listKey, targetId));
+/** reveal asks for IP addresses in clear: it needs acc_hk_view_private and the server audits it. */
+const requestListViaPacket = (listKey: string, targetId: number, signal?: AbortSignal, reveal = false): Promise<IHousekeepingList> => {
+    SendMessageComposer(new HousekeepingRequestListComposer(listKey, targetId, reveal ? 1 : undefined));
 
     return awaitMessageEvent<HousekeepingListEvent, IHousekeepingList>(HousekeepingListEvent, {
         signal,
@@ -515,5 +517,6 @@ export const HousekeepingApi = {
     reload: (target: HousekeepingReloadTarget) => reloadViaPacket(target),
     revokeBan: (banId: number) => revokeBanViaPacket(banId),
     listActionLog: (limit: number, signal?: AbortSignal) => listActionLogViaPacket(limit, signal),
-    requestList: (listKey: string, targetId: number, signal?: AbortSignal) => requestListViaPacket(listKey, targetId, signal)
+    requestList: (listKey: string, targetId: number, signal?: AbortSignal, reveal?: boolean) => requestListViaPacket(listKey, targetId, signal, reveal),
+    setLockdown: (enabled: boolean) => runHkAction(new HousekeepingLockdownComposer(enabled), 'hotel.lockdown')
 } as const;

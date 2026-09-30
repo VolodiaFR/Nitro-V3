@@ -34,8 +34,7 @@ const useHousekeepingStoreInner = () => {
     // Last-tab is persisted per user (useLocalStorage auto-scopes the key
     // by userId from the URL) so reopening the panel lands on the same
     // tab the operator was using. HousekeepingView's auto-redirect
-    // effect handles the case where the persisted tab isn't available
-    // in the current `housekeeping.mode` (light bounces DASHBOARD → USERS).
+    // effect handles a persisted tab the operator may no longer open.
     const [activeTab, setActiveTab] = useLocalStorage<HousekeepingTabId>('nitro.housekeeping.last_tab', HousekeepingTabId.DASHBOARD);
     const [selectedUser, setSelectedUser] = useState<IHousekeepingUser | null>(null);
     const [selectedRoom, setSelectedRoom] = useState<IHousekeepingRoom | null>(null);

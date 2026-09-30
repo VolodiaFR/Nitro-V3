@@ -17,6 +17,7 @@ import {
 import { formatHousekeepingDate, FriendlyTime, IHousekeepingUser, LocalizeText } from '../../../../api';
 import { LayoutAvatarImageView, LayoutBadgeImageView, LayoutCurrencyIcon } from '../../../../common';
 import { HousekeepingFact, HousekeepingPill } from '../common/HousekeepingParts';
+import { HousekeepingPrivateIpView } from './HousekeepingPrivateIpView';
 
 const CURRENCIES: { type: number; key: string; field: 'creditsBalance' | 'ducketsBalance' | 'diamondsBalance'; tone: string }[] = [
     { type: -1, key: 'housekeeping.user.credits', field: 'creditsBalance', tone: 'border-amber-200 bg-amber-50 text-amber-800' },
@@ -118,8 +119,7 @@ export const HousekeepingUserCard: FC<{ user: IHousekeepingUser; onClear: () => 
                 <HousekeepingFact
                     icon={<FaGlobe size={8} />}
                     label={LocalizeText('housekeeping.user.fact.ip')}
-                    title={user.ipLast}
-                    value={user.ipLast || '-'}
+                    value={<HousekeepingPrivateIpView masked={user.ipLast} userId={user.id} />}
                 />
             </div>
 

@@ -419,6 +419,8 @@ export const useHousekeepingActions = () => {
         [runAction]
     );
 
+    const setLockdown = useCallback((enabled: boolean) => runAction(() => HousekeepingApi.setLockdown(enabled), 'setLockdown'), [runAction]);
+
     const setPermission = useCallback(
         (permissionKey: string, rankId: number, value: number) =>
             runAction(() => HousekeepingApi.setPermission(permissionKey, rankId, value), 'setPermission'),
@@ -615,6 +617,7 @@ export const useHousekeepingActions = () => {
         addFilterWord,
         removeFilterWord,
         setPermission,
+        setLockdown,
         addUserNote,
         deleteUserNote,
         reloadHotel,

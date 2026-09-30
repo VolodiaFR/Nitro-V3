@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from 'react';
-import { FaExternalLinkAlt, FaSync } from 'react-icons/fa';
+import { FaExternalLinkAlt, FaEye, FaEyeSlash, FaSync } from 'react-icons/fa';
 import { formatHousekeepingListCell, HousekeepingApi, housekeepingFailureKey, HousekeepingTabId, IHousekeepingList, LocalizeText } from '../../../../api';
-import { useHousekeepingStore } from '../../../../hooks';
+import { useHasPermission, useHousekeepingStore } from '../../../../hooks';
 import { HousekeepingButton, HousekeepingEmptyState } from './HousekeepingParts';
 import { HousekeepingSubTabs } from './HousekeepingSubTabs';
 
@@ -19,13 +19,20 @@ const ROOM_ID_COLUMN = 'room_id';
  * of lists on top. Rows that name a user or a room open it in the panel.
  * Hotel-wide lists (hotelWide) take no target and are asked for with 0.
  */
-export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetId: number; hotelWide?: boolean }> = ({ lists, targetId, hotelWide = false }) => {
+export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetId: number; hotelWide?: boolean }> = ({
+    lists,
+    targetId,
+    hotelWide = false
+}) => {
     const { lookupUserById, lookupRoomById, setActiveTab } = useHousekeepingStore();
     const [listKey, setListKey] = useState(lists[0]?.key ?? '');
     const [list, setList] = useState<IHousekeepingList | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [reload, setReload] = useState(0);
+    // IPs come masked; an operator with acc_hk_view_private can ask for them in clear (audited).
+    const canReveal = useHasPermission('acc_hk_view_private');
+    const [reveal, setReveal] = useState(false);
 
     useEffect(() => {
         if (!listKey || (targetId <= 0 && !hotelWide)) return;
@@ -35,7 +42,7 @@ export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetI
         setIsLoading(true);
         setError(null);
 
-        HousekeepingApi.requestList(listKey, targetId, controller.signal)
+        HousekeepingApi.requestList(listKey, targetId, controller.signal, reveal)
             .then((result) => {
                 if (controller.signal.aborted) return;
 
@@ -50,7 +57,7 @@ export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetI
             });
 
         return () => controller.abort();
-    }, [listKey, targetId, hotelWide, reload]);
+    }, [listKey, targetId, hotelWide, reload, reveal]);
 
     const shown = list && list.listKey === listKey && list.targetId === targetId ? list : null;
     const userColumn = shown ? shown.columns.indexOf(USER_ID_COLUMN) : -1;
@@ -76,10 +83,27 @@ export const HousekeepingListView: FC<{ lists: HousekeepingListChoice[]; targetI
                     compact
                     active={listKey}
                     tabs={lists.map((choice) => ({ id: choice.key, label: LocalizeText(choice.labelKey) }))}
-                    onChange={setListKey}
+                    onChange={(key) => {
+                        setListKey(key);
+                        setReveal(false);
+                    }}
                 />
+                {canReveal && shown?.columns.includes('ip') && (
+                    <HousekeepingButton
+                        classNames={['ml-auto']}
+                        disabled={isLoading}
+                        gap={1}
+                        size="sm"
+                        title={LocalizeText('housekeeping.user.private.reveal_hint')}
+                        variant={reveal ? 'warning' : 'secondary'}
+                        onClick={() => setReveal((value) => !value)}
+                    >
+                        {reveal ? <FaEyeSlash size={9} /> : <FaEye size={9} />}
+                        <span>{LocalizeText(reveal ? 'housekeeping.user.private.hide' : 'housekeeping.user.private.show')}</span>
+                    </HousekeepingButton>
+                )}
                 <HousekeepingButton
-                    classNames={['ml-auto']}
+                    classNames={canReveal && shown?.columns.includes('ip') ? [] : ['ml-auto']}
                     disabled={isLoading}
                     gap={1}
                     size="sm"

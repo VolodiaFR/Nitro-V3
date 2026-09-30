@@ -561,5 +561,25 @@
     "housekeeping.user.account.rank_temp_confirm": "Dare il rango %rank% per %days% giorni? Poi l'utente torna al rango precedente.",
     "housekeeping.user.account.rank_temp_running": "Rango temporaneo %rank% fino al %until%, poi torna a %previous% (dato da %staff%).",
     "housekeeping.user.account.rank_temp_end": "Termina ora",
-    "housekeeping.user.account.rank_temp_end_confirm": "Terminare subito il rango temporaneo e ridare %rank%?"
+    "housekeeping.user.account.rank_temp_end_confirm": "Terminare subito il rango temporaneo e ridare %rank%?",
+
+    "housekeeping.hotel.section.security": "Sicurezza",
+    "housekeeping.hotel.security.label": "Freno d'emergenza",
+    "housekeeping.hotel.security.hint": "Quando è attivo, solo il rango più alto può usare il pannello: tutti gli altri operatori vengono rifiutati. Usalo se un account staff potrebbe essere compromesso.",
+    "housekeeping.hotel.security.state.locked": "Bloccato",
+    "housekeeping.hotel.security.state.open": "Aperto",
+    "housekeeping.hotel.security.lock": "Blocca il pannello",
+    "housekeeping.hotel.security.unlock": "Sblocca il pannello",
+    "housekeeping.hotel.security.lock.confirm": "Tutti gli operatori sotto il rango più alto perdono il pannello finché non lo sblocchi. Scrivi %word% per confermare.",
+    "housekeeping.hotel.security.top_only": "Solo il rango più alto può attivare o togliere il freno.",
+    "housekeeping.user.private.reveal": "Mostra l'IP in chiaro (registrato)",
+    "housekeeping.user.private.ips": "Accesso %login% · registrato da %register%",
+    "housekeeping.user.private.show": "Mostra IP",
+    "housekeeping.user.private.hide": "Nascondi IP",
+    "housekeeping.user.private.reveal_hint": "Mostra gli indirizzi IP in chiaro; ogni visualizzazione finisce nel registro.",
+    "housekeeping.error.lockdown": "Il pannello è bloccato: in questo momento solo il rango più alto può usarlo.",
+    "housekeeping.error.lockout": "Rifiutato: nessuno resterebbe con l'accesso all'HK o con il diritto di modificare i permessi.",
+    "housekeeping.audit.action.user.view_private": "IP visti in chiaro",
+    "housekeeping.audit.action.hotel.lockdown.on": "Pannello bloccato",
+    "housekeeping.audit.action.hotel.lockdown.off": "Pannello sbloccato"
 }

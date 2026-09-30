@@ -1,14 +1,6 @@
 import { AddLinkEventTracker, ILinkEventTracker, RemoveLinkEventTracker } from '@octane/renderer';
 import { FC, useEffect, useMemo } from 'react';
-import {
-    getHousekeepingMode,
-    HK_TICKET_STATE_OPEN,
-    HousekeepingTabId,
-    HousekeepingUserSection,
-    isHousekeepingEnabled,
-    isHousekeepingTabAvailable,
-    LocalizeText
-} from '../../api';
+import { HK_TICKET_STATE_OPEN, HousekeepingTabId, HousekeepingUserSection, isHousekeepingEnabled, LocalizeText } from '../../api';
 import { DraggableWindowPosition, OctaneCardContentView, OctaneCardHeaderView, OctaneCardView, WidgetErrorBoundary } from '../../common';
 import { useHasPermission, useHousekeepingStore, useModTools } from '../../hooks';
 import { HousekeepingDangerConfirmView } from './HousekeepingDangerConfirmView';
@@ -57,16 +49,12 @@ export const HousekeepingView: FC = () => {
     // — promote/demote takes effect on the next render without a relog.
     const isHk = useHasPermission('acc_housekeeping');
     const canManageSoundboard = useHasPermission('acc_soundboard_manage');
-    // Two-layer config gate on top of the permission:
-    //   - `housekeeping.enabled` (boolean, default false): master kill
-    //     switch for the whole module
-    //   - `housekeeping.mode` ("light" | "full", default "full"):
-    //     "light" exposes only Users + Rooms (essential moderation)
+    // Config gate on top of the permission: `housekeeping.enabled`
+    // (boolean, default false) is the master switch for the whole module.
     // Config is read after `await GetConfiguration().init()` in
     // bootstrap.ts, so by the time React mounts we're reading a
     // populated value — no Suspense needed.
     const hkEnabled = useMemo(() => isHousekeepingEnabled(), []);
-    const hkMode = useMemo(() => getHousekeepingMode(), []);
     // Tickets waiting for someone, shown on the Support entry.
     const { tickets = [] } = useModTools();
     const openTickets = tickets.filter((ticket) => ticket.state === HK_TICKET_STATE_OPEN).length;
@@ -104,7 +92,7 @@ export const HousekeepingView: FC = () => {
                         const candidate = parts[2] ?? '';
                         const canOpenCandidate = candidate !== HousekeepingTabId.SOUNDBOARD || canManageSoundboard;
 
-                        if (isHkTabId(candidate) && canOpenCandidate && isHousekeepingTabAvailable(candidate, getHousekeepingMode())) {
+                        if (isHkTabId(candidate) && canOpenCandidate) {
                             openTab(candidate);
                             setIsVisible(true);
                         }
@@ -165,11 +153,11 @@ export const HousekeepingView: FC = () => {
 
         const soundboardDenied = activeTab === HousekeepingTabId.SOUNDBOARD && !canManageSoundboard;
 
-        if (soundboardDenied || !isHousekeepingTabAvailable(activeTab, hkMode)) setActiveTab(HousekeepingTabId.USERS);
-    }, [activeTab, hkMode, canManageSoundboard, setActiveTab, setUserSection]);
+        if (soundboardDenied) setActiveTab(HousekeepingTabId.USERS);
+    }, [activeTab, canManageSoundboard, setActiveTab, setUserSection]);
 
     const navGroups = useMemo<HousekeepingNavGroup[]>(() => {
-        const available = (id: HousekeepingTabId) => isHousekeepingTabAvailable(id, hkMode) && (id !== HousekeepingTabId.SOUNDBOARD || canManageSoundboard);
+        const available = (id: HousekeepingTabId) => id !== HousekeepingTabId.SOUNDBOARD || canManageSoundboard;
         const groups: HousekeepingNavGroup[] = [
             {
                 titleKey: 'housekeeping.nav.overview',
@@ -202,7 +190,7 @@ export const HousekeepingView: FC = () => {
         ];
 
         return groups.map((group) => ({ ...group, items: group.items.filter((item) => available(item.id)) }));
-    }, [hkMode, canManageSoundboard, selectedUserIds.length, openTickets]);
+    }, [canManageSoundboard, selectedUserIds.length, openTickets]);
 
     const activeView = useMemo(() => {
         switch (activeTab) {
@@ -233,20 +221,15 @@ export const HousekeepingView: FC = () => {
 
     if (!hkEnabled || !isHk || !isVisible) return null;
 
-    const isLight = hkMode === 'light';
-    const headerSuffix = isLight ? ` · ${LocalizeText('housekeeping.mode.light')}` : '';
-    // Light mode has two sections and less to show, so the window stays narrower.
-    const sizeClass = isLight ? 'w-[640px]' : 'w-[860px]';
-
     return (
         <WidgetErrorBoundary name="HousekeepingView">
             <OctaneCardView
-                className={`octane-housekeeping ${sizeClass} h-[620px] max-h-[92vh] max-w-[96vw]`}
+                className={`octane-housekeeping w-[860px] h-[620px] max-h-[92vh] max-w-[96vw]`}
                 theme="primary-slim"
                 uniqueKey="housekeeping"
                 windowPosition={DraggableWindowPosition.TOP_CENTER}
             >
-                <OctaneCardHeaderView headerText={`${LocalizeText('housekeeping.title')}${headerSuffix}`} onCloseClick={() => closePanel()} />
+                <OctaneCardHeaderView headerText={LocalizeText('housekeeping.title')} onCloseClick={() => closePanel()} />
                 <div className="relative flex min-h-0 grow text-black">
                     <HousekeepingSidebar active={activeTab} groups={navGroups} onSelect={setActiveTab} />
                     <div className="flex min-w-0 grow flex-col">

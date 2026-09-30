@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from 'react';
-import { FaBan, FaExternalLinkAlt, FaInfinity, FaSync, FaUndo, FaUserSlash } from 'react-icons/fa';
+import { FaBan, FaExternalLinkAlt, FaEye, FaEyeSlash, FaInfinity, FaSync, FaUndo, FaUserSlash } from 'react-icons/fa';
 import {
     formatHousekeepingListCell,
     HousekeepingApi,
@@ -9,7 +9,7 @@ import {
     isPermanentHousekeepingBan,
     LocalizeText
 } from '../../../../api';
-import { useHousekeeping, useHousekeepingConfirm } from '../../../../hooks';
+import { useHasPermission, useHousekeeping, useHousekeepingConfirm } from '../../../../hooks';
 import { HousekeepingButton, HousekeepingEmptyState, HousekeepingPill } from '../common/HousekeepingParts';
 
 const BANS_LIST = 'hotel.bans';
@@ -27,6 +27,9 @@ export const HousekeepingBansTab: FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [reload, setReload] = useState(0);
+    // IPs come masked; an operator with acc_hk_view_private can ask for them in clear (audited).
+    const canReveal = useHasPermission('acc_hk_view_private');
+    const [reveal, setReveal] = useState(false);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -34,7 +37,7 @@ export const HousekeepingBansTab: FC = () => {
         setIsLoading(true);
         setError(null);
 
-        HousekeepingApi.requestList(BANS_LIST, 0, controller.signal)
+        HousekeepingApi.requestList(BANS_LIST, 0, controller.signal, reveal)
             .then((result) => {
                 if (controller.signal.aborted) return;
 
@@ -49,7 +52,7 @@ export const HousekeepingBansTab: FC = () => {
             });
 
         return () => controller.abort();
-    }, [reload]);
+    }, [reload, reveal]);
 
     const column = (name: string) => list?.columns.indexOf(name) ?? -1;
     const cell = (row: string[], name: string) => {
@@ -81,8 +84,22 @@ export const HousekeepingBansTab: FC = () => {
                 <FaBan className="text-rose-500" size={12} />
                 <span className="text-xs font-bold text-zinc-700">{LocalizeText('housekeeping.bans.title')}</span>
                 {list && <HousekeepingPill>{list.rows.length}</HousekeepingPill>}
+                {canReveal && (
+                    <HousekeepingButton
+                        classNames={['ml-auto']}
+                        disabled={isLoading}
+                        gap={1}
+                        size="sm"
+                        title={LocalizeText('housekeeping.user.private.reveal_hint')}
+                        variant={reveal ? 'warning' : 'secondary'}
+                        onClick={() => setReveal((value) => !value)}
+                    >
+                        {reveal ? <FaEyeSlash size={9} /> : <FaEye size={9} />}
+                        <span>{LocalizeText(reveal ? 'housekeeping.user.private.hide' : 'housekeeping.user.private.show')}</span>
+                    </HousekeepingButton>
+                )}
                 <HousekeepingButton
-                    classNames={['ml-auto']}
+                    classNames={canReveal ? [] : ['ml-auto']}
                     disabled={isLoading}
                     gap={1}
                     size="sm"
