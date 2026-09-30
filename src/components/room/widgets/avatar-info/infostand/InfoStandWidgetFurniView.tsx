@@ -976,7 +976,7 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                                     <>
                                         {dropdownOpen && (
                                             <div className="flex gap-[4px] w-full">
-                                                <div className="flex-1 p-[2px] flex flex-col gap-1">
+                                                <div className="flex-1 bg-[#3D5D63] rounded-[6px] border border-white p-[2px] flex flex-col gap-1">
                                                     <Text small variant="white">
                                                         {LocalizeText('group.edit.badge.position')}
                                                     </Text>
@@ -1028,7 +1028,7 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex-1 p-[2px] flex flex-col gap-1">
+                                                <div className="flex-1 bg-[#3D5D63] rounded-[6px] border border-white p-[2px] flex flex-col gap-1">
                                                     <Text small variant="white">
                                                         {LocalizeText('stack.magic.tile.height.label')}
                                                     </Text>
