@@ -13,7 +13,7 @@ import {
     UserRelationshipsComposer
 } from '@octane/renderer';
 import { FC, useRef, useState } from 'react';
-import { CreateLinkEvent, GetRoomSession, GetUserProfile, LocalizeText, localizeWithFallback, SanitizeHtml, SendMessageComposer } from '../../api';
+import { CreateLinkEvent, GetRoomSession, GetUserProfile, LocalizeText, localizeWithFallback, rememberBadgeRarityFromPacket, SanitizeHtml, SendMessageComposer } from '../../api';
 import { frankStop } from '../../assets/images/user-profile';
 import { useIsUserBlocked, useMessageEvent, useNotification, useOctaneEvent } from '../../hooks';
 import { useCardBackgroundTone } from '../../hooks/user-profile/useCardBackgroundTone';
@@ -74,6 +74,7 @@ export const UserProfileView: FC<{}> = () => {
 
         if (!userProfile || parser.userId !== userProfile.id) return;
 
+        rememberBadgeRarityFromPacket(parser.badgeDetails);
         setUserBadges(parser.badges);
     });
 
