@@ -109,7 +109,7 @@ const InfoStandStat: FC<{ icon: ReactNode; label: string; value: string | number
 };
 
 const StatIcon: FC<{ src: string }> = ({ src }) => (
-    <img alt="" className="shrink-0 w-[22px] h-[22px] transition-[filter] duration-100 group-hover:brightness-150 group-active:brightness-125" draggable={false} src={src} style={{ imageRendering: PIXEL_ART_RENDERING }} />
+    <img alt="" className="shrink-0 w-[22px] h-[22px] -my-[1px] transition-[filter] duration-100 group-hover:brightness-150 group-active:brightness-125" draggable={false} src={src} style={{ imageRendering: PIXEL_ART_RENDERING }} />
 );
 
 function formatPlantDuration(totalSeconds: number): string {
@@ -163,20 +163,6 @@ function getValidRoomObjectDirection(roomObject: any, isPositive: boolean) {
 
     return direction;
 }
-
-const HEIGHT_STEPS = [ 1, 0.1, 0.01 ];
-
-const BuildToolButton: FC<{ label: string; onClick: () => void; round?: boolean; children: ReactNode }> = ({ label, onClick, round = false, children }) => (
-    <button
-        type="button"
-        title={label}
-        aria-label={label}
-        className={`flex items-center justify-center w-[26px] h-[26px] p-0 text-white leading-none bg-[#2E8B9E] border border-white/70 cursor-pointer transition-[filter] duration-150 hover:brightness-125 active:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${ round ? 'rounded-full' : 'rounded-[3px]' }`}
-        onClick={onClick}
-    >
-        {children}
-    </button>
-);
 
 export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (props) => {
     const { avatarInfo = null, onClose = null } = props;
@@ -917,7 +903,7 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                         {(showLocation || showIds) && (
                             <>
                                 <hr className="m-0 bg-[#0003] border-0 opacity-[.5] h-px" />
-                                <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                                <div className="grid grid-cols-2 gap-x-3 gap-y-0">
                                     {showLocation && (
                                         <>
                                             <InfoStandStat icon={<StatIcon src={statXIcon} />} label="X" value={itemLocation.x} />
@@ -990,7 +976,7 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                                     <>
                                         {dropdownOpen && (
                                             <div className="flex gap-[4px] w-full">
-                                                <div className="flex-1 bg-[#3D5D63] rounded-[6px] border border-white p-[2px] flex flex-col gap-1">
+                                                <div className="flex-1 p-[2px] flex flex-col gap-1">
                                                     <Text small variant="white">
                                                         {LocalizeText('group.edit.badge.position')}
                                                     </Text>
@@ -1042,7 +1028,7 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex-1 bg-[#3D5D63] rounded-[6px] border border-white p-[2px] flex flex-col gap-1">
+                                                <div className="flex-1 p-[2px] flex flex-col gap-1">
                                                     <Text small variant="white">
                                                         {LocalizeText('stack.magic.tile.height.label')}
                                                     </Text>
