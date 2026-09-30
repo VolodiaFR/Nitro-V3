@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildHousekeepingAlertRecipient, formatHousekeepingCountdown } from './HousekeepingHotelTools';
+import { buildHousekeepingAlertRecipient, formatHousekeepingCountdown, housekeepingTempRankSeconds } from './HousekeepingHotelTools';
 
 describe('buildHousekeepingAlertRecipient', () => {
     it('sends nothing for the whole hotel, so an older server still broadcasts', () => {
@@ -30,5 +30,18 @@ describe('formatHousekeepingCountdown', () => {
 
     it('never goes below zero', () => {
         expect(formatHousekeepingCountdown(-30)).toBe('0:00');
+    });
+});
+
+describe('housekeepingTempRankSeconds', () => {
+    it('turns days into seconds within a year', () => {
+        expect(housekeepingTempRankSeconds(1)).toBe(86_400);
+        expect(housekeepingTempRankSeconds(365)).toBe(365 * 86_400);
+    });
+
+    it('reads anything else as a lasting rank', () => {
+        expect(housekeepingTempRankSeconds(0)).toBe(0);
+        expect(housekeepingTempRankSeconds(366)).toBe(0);
+        expect(housekeepingTempRankSeconds(1.5)).toBe(0);
     });
 });

@@ -216,11 +216,11 @@ export const useHousekeepingActions = () => {
     );
 
     const setUserRank = useCallback(
-        async (userId: number, rank: number) => {
+        async (userId: number, rank: number, durationSeconds = 0) => {
             if (!validationOr(validatePositiveId(userId, 'user'), markActionDone)) return null;
             if (!validationOr(validateRank(rank), markActionDone)) return null;
 
-            const result = await runAction(() => HousekeepingApi.setUserRank(userId, rank), 'setUserRank');
+            const result = await runAction(() => HousekeepingApi.setUserRank(userId, rank, durationSeconds), 'setUserRank');
 
             if (result && result.ok !== false && selectedUser && selectedUser.id === userId) {
                 setSelectedUser({ ...selectedUser, rank });

@@ -48,3 +48,12 @@ export const formatHousekeepingCountdown = (secondsLeft: number): string => {
 
 /** The wordfilter `replacement` column is varchar(16). */
 export const HOUSEKEEPING_WORDFILTER_REPLACEMENT_MAX = 16;
+
+/** Lengths offered for a temporary rank, in days; the server takes up to a year. */
+export const HOUSEKEEPING_TEMP_RANK_DAYS = [1, 7, 30, 90] as const;
+
+export const HOUSEKEEPING_TEMP_RANK_MAX_DAYS = 365;
+
+/** Days as the seconds the rank change carries; 0 (a lasting rank) for anything outside 1..365. */
+export const housekeepingTempRankSeconds = (days: number): number =>
+    Number.isInteger(days) && days >= 1 && days <= HOUSEKEEPING_TEMP_RANK_MAX_DAYS ? days * 24 * 3600 : 0;

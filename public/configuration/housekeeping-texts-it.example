@@ -551,5 +551,15 @@
     "housekeeping.ticket_reply.handled": "Grazie della segnalazione. Abbiamo preso provvedimenti.",
     "housekeeping.ticket_reply.more_info": "Ci servono più dettagli per intervenire. Segnala di nuovo spiegando cosa è successo e quando.",
     "housekeeping.ticket_reply.no_violation": "Abbiamo controllato la segnalazione e non abbiamo trovato violazioni del regolamento.",
-    "housekeeping.ticket_reply.false_report": "Questa segnalazione non era corretta. Usa il pulsante di aiuto solo per problemi reali."
+    "housekeeping.ticket_reply.false_report": "Questa segnalazione non era corretta. Usa il pulsante di aiuto solo per problemi reali.",
+
+    "housekeeping.user.account.rank_for": "Per",
+    "housekeeping.user.account.rank_lasting": "Sempre",
+    "housekeeping.user.account.rank_days": "%days% g",
+    "housekeeping.user.account.rank_lasting_hint": "Il rango resta finché non viene cambiato.",
+    "housekeeping.user.account.rank_temp_hint": "Il rango dura %days% giorni, poi torna da solo quello precedente.",
+    "housekeeping.user.account.rank_temp_confirm": "Dare il rango %rank% per %days% giorni? Poi l'utente torna al rango precedente.",
+    "housekeeping.user.account.rank_temp_running": "Rango temporaneo %rank% fino al %until%, poi torna a %previous% (dato da %staff%).",
+    "housekeeping.user.account.rank_temp_end": "Termina ora",
+    "housekeeping.user.account.rank_temp_end_confirm": "Terminare subito il rango temporaneo e ridare %rank%?"
 }

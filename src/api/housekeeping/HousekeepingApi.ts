@@ -222,8 +222,9 @@ const kickUserViaPacket = (userId: number, reason: string): Promise<IHousekeepin
 const forceDisconnectUserViaPacket = (userId: number, reason: string): Promise<IHousekeepingActionResult> =>
     runHkAction(new HousekeepingForceDisconnectUserComposer(userId, reason || ''), 'user.disconnect');
 
-const setUserRankViaPacket = (userId: number, rank: number): Promise<IHousekeepingActionResult> =>
-    runHkAction(new HousekeepingSetUserRankComposer(userId, rank), 'user.set_rank');
+/** durationSeconds > 0 makes the rank temporary; otherwise the packet stays the two-int form. */
+const setUserRankViaPacket = (userId: number, rank: number, durationSeconds = 0): Promise<IHousekeepingActionResult> =>
+    runHkAction(new HousekeepingSetUserRankComposer(userId, rank, durationSeconds > 0 ? durationSeconds : undefined), 'user.set_rank');
 
 const tradeLockUserViaPacket = (userId: number, hours: number, reason: string): Promise<IHousekeepingActionResult> =>
     runHkAction(new HousekeepingTradeLockUserComposer(userId, hours, reason || ''), 'user.trade_lock');
@@ -480,7 +481,7 @@ export const HousekeepingApi = {
     kickUser: (userId: number, reason: string) => kickUserViaPacket(userId, reason),
     forceDisconnectUser: (userId: number, reason: string) => forceDisconnectUserViaPacket(userId, reason),
     resetUserPassword: (userId: number) => resetUserPasswordViaPacket(userId),
-    setUserRank: (userId: number, rank: number) => setUserRankViaPacket(userId, rank),
+    setUserRank: (userId: number, rank: number, durationSeconds?: number) => setUserRankViaPacket(userId, rank, durationSeconds),
     tradeLockUser: (userId: number, hours: number, reason: string) => tradeLockUserViaPacket(userId, hours, reason),
 
     // -- room lookup -----------------------------------------------
