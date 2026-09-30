@@ -69,17 +69,20 @@ const HousekeepingBarChart: FC<{
                     <span key={index}>{points[index] ? label(points[index].bucket) : ''}</span>
                 ))}
             </div>
-            <table className="sr-only">
-                <caption>{title}</caption>
-                <tbody>
-                    {points.map((point) => (
-                        <tr key={point.bucket}>
-                            <th scope="row">{label(point.bucket)}</th>
-                            <td>{point.value}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            {/* The table sits in a clipped div: a <caption> is drawn outside its table box and would escape sr-only on the table itself. */}
+            <div className="sr-only">
+                <table>
+                    <caption>{title}</caption>
+                    <tbody>
+                        {points.map((point) => (
+                            <tr key={point.bucket}>
+                                <th scope="row">{label(point.bucket)}</th>
+                                <td>{point.value}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </figure>
     );
 };
