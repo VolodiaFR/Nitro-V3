@@ -13,20 +13,37 @@ import {
 import { FC, useEffect, useMemo, useState } from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import {
+    AMBASSADOR_MUTE_MINUTES,
     AvatarInfoUser,
+    canReplenishRespect,
     DispatchUiEvent,
+    GetConfigurationValue,
     GetOwnRoomObject,
     GetUserProfile,
+    getMuteLabelKey,
     isHousekeepingEnabled,
+    getTradeBlockedKey,
     LocalizeText,
     MessengerFriend,
+    NotificationAlertType,
     ReportType,
     RoomWidgetUpdateChatInputContentEvent,
     SanitizeHtml,
     SendMessageComposer
 } from '../../../../../api';
 import { Flex } from '../../../../../common';
-import { useFriends, useHasPermission, useHelp, useIsUserIgnored, useMessageEvent, useRoom, useSessionInfo, useWiredTools } from '../../../../../hooks';
+import {
+    useFriends,
+    useHasPermission,
+    useHelp,
+    useIsUserIgnored,
+    useMessageEvent,
+    useNotification,
+    usePurse,
+    useRoom,
+    useSessionInfo,
+    useWiredTools
+} from '../../../../../hooks';
 import { ContextMenuHeaderView } from '../../context-menu/ContextMenuHeaderView';
 import { ContextMenuListItemView } from '../../context-menu/ContextMenuListItemView';
 import { ContextMenuView } from '../../context-menu/ContextMenuView';
@@ -44,13 +61,17 @@ const MODE_AMBASSADOR = 4;
 const MODE_AMBASSADOR_MUTE = 5;
 const MODE_RELATIONSHIP = 6;
 
+const DUCKETS = 0;
+
 export const AvatarInfoWidgetAvatarView: FC<AvatarInfoWidgetAvatarViewProps> = (props) => {
     const { avatarInfo = null, onClose = null } = props;
     const [mode, setMode] = useState(MODE_NORMAL);
     const { canRequestFriend = null } = useFriends();
     const { report = null } = useHelp();
     const { roomSession = null, isHandItemBlocked = false } = useRoom();
-    const { userRespectRemaining = 0, respectUser = null } = useSessionInfo();
+    const { userRespectRemaining = 0, respectReplenishesLeft = 0, respectUser = null, replenishRespect = null } = useSessionInfo();
+    const { showConfirm = null, simpleAlert = null } = useNotification();
+    const { getCurrencyAmount = null } = usePurse();
     const { openInspectionForUser, showInspectButton } = useWiredTools();
     const canOpenHousekeeping = useHasPermission('acc_housekeeping') && isHousekeepingEnabled();
     // Reactive: the menu auto-flips Ignore <-> Unignore if the state
@@ -108,6 +129,33 @@ export const AvatarInfoWidgetAvatarView: FC<AvatarInfoWidgetAvatarViewProps> = (
         return flag;
     }, [isHandItemBlocked]);
 
+    const tradeBlockedKey = getTradeBlockedKey(avatarInfo.canTrade, avatarInfo.canTradeReason);
+
+    // Flash asks first: the replenish costs duckets and works once a day.
+    const askReplenishRespect = () => {
+        const cost = GetConfigurationValue<number>('respect.replenish_cost_duckets', 50);
+
+        if (cost > 0 && getCurrencyAmount(DUCKETS) < cost) {
+            simpleAlert(
+                LocalizeText('respect.replenish.not_enough_duckets.desc', ['amount'], [cost.toString()]),
+                NotificationAlertType.DEFAULT,
+                null,
+                null,
+                LocalizeText('respect.replenish.not_enough_duckets.title')
+            );
+            return;
+        }
+
+        showConfirm(
+            LocalizeText('respect.replenish.desc', ['amount'], [cost.toString()]),
+            () => replenishRespect(),
+            null,
+            null,
+            null,
+            LocalizeText('respect.replenish.title')
+        );
+    };
+
     const processAction = (name: string) => {
         let hideMenu = true;
 
@@ -155,6 +203,9 @@ export const AvatarInfoWidgetAvatarView: FC<AvatarInfoWidgetAvatarViewProps> = (
                     hideMenu = false;
                     setMode(MODE_RELATIONSHIP);
                     break;
+                case 'replenish_respect':
+                    askReplenishRespect();
+                    break;
                 case 'respect': {
                     respectUser(avatarInfo.webID);
 
@@ -201,6 +252,11 @@ export const AvatarInfoWidgetAvatarView: FC<AvatarInfoWidgetAvatarViewProps> = (
                     setMode(MODE_MODERATE);
                     break;
                 case 'trade':
+                    if (tradeBlockedKey) {
+                        hideMenu = false;
+                        break;
+                    }
+
                     SendMessageComposer(new TradingOpenComposer(avatarInfo.roomIndex));
                     break;
                 case 'report':
@@ -221,17 +277,8 @@ export const AvatarInfoWidgetAvatarView: FC<AvatarInfoWidgetAvatarViewProps> = (
                 case 'ambassador_kick':
                     roomSession.sendKickMessage(avatarInfo.webID);
                     break;
-                case 'ambassador_mute_2min':
-                    roomSession.sendMuteMessage(avatarInfo.webID, 2);
-                    break;
-                case 'ambassador_mute_10min':
-                    roomSession.sendMuteMessage(avatarInfo.webID, 10);
-                    break;
-                case 'ambassador_mute_60min':
-                    roomSession.sendMuteMessage(avatarInfo.webID, 60);
-                    break;
-                case 'ambassador_mute_18hour':
-                    roomSession.sendMuteMessage(avatarInfo.webID, 1080);
+                case 'ambassador_unmute':
+                    roomSession.sendUnmuteMessage(avatarInfo.webID);
                     break;
                 case 'rship_heart':
                     SendMessageComposer(new SetRelationshipStatusComposer(avatarInfo.webID, MessengerFriend.RELATIONSHIP_HEART));
@@ -244,6 +291,13 @@ export const AvatarInfoWidgetAvatarView: FC<AvatarInfoWidgetAvatarViewProps> = (
                     break;
                 case 'rship_none':
                     SendMessageComposer(new SetRelationshipStatusComposer(avatarInfo.webID, MessengerFriend.RELATIONSHIP_NONE));
+                    break;
+                default:
+                    if (name.startsWith('ambassador_mute_')) {
+                        const minutes = Number(name.substring('ambassador_mute_'.length));
+
+                        if (AMBASSADOR_MUTE_MINUTES.includes(minutes)) roomSession.sendMuteMessage(avatarInfo.webID, minutes);
+                    }
                     break;
             }
         }
@@ -277,11 +331,22 @@ export const AvatarInfoWidgetAvatarView: FC<AvatarInfoWidgetAvatarViewProps> = (
                             {LocalizeText('infostand.button.friend')}
                         </ContextMenuListItemView>
                     )}
-                    <ContextMenuListItemView onClick={(event) => processAction('trade')}>{LocalizeText('infostand.button.trade')}</ContextMenuListItemView>
+                    <ContextMenuListItemView
+                        disabled={!!tradeBlockedKey}
+                        title={tradeBlockedKey ? LocalizeText(tradeBlockedKey) : undefined}
+                        onClick={(event) => processAction('trade')}
+                    >
+                        {LocalizeText('infostand.button.trade')}
+                    </ContextMenuListItemView>
                     <ContextMenuListItemView onClick={(event) => processAction('whisper')}>{LocalizeText('infostand.button.whisper')}</ContextMenuListItemView>
                     {userRespectRemaining > 0 && (
                         <ContextMenuListItemView onClick={(event) => processAction('respect')}>
                             {LocalizeText('infostand.button.respect', ['count'], [userRespectRemaining.toString()])}
+                        </ContextMenuListItemView>
+                    )}
+                    {canReplenishRespect(userRespectRemaining, respectReplenishesLeft) && (
+                        <ContextMenuListItemView onClick={(event) => processAction('replenish_respect')}>
+                            {LocalizeText('infostand.button.replenish_respect')}
                         </ContextMenuListItemView>
                     )}
                     {!canRequestFriend(avatarInfo.webID) && (
@@ -397,6 +462,9 @@ export const AvatarInfoWidgetAvatarView: FC<AvatarInfoWidgetAvatarViewProps> = (
                         {LocalizeText('infostand.button.mute')}
                         <FaChevronRight className="right fa-icon" />
                     </ContextMenuListItemView>
+                    <ContextMenuListItemView onClick={(event) => processAction('ambassador_unmute')}>
+                        {LocalizeText('infostand.button.unmute')}
+                    </ContextMenuListItemView>
                     <ContextMenuListItemView onClick={(event) => processAction('back')}>
                         <FaChevronLeft className="left fa-icon" />
                         {LocalizeText('generic.back')}
@@ -405,18 +473,11 @@ export const AvatarInfoWidgetAvatarView: FC<AvatarInfoWidgetAvatarViewProps> = (
             )}
             {mode === MODE_AMBASSADOR_MUTE && (
                 <>
-                    <ContextMenuListItemView onClick={(event) => processAction('ambassador_mute_2min')}>
-                        {LocalizeText('infostand.button.mute_2min')}
-                    </ContextMenuListItemView>
-                    <ContextMenuListItemView onClick={(event) => processAction('ambassador_mute_10min')}>
-                        {LocalizeText('infostand.button.mute_10min')}
-                    </ContextMenuListItemView>
-                    <ContextMenuListItemView onClick={(event) => processAction('ambassador_mute_60min')}>
-                        {LocalizeText('infostand.button.mute_60min')}
-                    </ContextMenuListItemView>
-                    <ContextMenuListItemView onClick={(event) => processAction('ambassador_mute_18hr')}>
-                        {LocalizeText('infostand.button.mute_18hour')}
-                    </ContextMenuListItemView>
+                    {AMBASSADOR_MUTE_MINUTES.map((minutes) => (
+                        <ContextMenuListItemView key={minutes} onClick={(event) => processAction(`ambassador_mute_${minutes}`)}>
+                            {LocalizeText(getMuteLabelKey(minutes))}
+                        </ContextMenuListItemView>
+                    ))}
                     <ContextMenuListItemView onClick={(event) => processAction('back_ambassador')}>
                         <FaChevronLeft className="left fa-icon" />
                         {LocalizeText('generic.back')}
