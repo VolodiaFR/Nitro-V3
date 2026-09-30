@@ -253,9 +253,10 @@ export class AvatarInfoUtilities {
 
             userInfo.canTradeReason = AvatarInfoUser.TRADE_REASON_OK;
 
-            if (isShuttingDown) userInfo.canTradeReason = AvatarInfoUser.TRADE_REASON_SHUTDOWN;
-
+            // A shutdown is the reason even in a room without free trading.
             if (tradeMode !== RoomTradingLevelEnum.FREE_TRADING) userInfo.canTradeReason = AvatarInfoUser.TRADE_REASON_NO_TRADING;
+
+            if (isShuttingDown) userInfo.canTradeReason = AvatarInfoUser.TRADE_REASON_SHUTDOWN;
 
             // const _local_12 = GetSessionDataManager().userId;
             // _local_13 = GetSessionDataManager().getUserTags(_local_12);

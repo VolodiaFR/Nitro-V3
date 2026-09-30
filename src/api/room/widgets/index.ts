@@ -4,6 +4,7 @@ export * from './AvatarInfoPet';
 export * from './AvatarInfoRentableBot';
 export * from './AvatarInfoUser';
 export * from './AvatarInfoUtilities';
+export * from './AvatarMenuOptions';
 export * from './BotSkillsEnum';
 export * from './ChatBubbleMessage';
 export * from './ChatBubbleUtilities';
