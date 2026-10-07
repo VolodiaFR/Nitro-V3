@@ -3,6 +3,7 @@ import {
     CreateLinkEvent,
     FurnitureFloorUpdateEvent,
     GetRoomEngine,
+    GetSessionDataManager,
     GetSoundManager,
     GroupInformationComposer,
     GroupInformationEvent,
@@ -46,7 +47,7 @@ import {
     Text,
     UserProfileIconView
 } from '../../../../../common';
-import { useFurniPickupGuard, useHasPermission, useMessageEvent, useOctaneEvent, useRareValues, useRoom, useWiredTools } from '../../../../../hooks';
+import { useFurniPickupGuard, useFurnitureRecolorWidget, useHasPermission, useMessageEvent, useOctaneEvent, useRareValues, useRoom, useWiredTools } from '../../../../../hooks';
 import { OctaneInput } from '../../../../../layout';
 import statHeightIcon from '../../../../../assets/images/infostand/stat-height.png';
 import statIdIcon from '../../../../../assets/images/infostand/stat-id.png';
@@ -194,6 +195,8 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
     const [pickupMode, setPickupMode] = useState(0);
     const [canMove, setCanMove] = useState(false);
     const [canRotate, setCanRotate] = useState(false);
+    const [canRecolor, setCanRecolor] = useState(false);
+    const { open: openRecolor = null } = useFurnitureRecolorWidget();
     const [canUse, setCanUse] = useState(false);
     const { pickupRoomObject } = useFurniPickupGuard();
     const [canRemoveBackground, setCanRemoveBackground] = useState(false);
@@ -491,6 +494,11 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
         setPickupMode(pickupMode);
         setCanMove(canMove);
         setCanRotate(canRotate);
+        const recolorTypeId = avatarInfo.isWallItem ? 0 : (roomObjForLocation?.model?.getValue<number>(RoomObjectVariable.FURNITURE_TYPE_ID) ?? 0);
+        const recolorData = recolorTypeId > 0 ? GetSessionDataManager().getFloorItemData(recolorTypeId) : null;
+        setCanRecolor(
+            canMove && !!recolorData?.hasIndexedColor && (avatarInfo.availableForBuildersClub || avatarInfo.ownerName === 'Builders Club')
+        );
         setCanUse(canUse);
         setCanRemoveBackground(removeBackgroundAllowed);
         setFurniKeys(furniKeyss);
@@ -1167,6 +1175,11 @@ export const InfoStandWidgetFurniView: FC<InfoStandWidgetFurniViewProps> = (prop
                 {canRotate && (
                     <Button variant="dark" onClick={(event) => processButtonAction('rotate')}>
                         {LocalizeText('infostand.button.rotate')}
+                    </Button>
+                )}
+                {canRecolor && (
+                    <Button variant="dark" onClick={() => openRecolor && openRecolor(avatarInfo.id)}>
+                        {localizeWithFallback('infostand.button.recolor', 'Recolor')}
                     </Button>
                 )}
                 {pickupMode !== PICKUP_MODE_NONE && (
