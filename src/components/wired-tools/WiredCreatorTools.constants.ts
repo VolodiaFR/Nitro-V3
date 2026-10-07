@@ -18,6 +18,8 @@ export const WIRED_MONITOR_ACTION_FETCH = 0;
 export const WIRED_MONITOR_ACTION_CLEAR_LOGS = 1;
 export const WIRED_MONITOR_POLL_MS = 250;
 export const WIRED_VARIABLES_POLL_MS = 250;
+export const WIRED_VARIABLES_IDLE_POLL_MS = 2000;
+export const WIRED_VARIABLES_LIVE_TABS = ['inspection', 'variables'];
 export const WIRED_INSPECTION_REFRESH_MS = 50;
 export const WIRED_CLOCK_REFRESH_MS = 50;
 
