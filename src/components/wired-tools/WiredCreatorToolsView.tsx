@@ -88,6 +88,8 @@ import {
     WIRED_MONITOR_ACTION_CLEAR_LOGS,
     WIRED_MONITOR_ACTION_FETCH,
     WIRED_MONITOR_POLL_MS,
+    WIRED_VARIABLES_IDLE_POLL_MS,
+    WIRED_VARIABLES_LIVE_TABS,
     WIRED_VARIABLES_POLL_MS
 } from './WiredCreatorTools.constants';
 import {
@@ -893,15 +895,23 @@ export const WiredCreatorToolsView: FC<{}> = () => {
         return () => window.clearInterval(interval);
     }, [isVisible, activeTab, roomSession?.roomId, requestMonitorSnapshot]);
 
+    const isLiveVariablesTab = WIRED_VARIABLES_LIVE_TABS.includes(activeTab);
+
     useEffect(() => {
         if (!isVisible || !roomSession?.roomId || !roomSettings.canInspect || shouldPauseVariableSnapshotRefresh) return;
 
         requestUserVariables();
 
-        const interval = window.setInterval(requestUserVariables, WIRED_VARIABLES_POLL_MS);
+        // Live values only on the tabs that show them; nothing while the browser tab is hidden.
+        const interval = window.setInterval(
+            () => {
+                if (!document.hidden) requestUserVariables();
+            },
+            isLiveVariablesTab ? WIRED_VARIABLES_POLL_MS : WIRED_VARIABLES_IDLE_POLL_MS
+        );
 
         return () => window.clearInterval(interval);
-    }, [isVisible, roomSession?.roomId, roomSettings.canInspect, requestUserVariables, shouldPauseVariableSnapshotRefresh]);
+    }, [isVisible, roomSession?.roomId, roomSettings.canInspect, requestUserVariables, shouldPauseVariableSnapshotRefresh, isLiveVariablesTab]);
 
     useEffect(() => {
         if (!isVisible || activeTab !== 'inspection') return;
